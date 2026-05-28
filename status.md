@@ -1,0 +1,3 @@
+- Working on final delivery and documentation of Lynx DMS.  
+- Deepening C++ knowledge for edge inference pipelines.  
+- Exploring postgraduate research paths in AI and Computer Vision.

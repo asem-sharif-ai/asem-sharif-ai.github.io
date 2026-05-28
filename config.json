@@ -1,0 +1,37 @@
+{
+  "theme": "#00000000",
+  "dark_mode": null,
+  "symbol": ">_",
+  "icon": "./icon.png",
+  "name": "Asem E. Sharif",
+  "role": ["AI & Computer Vision Engineer", "Qt Developer"],
+  "location": "Cairo, Egypt",
+  "resume_path": "./[Resume]-Asem-Sharif.pdf",
+  "cv_path": "./[CV]-Asem-Sharif.pdf",
+  "cv_date": "04/2026",
+  "sections": [
+    [
+      { "title": "About", "subtitle": "About Me", "icon": "user", "path": "./README.md", "key": true }
+    ],
+    [
+      { "title": "Status", "subtitle": "Current Status", "icon": "experience", "path": "./status.md", "key": true },
+      { "title": "Update", "subtitle": "Recent Updates", "icon": "update", "path": "./update.md", "key": true }
+    ]
+  ],
+  "links": [
+    [
+      { "site": "facebook", "url": "https://www.facebook.com/asem.sharif.1" },
+      { "site": "instagram", "url": "https://www.instagram.com/_notasem_" },
+      { "site": "whatsapp", "url": "https://wa.me/+201010057162" },
+      { "site": "telegram", "url": "https://t.me/notasem" }
+    ],
+    [
+      { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
+      { "site": "github", "url": "https://github.com/asem-sharif-ai" },
+      { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" }
+    ],
+    [
+      { "site": "info", "url": "./info.html" }
+    ]
+  ]
+}
