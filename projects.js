@@ -400,17 +400,6 @@ async function runProjectsApp() {
       if (latestPanel) latestPanel.style.display = 'none';
     }
 
-    if (configData.symbol && typeof symbolMap !== 'undefined' && symbolMap[configData.symbol]) {
-      const brandTitleEl = document.getElementById('proj-brand-title');
-      if (brandTitleEl) {
-        brandTitleEl.style.cursor = 'pointer';
-        brandTitleEl.addEventListener('click', () => {
-          const isNowLight = document.body.classList.toggle('light-mode');
-          localStorage.setItem('user-theme', isNowLight ? 'light' : 'dark');
-        });
-      }
-    }
-
     _loadFilterState();
 
     const topics = collectTopics(_allProjects);

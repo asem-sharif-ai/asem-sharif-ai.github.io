@@ -1,35 +1,5 @@
 let _configData = {};
 
-async function runSkillsApp() {
-  try {
-    const res = await fetch('config.json');
-    const data = await res.json();
-    _configData = data;
-
-    const name = _configData.name || 'Anonymous';
-    document.title = `${name} - Skills`;
-
-    if (typeof applyThemeFromConfig === 'function') applyThemeFromConfig(data);
-
-    const brandTitle = document.getElementById('skills-brand-title');
-    if (brandTitle) brandTitle.innerText = data.name || 'Profile';
-
-    if (data.roles && Array.isArray(data.roles)) {
-      renderRoles('skills-brand-role', data.roles);
-    } else if (data.roles && typeof data.roles === 'string') {
-      const brandRole = document.getElementById('skills-brand-role');
-      if (brandRole) brandRole.innerText = data.roles;
-    }
-
-    if (data.skills && typeof data.skills === 'object') {
-      renderSkillGroups(data.skills);
-    }
-
-  } catch (err) {
-    console.error('Skills UI Setup Failure:', err);
-  }
-}
-
 function renderSkillGroups(skills) {
   const container = document.getElementById('skills-container');
   if (!container) return;
@@ -223,6 +193,35 @@ const themeMutationObserver = new MutationObserver((mutations) => {
   });
 });
 themeMutationObserver.observe(document.body, { attributes: true });
+
+async function runSkillsApp() {
+  try {
+    const cfgRes = await fetch('config.json');
+    const configData = await cfgRes.json();
+
+    _configData = configData;
+
+    const name = _configData.name || 'Anonymous';
+    document.title = `${name} - Skills`;
+
+    if (typeof applyThemeFromConfig === 'function') applyThemeFromConfig(configData);
+    if (typeof applyFavicon === 'function') applyFavicon(_configData.icon);
+
+    const brandTitle = document.getElementById('skills-brand-title');
+    if (brandTitle) brandTitle.innerText = configData.name || 'Profile';
+
+    if (typeof renderRoles === 'function') {
+      renderRoles('skills-brand-role', Array.isArray(_configData.role) ? _configData.role : (_configData.role ? [_configData.role] : []));
+    }
+
+    if (configData.skills && typeof configData.skills === 'object') {
+      renderSkillGroups(configData.skills);
+    }
+
+  } catch (err) {
+    console.error('Skills Setup Failure:', err);
+  }
+}
 
 window.addEventListener('DOMContentLoaded', runSkillsApp);
 
