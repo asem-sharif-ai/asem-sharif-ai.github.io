@@ -12,18 +12,30 @@ async function runSkillsApp() {
 
     if (typeof applyThemeFromConfig === 'function') applyThemeFromConfig(data);
     
+        const logoContainer = document.querySelector('.hero-logo');
+        if (logoContainer) {
+          logoContainer.style.cursor = 'pointer';
+          logoContainer.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('user-theme', isLight ? 'light' : 'dark');
+          });
+        }
+    
     const brandTitle = document.getElementById('skills-brand-title');
-    const brandRole = document.getElementById('skills-brand-role');
     if (brandTitle) brandTitle.innerText = data.name || 'Profile';
 
-    if (brandRole && data.role) {
-      brandRole.innerText = Array.isArray(data.role) ? data.role.join(' • ') : data.role;
+    if (data.roles && Array.isArray(data.roles)) {
+      renderRoles('skills-brand-role', data.roles);
+    } else if (data.roles && typeof data.roles === 'string') {
+      const brandRole = document.getElementById('skills-brand-role');
+      if (brandRole) brandRole.innerText = data.roles;
     }
 
     if (data.skills && data.skills.content) {
       _skillRows = data.skills.content;
       renderSkillsGrid(_skillRows, data.skills.layout || 4);
     }
+
   } catch (err) {
     console.error('Skills UI Setup Failure:', err);
   }
@@ -60,6 +72,22 @@ function buildSkillCard(skill) {
   const level = Math.min(Math.max(parseFloat(skill.level ?? 0.0), 0.0), 1.0);
   const strokeDashoffset = circumference - (level * circumference);
 
+  const isLightMode = document.body.classList.contains('light-mode');
+
+  let darkIconPath = '';
+  let lightIconPath = '';
+  let currentSrc = '';
+
+  if (Array.isArray(skill.icon)) {
+    darkIconPath = skill.icon[0] || '';
+    lightIconPath = skill.icon[1] || darkIconPath;
+    currentSrc = isLightMode ? lightIconPath : darkIconPath;
+  } else if (typeof skill.icon === 'string') {
+    darkIconPath = skill.icon;
+    lightIconPath = skill.icon;
+    currentSrc = skill.icon;
+  }
+
   card.innerHTML = `
     <div class="skill-card-header">
       <span class="skill-title">${skill.title || 'Skill'}</span>
@@ -75,7 +103,14 @@ function buildSkillCard(skill) {
             transform="rotate(-90 50 50)">
           </circle>
         </svg>
-        ${skill.icon ? `<img class="gauge-icon" src="${skill.icon}" alt="${skill.title}"/>` : ''}
+        ${currentSrc ? `
+          <img 
+            class="gauge-icon thematic-icon" 
+            src="${currentSrc}" 
+            data-dark="${darkIconPath}" 
+            data-light="${lightIconPath}" 
+            alt="${skill.title || 'Skill'}"
+          />` : ''}
       </div>
       ${skill.proof ? `
         <div class="skill-proof-panel">
@@ -94,6 +129,30 @@ function buildSkillCard(skill) {
 
   return card;
 }
+
+function updateThematicIcons() {
+  const isLightMode = document.body.classList.contains('light-mode');
+  const icons = document.querySelectorAll('.thematic-icon');
+  
+  icons.forEach(img => {
+    const darkSrc = img.getAttribute('data-dark');
+    const lightSrc = img.getAttribute('data-light');
+    if (isLightMode && lightSrc) {
+      img.src = lightSrc;
+    } else if (!isLightMode && darkSrc) {
+      img.src = darkSrc;
+    }
+  });
+}
+
+const themeMutationObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.attributeName === 'class') {
+      updateThematicIcons();
+    }
+  });
+});
+themeMutationObserver.observe(document.body, { attributes: true });
 
 window.addEventListener('DOMContentLoaded', runSkillsApp);
 
