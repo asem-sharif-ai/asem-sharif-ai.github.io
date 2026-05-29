@@ -29,7 +29,7 @@ body.light-mode {
 html {
   scroll-behavior: smooth;
   scrollbar-width: auto;
-  scrollbar-color: var(--text-deep-muted) var(--bg-card);
+  scrollbar-color: var(--scrollbar-thumb) var(--bg-card);
 }
 
 html::after {
@@ -51,16 +51,18 @@ html::-webkit-scrollbar {
 
 html::-webkit-scrollbar-track {
   background: var(--bg-card);
+  transition: background-color 0.3s ease;
 }
 
 html::-webkit-scrollbar-thumb {
-  background-color: var(--text-deep-muted);
+  background-color: var(--scrollbar-thumb);
   border-radius: 10px;
   border: 2px solid var(--bg-card);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 html::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-muted);
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 body {
@@ -369,6 +371,9 @@ body {
   margin-top: 16px;
   margin-bottom: 16px;
   transition: color 0.3s ease;
+  /* Sync Firefox scrollbar behavior for inner cards */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--bg-card);
 }
 
 .scroll-area h1,
@@ -562,6 +567,14 @@ body {
   border-color: var(--text-deep-muted);
 }
 
+.filter-dropdown {
+  padding: 6px 0;
+  max-height: 280px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--bg-card);
+}
+
 .filter-wrapper {
   position: relative;
   display: flex;
@@ -683,6 +696,107 @@ body {
   width: 120px;
 }
 
+.skill-card {
+  padding: 18px;
+  min-height: 180px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.skill-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skill-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  text-transform: capitalize;
+}
+
+.skill-source {
+  font-size: 0.75rem;
+  color: var(--text-deep-muted);
+  max-width: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skill-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-grow: 1;
+}
+
+.gauge-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-svg {
+  width: 100px;
+  height: 100px;
+}
+
+.gauge-bg {
+  fill: none;
+  stroke: var(--border-color);
+  stroke-width: 6;
+}
+
+.gauge-fill {
+  fill: none;
+  stroke: var(--text-bright);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s ease;
+}
+
+.gauge-icon {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.skill-proof-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.skill-proof-panel .topic-tag {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-body);
+  border-radius: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: 0 16px;
@@ -698,6 +812,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .nav-links a:nth-child(1) { 
+    order: 1; 
+  }
+
+  .search-wrapper {
+    flex: 1;
+    max-width: 160px; 
+    margin: 0 16px;
+    order: 2; 
+  }
+
+  .filter-wrapper {
+    order: 3; 
   }
 
   .nav-links a {
@@ -744,12 +873,6 @@ body {
     align-items: center;
   }
 
-  .search-wrapper {
-    flex: 1;
-    max-width: 120px;
-    margin: 0 16px;
-  }
-
   .search-wrapper input,
   .search-wrapper input:focus {
     width: 100%;
@@ -774,5 +897,17 @@ body {
 
   .filter-panel {
     right: -16px;
+  }
+
+  .latest-topic {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .latest-topic .topic-tag {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
   }
 }

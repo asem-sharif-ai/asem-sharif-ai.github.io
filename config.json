@@ -56,6 +56,23 @@
     ]
   ],
 
+  "skills": {
+    "layout": 4,
+
+    "content": [
+      [
+        {
+          "title": "Python",
+          "source": "ABAB",
+          "proof": "EXEX",
+          "icon": "./Data/Icons/python.png",
+          "level": 0.9,
+          "span": 1
+        }
+      ]
+    ]
+  },
+
   "projects": {
     "layout": 6,
 
@@ -180,4 +197,5 @@
       ]
     ]
   }
+
 }

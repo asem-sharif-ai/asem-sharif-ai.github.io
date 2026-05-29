@@ -239,18 +239,26 @@ async function runProfileApp() {
         sectionsContainer.appendChild(wrapper);
       });
     }
-
-    if (data.projects_path) {
+    
+    if (data.projects) {
       const projectsBtn = document.createElement('a');
       projectsBtn.id = 'nav-projects';
       projectsBtn.innerHTML = `<i class="${sectionMap['projects']}"></i><span class="nav-label"> Projects</span>`;
-      projectsBtn.href = data.projects_path;
+      projectsBtn.href = './projects.html';
       linksContainer.appendChild(projectsBtn);
     }
-
+    
+    if (data.skills) {
+          const skillsBtn = document.createElement('a');
+          skillsBtn.id = 'nav-skills';
+          skillsBtn.innerHTML = `<i class="${sectionMap['skills']}"></i><span class="nav-label"> Skills</span>`;
+          skillsBtn.href = './skills.html';
+          linksContainer.appendChild(skillsBtn);
+        }
+    
     const fileNavItems = [
-      { id: 'nav-resume', label: 'Resume',               icon: 'fa-solid fa-file-pdf', target: data.resume_path },
-      { id: 'nav-cv',     label: `CV (${data.cv_date})`, icon: 'fa-solid fa-file-pdf', target: data.cv_path  },
+      { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
+      { id: 'nav-cv', label: `CV <span style='font-size: 0.8em; font-weight: normal; opacity: 0.7; margin-left: 2px;'>(${data.cv_date})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path  },
     ];
 
     fileNavItems.forEach(item => {

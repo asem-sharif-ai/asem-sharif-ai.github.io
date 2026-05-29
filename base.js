@@ -23,7 +23,7 @@ const sectionMap = {
   projects:     'fa-solid fa-laptop-code',
   experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
-  skills:       'fa-solid fa-cubes',
+  skills:       'fa-solid fa-layer-group',
   blog:         'fa-solid fa-pen-to-square',
   status:       'fa-solid fa-circle-info',
   update:       'fa-solid fa-clock-rotate-left',
@@ -62,6 +62,8 @@ const iconMap = {
   whatsapp:     'fa-brands fa-whatsapp',
   youtube:      'fa-brands fa-youtube',
 };
+
+function _isMobile() { return window.innerWidth <= 768; }
 
 function parseMarkdown(text) {
   return text

@@ -203,8 +203,6 @@ function buildLatestHero(latest, configData) {
   }
 }
 
-function _isMobile() { return window.innerWidth <= 768; }
-
 function renderProjectsGrid(projectRows, columns) {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
@@ -418,7 +416,6 @@ async function runProjectsApp() {
     const topics = collectTopics(_allProjects);
     buildFilterDropdown(topics);
 
-    // Re-highlight restored active topics in the dropdown after it's built
     if (_activeTopics.size > 0) {
       const dropdown = document.getElementById('filter-dropdown');
       if (dropdown) {
@@ -428,7 +425,6 @@ async function runProjectsApp() {
             dropdown.querySelector('.filter-item-all')?.classList.remove('active');
           }
         });
-        // Reflect active filter in the nav label
         const filterBtn = document.getElementById('filter-btn');
         if (filterBtn) {
           const label = filterBtn.querySelector('.nav-label');
