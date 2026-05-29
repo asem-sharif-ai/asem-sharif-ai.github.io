@@ -4,10 +4,7 @@
   "symbol": ">_",
   "icon": "./Data/icon.png",
   "name": "Asem E. Sharif",
-  "role": [
-    "AI & Computer Vision Engineer",
-    "Qt Developer"
-  ],
+  "role": ["AI & Computer Vision Engineer", "Qt Developer"],
   "location": "Cairo, Egypt",
   "projects_path": "./projects.html",
   "resume_path": "./Data/[CV]-Asem-Sharif.pdf",
@@ -17,27 +14,24 @@
   "sections": [
     [
       {
-        "title": "About",
-        "subtitle": "About Me",
+        "key": "About",
+        "title": "About Me",
         "icon": "user",
-        "path": "./Data/README.md",
-        "key": true
+        "path": "./Data/README.md"
       }
     ],
     [
       {
-        "title": "Status",
-        "subtitle": "Current Status",
+        "key": "",
+        "title": "Current Status",
         "icon": "experience",
-        "path": "./Data/status.md",
-        "key": false
+        "path": "./Data/status.md"
       },
       {
-        "title": "Update",
-        "subtitle": "Recent Updates",
+        "key": "",
+        "title": "Recent Updates",
         "icon": "update",
-        "path": "./Data/update.md",
-        "key": false
+        "path": "./Data/update.md"
       }
     ]
   ],
@@ -55,23 +49,6 @@
       { "site": "mailto",    "url": "mailto:asem.sharif.ai@gmail.com" }
     ]
   ],
-
-  "skills": {
-    "layout": 4,
-
-    "content": [
-      [
-        {
-          "title": "Python",
-          "source": "ABAB",
-          "proof": "EXEX",
-          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
-          "level": 0.9,
-          "span": 1
-        }
-      ]
-    ]
-  },
 
   "projects": {
     "layout": 6,
@@ -193,6 +170,23 @@
           "topics": [],
           "star": false,
           "span": 3
+        }
+      ]
+    ]
+  },
+
+  "skills": {
+    "layout": 4,
+
+    "content": [
+      [
+        {
+          "title": "Python",
+          "source": "ABAB",
+          "proof": "EXEX",
+          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
+          "level": 0.9,
+          "span": 1
         }
       ]
     ]

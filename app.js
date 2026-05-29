@@ -87,7 +87,7 @@ function buildCard(section, cardId) {
 
   card.innerHTML = `
     <div class="card-header" id="header-${cardId}">
-      <div class="card-title">${section.subtitle}</div>
+      <div class="card-title">${section.title}</div>
       <div class="card-btns">
         <button class="btn" id="${copyId}">${actionBtnIcon}</button>
         <button class="btn"><i class="fa-solid fa-chevron-up toggle-icon"></i></button>
@@ -119,7 +119,7 @@ function buildCard(section, cardId) {
   if (isImage) {
     container.innerHTML = `
       <div class="image-container" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-        <img src="${section.path}" alt="${section.subtitle}"
+        <img src="${section.path}" alt="${section.title}"
              style="max-width:100%;max-height:400px;width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;" />
       </div>
     `;
@@ -229,7 +229,7 @@ async function runProfileApp() {
             const sectionIcon  = sectionMap[section.icon?.toLowerCase()] ?? sectionMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
-            navBtn.innerHTML = `<i class="${sectionIcon}"></i><span class="nav-label"> ${section.title}</span>`;
+            navBtn.innerHTML = `<i class="${sectionIcon}"></i><span class="nav-label"> ${section.key}</span>`;
             navBtn.onclick = () => jumpToPanel(rowId, cardId);
             linksContainer.appendChild(navBtn);
           }
