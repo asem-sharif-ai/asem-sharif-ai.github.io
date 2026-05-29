@@ -55,9 +55,8 @@ function buildSkillCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
   
-  // Larger size metrics
   const radius = 44; 
-  const circumference = 2 * Math.PI * radius; // ~276.46
+  const circumference = 2 * Math.PI * radius;
   const level = Math.min(Math.max(parseFloat(skill.level ?? 0.0), 0.0), 1.0);
   const strokeDashoffset = circumference - (level * circumference);
 

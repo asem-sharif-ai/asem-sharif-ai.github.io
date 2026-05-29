@@ -371,7 +371,6 @@ body {
   margin-top: 16px;
   margin-bottom: 16px;
   transition: color 0.3s ease;
-  /* Sync Firefox scrollbar behavior for inner cards */
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--bg-card);
 }

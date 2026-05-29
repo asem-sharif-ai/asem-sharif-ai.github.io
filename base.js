@@ -100,7 +100,6 @@ async function loadContent(path, elementId) {
 
 function isImagePath(path) {
   if (typeof path !== 'string') return false;
-  // Strip any trailing spaces or query strings, then check the extension
   return /\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i.test(path.trim().split('?')[0]);
 }
 
