@@ -63,7 +63,7 @@ const iconMap = {
   youtube:      'fa-brands fa-youtube',
 };
 
-function _isMobile() { return window.innerWidth <= 768; }
+function isMobile() { return window.innerWidth <= 768; }
 
 function parseMarkdown(text) {
   return text

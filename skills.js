@@ -1,5 +1,4 @@
 let _configData = {};
-let _skillRows = [];
 
 async function runSkillsApp() {
   try {
@@ -11,16 +10,7 @@ async function runSkillsApp() {
     document.title = `${name} - Skills`;
 
     if (typeof applyThemeFromConfig === 'function') applyThemeFromConfig(data);
-    
-        const logoContainer = document.querySelector('.hero-logo');
-        if (logoContainer) {
-          logoContainer.style.cursor = 'pointer';
-          logoContainer.addEventListener('click', () => {
-            const isLight = document.body.classList.toggle('light-mode');
-            localStorage.setItem('user-theme', isLight ? 'light' : 'dark');
-          });
-        }
-    
+
     const brandTitle = document.getElementById('skills-brand-title');
     if (brandTitle) brandTitle.innerText = data.name || 'Profile';
 
@@ -31,9 +21,8 @@ async function runSkillsApp() {
       if (brandRole) brandRole.innerText = data.roles;
     }
 
-    if (data.skills && data.skills.content) {
-      _skillRows = data.skills.content;
-      renderSkillsGrid(_skillRows, data.skills.layout || 4);
+    if (data.skills && typeof data.skills === 'object') {
+      renderSkillGroups(data.skills);
     }
 
   } catch (err) {
@@ -41,33 +30,106 @@ async function runSkillsApp() {
   }
 }
 
-function renderSkillsGrid(skillRows, columns) {
-  const grid = document.getElementById('skills-grid');
-  if (!grid) return;
+function renderSkillGroups(skills) {
+  const container = document.getElementById('skills-container');
+  if (!container) return;
+  container.innerHTML = '';
 
-  grid.innerHTML = '';
-  const totalCols = _isMobile() ? 1 : columns;
-  
-  grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = _isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
-  grid.style.gap = '20px';
+  Object.entries(skills).forEach(([groupKey, groupData], groupIndex) => {
+    if (!groupData || !groupData.content) return;
+
+    const groupCard = buildGroupCard(groupKey, groupData, groupIndex);
+    container.appendChild(groupCard);
+  });
+
+  if (typeof observeCards === 'function') observeCards();
+}
+
+function buildGroupCard(groupKey, groupData, groupIndex) {
+  const cardId = `skill-group-${groupIndex}`;
+  const collapseId = `skill-group-collapse-${groupIndex}`;
+
+  const card = document.createElement('div');
+  card.className = 'card visible';
+  card.id = cardId;
+
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  header.innerHTML = `
+    <div class="card-title">${_formatGroupName(groupKey)}</div>
+    <div class="card-btns">
+      <button class="btn"><i class="fa-solid fa-chevron-up toggle-icon"></i></button>
+    </div>
+  `;
+  header.addEventListener('click', () => _toggleGroupCard(cardId, collapseId));
+
+  const collapse = document.createElement('div');
+  collapse.className = 'card-collapse';
+  collapse.id = collapseId;
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const gridWrapper = document.createElement('div');
+  gridWrapper.style.padding = '16px';
+  gridWrapper.style.boxSizing = 'border-box';
+
+  _renderSkillsGrid(groupData.content, groupData.layout || 4, gridWrapper);
+
+  body.appendChild(gridWrapper);
+  collapse.appendChild(body);
+  card.appendChild(header);
+  card.appendChild(collapse);
+
+  return card;
+}
+
+function _formatGroupName(key) {
+  return key
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function _toggleGroupCard(cardId, collapseId) {
+  const card = document.getElementById(cardId);
+  const collapse = document.getElementById(collapseId);
+  const icon = card.querySelector('.toggle-icon');
+  if (!collapse || !icon) return;
+
+  if (collapse.classList.contains('closed')) {
+    collapse.classList.remove('closed');
+    icon.className = 'fa-solid fa-chevron-up toggle-icon';
+  } else {
+    collapse.classList.add('closed');
+    icon.className = 'fa-solid fa-chevron-down toggle-icon';
+  }
+}
+
+function _renderSkillsGrid(skillRows, columns, container) {
+  container.innerHTML = '';
+
+  const totalCols = isMobile() ? 1 : columns;
+
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
+  container.style.gap = '16px';
 
   skillRows.forEach(row => {
     row.forEach(skill => {
-      const card = buildSkillCard(skill);
-      if (!_isMobile() && skill.span) {
+      const card = _buildSkillCard(skill);
+      if (!isMobile() && skill.span) {
         card.style.gridColumn = `span ${Math.min(skill.span, totalCols)}`;
       }
-      grid.appendChild(card);
+      container.appendChild(card);
     });
   });
 }
 
-function buildSkillCard(skill) {
+function _buildSkillCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
-  
-  const radius = 44; 
+
+  const radius = 44;
   const circumference = 2 * Math.PI * radius;
   const level = Math.min(Math.max(parseFloat(skill.level ?? 0.0), 0.0), 1.0);
   const strokeDashoffset = circumference - (level * circumference);
@@ -88,37 +150,47 @@ function buildSkillCard(skill) {
     currentSrc = skill.icon;
   }
 
-  card.innerHTML = `
-    <div class="skill-card-header">
-      <span class="skill-title">${skill.title || 'Skill'}</span>
+card.innerHTML = `
+  <div class="skill-card-header">
+    <span class="skill-title">${skill.title || 'Skill'}</span>
+    <div class="skill-card-header-right">
       <span class="skill-source">${skill.source || ''}</span>
+      
+      ${skill.url ? `
+        <a class="skill-url-btn" href="${skill.url}" target="_blank" rel="noopener noreferrer" title="Open">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>` : ''}
     </div>
-    <div class="skill-card-body">
-      <div class="gauge-wrapper">
-        <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
-          <circle class="gauge-bg" cx="50" cy="50" r="${radius}"></circle>
-          <circle class="gauge-fill" cx="50" cy="50" r="${radius}" 
-            stroke-dasharray="${circumference}" 
-            stroke-dashoffset="${strokeDashoffset}"
-            transform="rotate(-90 50 50)">
-          </circle>
-        </svg>
-        ${currentSrc ? `
-          <img 
-            class="gauge-icon thematic-icon" 
-            src="${currentSrc}" 
-            data-dark="${darkIconPath}" 
-            data-light="${lightIconPath}" 
-            alt="${skill.title || 'Skill'}"
-          />` : ''}
+  </div>
+  <div class="skill-card-body">
+    <div class="gauge-wrapper">
+      <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
+        <circle class="gauge-bg" cx="50" cy="50" r="${radius}"></circle>
+        <circle class="gauge-fill" cx="50" cy="50" r="${radius}"
+          stroke-dasharray="${circumference}"
+          stroke-dashoffset="${strokeDashoffset}"
+          transform="rotate(-90 50 50)">
+        </circle>
+      </svg>
+      ${currentSrc ? `
+        <img
+          class="gauge-icon thematic-icon"
+          src="${currentSrc}"
+          data-dark="${darkIconPath}"
+          data-light="${lightIconPath}"
+          alt="${skill.title || 'Skill'}"
+        />` : ''}
+    </div>
+    ${skill.proof ? `
+      <div class="skill-proof-panel">
+        <span class="topic-tag">${skill.proof}</span>
       </div>
-      ${skill.proof ? `
-        <div class="skill-proof-panel">
-          <span class="topic-tag">${skill.proof}</span>
-        </div>
-      ` : ''}
-    </div>
-  `;
+    ` : ''}
+  </div>
+`;
+
+  const urlBtn = card.querySelector('.skill-url-btn');
+  if (urlBtn) urlBtn.addEventListener('click', e => e.stopPropagation());
 
   if (skill.source && skill.source.startsWith('http')) {
     card.style.cursor = 'pointer';
@@ -132,9 +204,7 @@ function buildSkillCard(skill) {
 
 function updateThematicIcons() {
   const isLightMode = document.body.classList.contains('light-mode');
-  const icons = document.querySelectorAll('.thematic-icon');
-  
-  icons.forEach(img => {
+  document.querySelectorAll('.thematic-icon').forEach(img => {
     const darkSrc = img.getAttribute('data-dark');
     const lightSrc = img.getAttribute('data-light');
     if (isLightMode && lightSrc) {
@@ -161,7 +231,7 @@ window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
     if (_configData.skills) {
-      renderSkillsGrid(_skillRows, _configData.skills.layout || 4);
+      renderSkillGroups(_configData.skills);
     }
   }, 120);
 });

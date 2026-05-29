@@ -702,7 +702,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background-color: var(--bg-card);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
 }
@@ -729,6 +729,19 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.skill-url-btn {
+  font-size: 0.72rem;
+  color: var(--text-deep-muted);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+ 
+.skill-url-btn:hover {
+  color: var(--text-bright);
 }
 
 .skill-card-body {

@@ -176,20 +176,21 @@
   },
 
   "skills": {
-    "layout": 4,
-
-    "content": [
-      [
-        {
-          "title": "Python",
-          "source": "ABAB",
-          "proof": "EXEX",
-          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
-          "level": 0.9,
-          "span": 1
-        }
+    "Programming": {
+      "layout": 4,
+      "content": [
+        [
+          {
+            "title": "Python",
+            "source": "Source",
+            "proof": "Proof",
+            "url": "",
+            "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
+            "level": 0.9,
+            "span": 1
+          }
+        ]
       ]
-    ]
+    }
   }
-
 }

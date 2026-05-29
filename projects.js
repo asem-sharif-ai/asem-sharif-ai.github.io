@@ -207,10 +207,10 @@ function renderProjectsGrid(projectRows, columns) {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
   
-  const totalCols = _isMobile() ? 1 : (columns || 4);
+  const totalCols = isMobile() ? 1 : (columns || 4);
   grid.style.setProperty('--proj-cols', totalCols);
   grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = _isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
+  grid.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
   grid.style.gridAutoRows = 'auto';
   grid.style.gridAutoFlow = 'row dense';
 
@@ -235,12 +235,12 @@ function renderProjectsGrid(projectRows, columns) {
     row.forEach((project) => {
       const cardId = `proj-${globalIndex}`;
       const card = buildProjectCard(project, cardId);
-      if (!_isMobile()) {
+      if (!isMobile()) {
         card.style.gridRowStart = `${rowIndex + 1}`;
       }
       const spanVal = typeof project.span === 'number' ? project.span : 1;
       card.dataset.span = spanVal;
-      if (!_isMobile() && spanVal > 1) {
+      if (!isMobile() && spanVal > 1) {
         card.style.gridColumn = `span ${spanVal}`;
       } else {
         card.style.gridColumn = 'span 1';
