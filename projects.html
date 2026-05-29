@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+
+    <nav class="navbar">
+      <div class="brand-group">
+        <div class="brand-name" id="proj-brand-title">Loading...</div>
+        <div class="brand-role" id="proj-brand-role"></div>
+      </div>
+      <div class="nav-links" id="proj-nav-items">
+        <a id="nav-home-btn">
+          <i class="fa-solid fa-house"></i>
+          <span class="nav-label">Home</span>
+        </a>
+
+        <div class="filter-wrapper">
+          <a id="filter-btn">
+            <i class="fa-solid fa-filter"></i>
+            <span class="nav-label">Filter</span>
+          </a>
+          <div class="filter-panel" id="filter-panel">
+            <div class="filter-header">Filter by Topic</div>
+            <div class="filter-dropdown" id="filter-dropdown"></div>
+          </div>
+        </div>
+
+        <div class="search-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input 
+            type="text" 
+            id="project-search-input" 
+            placeholder="Search" 
+            autocomplete="off"
+          />
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero" id="latest-panel">
+      <div class="hero-card">
+        <div class="latest-meta" style="display: flex; align-items: center; gap: 8px;">
+          <span class="latest-badge">Latest Project</span>
+          <span class="latest-star" id="latest-star" style="display: none; color: var(--star-color, #ffca28);"></span>
+        </div>
+        
+        <h2 id="latest-title"></h2>
+        <div id="latest-content" class="subtitle latest-desc"></div>
+        <span class="topic-tag latest-topic" id="latest-topic" style="display:none"></span>
+        <button class="btn latest-url-btn" id="latest-url-btn" style="display:none">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>View Project</span>
+        </button>
+      </div>
+    </section>
+
+    <main class="container" id="projects-container">
+      <div class="projects-grid" id="projects-grid"></div>
+    </main>
+
+    <script src="base.js"></script>
+    <script src="projects.js"></script>
+  </body>
+</html>

@@ -16,8 +16,8 @@ I intentionally designed this portfolio to be completely clean, modular, and tem
 
 You don't need to rewrite the core JavaScript logic or alter the HTML structure. To spin up your own version, you only need to look at two places:
 
-1. **Check the Mapping Dictionaries (`app.js`)**:
-   At the very beginning of `app.js`, you'll find three maps:
+1. **Check the Mapping Dictionaries (`base.js`)**:
+   At the very beginning of `base.js`, you'll find three maps:
    * `symbolMap`: For controlling the primary text/symbol logo in the navigation header.
    * `sectionMap`: Maps card icons using standard FontAwesome classes.
    * `iconMap`: Maps social media platform identifiers to their respective FontAwesome brand/solid icons.

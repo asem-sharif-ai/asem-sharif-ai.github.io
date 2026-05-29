@@ -2,36 +2,182 @@
   "theme": "#00000000",
   "dark_mode": null,
   "symbol": ">_",
-  "icon": "./icon.png",
+  "icon": "./Data/icon.png",
   "name": "Asem E. Sharif",
-  "role": ["AI & Computer Vision Engineer", "Qt Developer"],
+  "role": [
+    "AI & Computer Vision Engineer",
+    "Qt Developer"
+  ],
   "location": "Cairo, Egypt",
-  "resume_path": "./[Resume]-Asem-Sharif.pdf",
-  "cv_path": "./[CV]-Asem-Sharif.pdf",
+  "projects_path": "./projects.html",
+  "resume_path": "./Data/[CV]-Asem-Sharif.pdf",
+  "cv_path": "./Data/[CV]-Asem-Sharif.pdf",
   "cv_date": "04/2026",
+
   "sections": [
     [
-      { "title": "About", "subtitle": "About Me", "icon": "user", "path": "./README.md", "key": true }
+      {
+        "title": "About",
+        "subtitle": "About Me",
+        "icon": "user",
+        "path": "./Data/README.md",
+        "key": true
+      }
     ],
     [
-      { "title": "Status", "subtitle": "Current Status", "icon": "experience", "path": "./status.md", "key": true },
-      { "title": "Update", "subtitle": "Recent Updates", "icon": "update", "path": "./update.md", "key": true }
+      {
+        "title": "Status",
+        "subtitle": "Current Status",
+        "icon": "experience",
+        "path": "./Data/status.md",
+        "key": false
+      },
+      {
+        "title": "Update",
+        "subtitle": "Recent Updates",
+        "icon": "update",
+        "path": "./Data/update.md",
+        "key": false
+      }
     ]
   ],
+
   "links": [
     [
-      { "site": "facebook", "url": "https://www.facebook.com/asem.sharif.1" },
-      { "site": "instagram", "url": "https://www.instagram.com/_notasem_" },
-      { "site": "whatsapp", "url": "https://wa.me/+201010057162" },
-      { "site": "telegram", "url": "https://t.me/notasem" }
+      { "site": "facebook",  "url": "https://www.facebook.com/asem.sharif.1" },
+      { "site": "instagram", "url": "https://www.instagram.com/_notasem_"},
+      { "site": "whatsapp",  "url": "https://wa.me/+201010057162" },
+      { "site": "telegram",  "url": "https://t.me/notasem" }
     ],
     [
-      { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "github", "url": "https://github.com/asem-sharif-ai" },
-      { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" }
-    ],
-    [
-      { "site": "info", "url": "./info.html" }
+      { "site": "linkedin",  "url": "https://www.linkedin.com/in/asem-sharif" },
+      { "site": "github",    "url": "https://github.com/asem-sharif-ai" },
+      { "site": "mailto",    "url": "mailto:asem.sharif.ai@gmail.com" }
     ]
-  ]
+  ],
+
+  "projects": {
+    "layout": 6,
+
+    "latest": {
+      "title": "Lynx DMS",
+      "subtitle": "Intelligent Edge-Deployed Driver Monitoring System",
+      "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
+      "url": "https://github.com/asem-sharif-ai/Lynx-DMS",
+      "star": true
+    },
+
+    "content": [
+      [
+        {
+          "title": "Lynx DMS",
+          "content": [
+            "./Data/Project_0/lynx_dms.md",
+            "./Data/Project_0/image_1.png",
+            "./Data/Project_0/image_2.png",
+            "./Data/Project_0/image_3.png"
+          ],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
+          "star": true,
+          "span": 4
+        },
+        {
+          "title": "DMD",
+          "content": [
+            "./Data/Project_1/dmd_dataset.md",
+            "./Data/Project_1/image_1.png",
+            "./Data/Project_1/image_2.png",
+            "./Data/Project_1/image_3.png",
+            "./Data/Project_1/image_4.png",
+            "./Data/Project_1/image_5.png"
+          ],
+          "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
+          "topics": [],
+          "star": false,
+          "span": 2
+        }
+      ],
+      [
+        {
+          "title": "YTFetcherPlus",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Desktop", "Tools", "PyQt6", "yt-dlp", "APIs"],
+          "star": false,
+          "span": 3
+        },
+        {
+          "title": "Smart Note",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Desktop", "Tools", "PyQt6"],
+          "star": false,
+          "span": 3
+        }
+      ],
+      [
+        {
+          "title": "Face Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 3
+        },
+        {
+          "title": "Face Recognizer",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 3
+        }
+      ],
+      [
+        {
+          "title": "Mask Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 2
+        },
+        {
+          "title": "Glasses Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 2
+        },
+        {
+          "title": "Expression Classifier",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 2
+        }
+      ],
+      [
+        {
+          "title": "No-Code Machine Learning Lab",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 3
+        },
+        {
+          "title": "Hand Gestures CNN",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "star": false,
+          "span": 3
+        }
+      ]
+    ]
+  }
 }
