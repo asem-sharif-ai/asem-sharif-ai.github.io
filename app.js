@@ -143,6 +143,7 @@ function buildCard(section, cardId) {
   return card;
 }
 
+
 async function runProfileApp() {
   try {
     const res  = await fetch('config.json');
@@ -249,12 +250,12 @@ async function runProfileApp() {
     }
     
     if (data.skills) {
-          const skillsBtn = document.createElement('a');
-          skillsBtn.id = 'nav-skills';
-          skillsBtn.innerHTML = `<i class="${sectionMap['skills']}"></i><span class="nav-label"> Skills</span>`;
-          skillsBtn.href = './skills.html';
-          linksContainer.appendChild(skillsBtn);
-        }
+      const skillsBtn = document.createElement('a');
+      skillsBtn.id = 'nav-skills';
+      skillsBtn.innerHTML = `<i class="${sectionMap['skills']}"></i><span class="nav-label"> Skills</span>`;
+      skillsBtn.href = './skills.html';
+      linksContainer.appendChild(skillsBtn);
+    }
     
     const fileNavItems = [
       { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
@@ -299,6 +300,75 @@ async function runProfileApp() {
       });
     }
 
+    if (data.qr_url) {
+      const qrBtn = document.createElement('a');
+      qrBtn.id = 'nav-qr';
+      qrBtn.style.cursor = 'pointer';
+      qrBtn.innerHTML = `<i class="fa-solid fa-qrcode"></i>`;
+      linksContainer.appendChild(qrBtn);
+
+      const modalOverlay = document.createElement('div');
+      modalOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999; opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+      `;
+
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = `
+        border: 1px solid var(--border-color);
+        border-radius: 12px; text-align: center; overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3); max-width: 90%; width: 320px;
+        transform: scale(0.95); transition: transform 0.3s ease;
+      `;
+
+      const modalTitle = data.qr_title || 'Scan QR Code';
+
+      modalContent.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 20px 20px 16px;">
+          <span id="qr-modal-title" style="font-weight:600; color:var(--text-bright);">${modalTitle}</span>
+          <i class="fa-solid fa-xmark" id="close-qr-modal" style="cursor:pointer; color:var(--text-muted); font-size:1.2rem;"></i>
+        </div>
+        <div id="qr-image-wrapper" style="display:flex; justify-content:center; padding: 0 20px 20px;"></div>
+      `;
+
+      modalOverlay.appendChild(modalContent);
+      document.body.appendChild(modalOverlay);
+
+      const openModal = () => {
+        const isLight = document.body.classList.contains('light-mode');
+        const rgb = getComputedStyle(document.body).backgroundColor;
+        const match = rgb.match(/\d+/g);
+        const bgHex = match
+          ? match.slice(0, 3).map(n => parseInt(n).toString(16).padStart(2, '0')).join('')
+          : (isLight ? 'f5f5f7' : '111113');
+
+        const qrFg = isLight ? '000000' : 'ffffff';
+
+        modalContent.style.background = `#${bgHex}`;
+
+        const qrWrapper = modalOverlay.querySelector('#qr-image-wrapper');
+        qrWrapper.style.background = `#${bgHex}`;
+        qrWrapper.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(data.qr_url)}&color=${qrFg}&bgcolor=${bgHex}" alt="QR Code" style="display:block; width:220px; height:220px;" />`;
+
+        modalOverlay.style.opacity = '1';
+        modalOverlay.style.pointerEvents = 'auto';
+        modalContent.style.transform = 'scale(1)';
+      };
+
+      const closeModal = () => {
+        modalOverlay.style.opacity = '0';
+        modalOverlay.style.pointerEvents = 'none';
+        modalContent.style.transform = 'scale(0.95)';
+      };
+
+      qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+      modalOverlay.querySelector('#close-qr-modal').addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+    }
+
     if (typeof observeCards === 'function') observeCards();
     if (typeof runScrollSpy === 'function') runScrollSpy(spyTargets);
 
@@ -306,5 +376,7 @@ async function runProfileApp() {
     console.error('Application Setup Validation Failure:', error);
   }
 }
+
+
 
 document.addEventListener('DOMContentLoaded', runProfileApp);

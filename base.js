@@ -18,49 +18,63 @@ const symbolMap = {
 
 const sectionMap = {
   home:         'fa-solid fa-house',
+  search:       'fa-solid fa-magnifying-glass',
+
   user:         'fa-solid fa-user',
   about:        'fa-solid fa-address-card',
-  projects:     'fa-solid fa-laptop-code',
+  resume:       'fa-solid fa-file-pdf',
+  contact:      'fa-solid fa-envelope',
+
   experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
   skills:       'fa-solid fa-layer-group',
-  blog:         'fa-solid fa-pen-to-square',
-  status:       'fa-solid fa-circle-info',
-  update:       'fa-solid fa-clock-rotate-left',
-  contact:      'fa-solid fa-envelope',
-  settings:     'fa-solid fa-gear',
-  analytics:    'fa-solid fa-chart-line',
-  gallery:      'fa-solid fa-image',
+
+  projects:     'fa-solid fa-laptop-code',
   services:     'fa-solid fa-handshake',
+  gallery:      'fa-solid fa-image',
+
+  blog:         'fa-solid fa-pen-to-square',
+  testimonials: 'fa-solid fa-comment-dots',
+
   pricing:      'fa-solid fa-tags',
   team:         'fa-solid fa-users',
+
+  status:       'fa-solid fa-circle-info',
+  update:       'fa-solid fa-clock-rotate-left',
+  analytics:    'fa-solid fa-chart-line',
+
   faq:          'fa-solid fa-circle-question',
-  testimonials: 'fa-solid fa-comment-dots',
   download:     'fa-solid fa-download',
-  search:       'fa-solid fa-magnifying-glass',
-  resume:       'fa-solid fa-file-pdf',
+  settings:     'fa-solid fa-gear',
+
   default:      'fa-solid fa-layer-group',
 };
 
 const iconMap = {
-  bitbucket:    'fa-solid fa-bucket',
-  demo:         'fa-solid fa-laptop-code',
-  discord:      'fa-brands fa-discord',
   facebook:     'fa-brands fa-facebook-f',
-  github:       'fa-brands fa-github',
-  huggingface:  'fa-solid fa-face-smiling',
-  info:         'fa-solid fa-info',
   instagram:    'fa-brands fa-instagram',
-  kaggle:       'fa-brands fa-kaggle',
-  linkedin:     'fa-brands fa-linkedin-in',
-  mailto:       'fa-regular fa-envelope',
-  papers:       'fa-solid fa-file-lines',
-  researchgate: 'fa-brands fa-researchgate',
-  scholar:      'fa-solid fa-graduation-cap',
-  telegram:     'fa-brands fa-telegram',
   twitter:      'fa-brands fa-x-twitter',
-  whatsapp:     'fa-brands fa-whatsapp',
   youtube:      'fa-brands fa-youtube',
+  
+  mailto:       'fa-regular fa-envelope',
+  discord:      'fa-brands fa-discord',
+  whatsapp:     'fa-brands fa-whatsapp',
+  telegram:     'fa-brands fa-telegram',
+  
+  linkedin:     'fa-brands fa-linkedin-in',
+  medium:       'fa-brands fa-medium',
+
+  github:       'fa-brands fa-github',
+  kaggle:       'fa-brands fa-kaggle',
+  huggingface:  'fa-solid fa-face-smile',
+  bitbucket:    'fa-solid fa-bucket',
+
+  researchgate: 'fa-brands fa-researchgate',
+  papers:       'fa-solid fa-file-lines',
+  scholar:      'fa-solid fa-graduation-cap',
+
+  demo:         'fa-solid fa-laptop-code',
+  info:         'fa-solid fa-info',
 };
 
 function isMobile() { return window.innerWidth <= 768; }
