@@ -353,12 +353,6 @@ function initSearchLogic() {
     const layoutColumns = _configData.layout || 4;
     renderProjectsGrid(_allProjects, layoutColumns);
 
-    // if (_searchQuery.length > 0) {
-    //   const firstVisibleCard = document.querySelector('.project-card');
-    //   if (firstVisibleCard) {
-    //     firstVisibleCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    //   }
-    // }
   });
 }
 

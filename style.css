@@ -895,10 +895,6 @@ body {
     gap: 14px;
   }
 
-  .socials .separator {
-    display: none;
-  }
-
   .socials .social-group {
     display: flex;
     gap: 22px;
