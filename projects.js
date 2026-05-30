@@ -353,12 +353,12 @@ function initSearchLogic() {
     const layoutColumns = _configData.layout || 4;
     renderProjectsGrid(_allProjects, layoutColumns);
 
-    if (_searchQuery.length > 0) {
-      const firstVisibleCard = document.querySelector('.project-card');
-      if (firstVisibleCard) {
-        firstVisibleCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
+    // if (_searchQuery.length > 0) {
+    //   const firstVisibleCard = document.querySelector('.project-card');
+    //   if (firstVisibleCard) {
+    //     firstVisibleCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //   }
+    // }
   });
 }
 
@@ -436,12 +436,17 @@ async function runProjectsApp() {
     renderProjectsGrid(_allProjects, _configData.layout);
 
     let _resizeTimer;
+    let _lastWidth = window.innerWidth;
     window.addEventListener('resize', () => {
+      const newWidth = window.innerWidth;
+      if (newWidth === _lastWidth) return;
+      _lastWidth = newWidth;
       clearTimeout(_resizeTimer);
       _resizeTimer = setTimeout(() => {
         renderProjectsGrid(_allProjects, _configData.layout);
       }, 120);
     });
+
 
   } catch (err) {
     console.error('Projects App Setup Failure:', err);
