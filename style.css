@@ -886,14 +886,13 @@ body {
     height: auto;
     min-height: 100vh;
     padding-top: 80px;
-    padding-bottom: 60px;
+    padding-bottom: 30px;
+    box-sizing: border-box;
   }
 
   .socials {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .socials .separator {
