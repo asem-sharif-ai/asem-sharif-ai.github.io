@@ -214,6 +214,17 @@ body {
   margin-bottom: 28px;
 }
 
+#user-location {
+  font-size: 1rem;
+}
+
+#user-location::before {
+  content: '\f3c5';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 600;
+  margin-right: 8px;
+}
+
 .socials {
   display: flex;
   justify-content: center;
