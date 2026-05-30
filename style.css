@@ -882,9 +882,18 @@ body {
     grid-template-columns: 1fr !important;
   }
 
+  .hero {
+    height: auto;
+    min-height: 100vh;
+    padding-top: 80px;
+    padding-bottom: 60px;
+  }
+
   .socials {
-    flex-direction: column;
-    gap: 14px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
   }
 
   .socials .separator {
