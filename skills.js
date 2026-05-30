@@ -99,74 +99,78 @@ function _buildSkillCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
 
-  const radius = 44;
-  const circumference = 2 * Math.PI * radius;
-  const level = Math.min(Math.max(parseFloat(skill.level ?? 0.0), 0.0), 1.0);
-  const strokeDashoffset = circumference - (level * circumference);
+  const size = 100;
+  const strokeWidth = 12;
+  const rx = 16;
+  const pad = strokeWidth / 2 + 1;
+  const rectSize = size - pad * 2;
+  const perimeter = 2 * (rectSize + rectSize) - (8 - 2 * Math.PI) * rx;
 
-  const isLightMode = document.body.classList.contains('light-mode');
+  const level = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
+  const strokeDashoffset = perimeter * (1 - level);
 
-  let darkIconPath = '';
-  let lightIconPath = '';
-  let currentSrc = '';
+  const isLight = document.body.classList.contains('light-mode');
+  let darkIconPath = '', lightIconPath = '', currentSrc = '';
 
   if (Array.isArray(skill.icon)) {
-    darkIconPath = skill.icon[0] || '';
+    darkIconPath  = skill.icon[0] || '';
     lightIconPath = skill.icon[1] || darkIconPath;
-    currentSrc = isLightMode ? lightIconPath : darkIconPath;
+    currentSrc    = isLight ? lightIconPath : darkIconPath;
   } else if (typeof skill.icon === 'string') {
-    darkIconPath = skill.icon;
-    lightIconPath = skill.icon;
-    currentSrc = skill.icon;
+    darkIconPath = lightIconPath = currentSrc = skill.icon;
   }
 
-card.innerHTML = `
-  <div class="skill-card-header">
-    <span class="skill-title">${skill.title || 'Skill'}</span>
-    <div class="skill-card-header-right">
-      <span class="skill-source">${skill.source || ''}</span>
-      
-      ${skill.url ? `
-        <a class="skill-url-btn" href="${skill.url}" target="_blank" rel="noopener noreferrer" title="Open">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </a>` : ''}
-    </div>
-  </div>
-  <div class="skill-card-body">
-    <div class="gauge-wrapper">
-      <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
-        <circle class="gauge-bg" cx="50" cy="50" r="${radius}"></circle>
-        <circle class="gauge-fill" cx="50" cy="50" r="${radius}"
-          stroke-dasharray="${circumference}"
-          stroke-dashoffset="${strokeDashoffset}"
-          transform="rotate(-90 50 50)">
-        </circle>
-      </svg>
-      ${currentSrc ? `
-        <img
-          class="gauge-icon thematic-icon"
-          src="${currentSrc}"
-          data-dark="${darkIconPath}"
-          data-light="${lightIconPath}"
-          alt="${skill.title || 'Skill'}"
-        />` : ''}
-    </div>
-    ${skill.proof ? `
-      <div class="skill-proof-panel">
-        <span class="topic-tag">${skill.proof}</span>
+  card.innerHTML = `
+    <div class="skill-card-header">
+      <span class="skill-title">${skill.title || 'Skill'}</span>
+      <div class="skill-card-header-right">
+        <span class="skill-source">${skill.source || ''}</span>
+        ${skill.url ? `
+          <a class="skill-url-btn" href="${skill.url}" target="_blank" rel="noopener noreferrer" title="Open">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>` : ''}
       </div>
-    ` : ''}
-  </div>
-`;
+    </div>
+    <div class="skill-card-body">
+      <div class="gauge-wrapper">
+        <svg class="gauge-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          <rect class="gauge-bg"
+            x="${pad}" y="${pad}"
+            width="${rectSize}" height="${rectSize}"
+            rx="${rx}" ry="${rx}"
+          />
+          <rect class="gauge-fill"
+            x="${pad}" y="${pad}"
+            width="${rectSize}" height="${rectSize}"
+            rx="${rx}" ry="${rx}"
+            stroke-dasharray="${perimeter}"
+            stroke-dashoffset="${strokeDashoffset}"
+          />
+        </svg>
+        ${currentSrc ? `
+          <img
+            class="gauge-icon thematic-icon"
+            src="${currentSrc}"
+            data-dark="${darkIconPath}"
+            data-light="${lightIconPath}"
+            alt="${skill.title || 'Skill'}"
+          />` : ''}
+      </div>
+      ${skill.proof ? `
+        <div class="skill-proof-panel">
+          <span class="topic-tag">${skill.proof}</span>
+        </div>` : ''}
+    </div>
+  `;
 
-  const urlBtn = card.querySelector('.skill-url-btn');
-  if (urlBtn) urlBtn.addEventListener('click', e => e.stopPropagation());
+  card.querySelector('.skill-url-btn')
+    ?.addEventListener('click', e => e.stopPropagation());
 
-  if (skill.source && skill.source.startsWith('http')) {
+  if (skill.source?.startsWith('http')) {
     card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-      window.open(skill.source, '_blank', 'noopener noreferrer');
-    });
+    card.addEventListener('click', () =>
+      window.open(skill.source, '_blank', 'noopener noreferrer')
+    );
   }
 
   return card;

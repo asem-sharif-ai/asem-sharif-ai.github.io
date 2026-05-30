@@ -12,13 +12,35 @@
   "qr_title": "Asem E. Sharif - Portfolio",
   "qr_url": "https://asem-sharif-ai.github.io",
 
+  "links": [
+    [
+      { "site": "facebook",  "url": "https://www.facebook.com/notasem.fb" },
+      { "site": "instagram", "url": "https://www.instagram.com/_notasem_"},
+      { "site": "twitter",   "url": "https://x.com/_notasem_"},
+      { "site": "linkedin",  "url": "https://www.linkedin.com/in/asem-sharif" },
+      { "site": "medium",    "url": "https://medium.com/@asem-sharif-ai" },
+      { "site": "youtube",   "_url": "https://www.youtube.com/@AsemSharif-AI" }
+    ],
+    [
+      { "site": "mailto",    "url": "mailto:asem.sharif.ai@gmail.com" },
+      { "site": "whatsapp",  "url": "https://wa.me/+201010057162" },
+      { "site": "telegram",  "url": "https://t.me/notasem" },
+      { "site": "discord",   "url": "https://discord.com/users/asem.sharif.ai" }
+    ],
+    [
+      { "site": "github",      "url": "https://github.com/asem-sharif-ai" },
+      { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" },
+      { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" }
+    ]
+  ],
+
   "sections": [
     [
       {
         "key": "About",
         "title": "About Me",
         "icon": "user",
-        "path": "./Data/README.md"
+        "path": "./Data/about.md"
       }
     ],
     [
@@ -34,26 +56,6 @@
         "icon": "update",
         "path": "./Data/update.md"
       }
-    ]
-  ],
-
-  "links": [
-    [
-      { "site": "facebook",  "url": "https://www.facebook.com/asem.sharif.1" },
-      { "site": "instagram", "url": "https://www.instagram.com/_notasem_"},
-      { "site": "whatsapp",  "url": "https://wa.me/+201010057162" },
-      { "site": "telegram",  "url": "https://t.me/notasem" },
-      { "site": "youtube",   "url": "", "_": "https://www.youtube.com/@AsemSharif-AI" }
-    ],
-    [
-      { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "medium",   "url": "https://medium.com/@asem-sharif-ai" },
-      { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" }
-    ],
-    [
-      { "site": "github",      "url": "https://github.com/asem-sharif-ai" },
-      { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" },
-      { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" }
     ]
   ],
 
@@ -191,7 +193,7 @@
             "title": "Python",
             "source": "Source",
             "proof": "Proof",
-            "url": "",
+            "url": "fdb",
             "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
             "level": 0.9,
             "span": 1

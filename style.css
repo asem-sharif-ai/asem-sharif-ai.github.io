@@ -760,6 +760,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 10px;
 }
 
 .gauge-svg {
@@ -770,21 +771,22 @@ body {
 .gauge-bg {
   fill: none;
   stroke: var(--border-color);
-  stroke-width: 6;
+  stroke-width: 12;
+  rx: 16;
 }
 
 .gauge-fill {
   fill: none;
   stroke: var(--text-bright);
-  stroke-width: 6;
-  stroke-linecap: round;
+  stroke-width: 12;
+  stroke-linecap: butt;
   transition: stroke-dashoffset 0.35s ease;
 }
 
 .gauge-icon {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
   pointer-events: none;
   border-radius: 50%;

@@ -56,17 +56,17 @@ const iconMap = {
   twitter:      'fa-brands fa-x-twitter',
   youtube:      'fa-brands fa-youtube',
   
-  mailto:       'fa-regular fa-envelope',
-  discord:      'fa-brands fa-discord',
   whatsapp:     'fa-brands fa-whatsapp',
   telegram:     'fa-brands fa-telegram',
+  discord:      'fa-brands fa-discord',
+  mailto:       'fa-solid fa-envelope',
   
   linkedin:     'fa-brands fa-linkedin-in',
   medium:       'fa-brands fa-medium',
 
   github:       'fa-brands fa-github',
-  kaggle:       'fa-brands fa-kaggle',
   huggingface:  'fa-solid fa-face-smile',
+  kaggle:       'fa-brands fa-kaggle',
   bitbucket:    'fa-solid fa-bucket',
 
   researchgate: 'fa-brands fa-researchgate',
