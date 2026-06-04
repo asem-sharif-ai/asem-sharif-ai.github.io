@@ -1,0 +1,3 @@
+- Delivered over 24 comprehensive foundational computer science and digital technology sessions to youth audiences, significantly boosting digital literacy under the national DECI initiative.
+- Empowered young learners by translating complex technological frameworks into highly engaging, age-appropriate educational content powered by Udacity and CLS.
+- Designed and implemented targeted, practical exercises that successfully bridged the gap between theoretical concepts and hands-on application.

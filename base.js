@@ -1,3 +1,5 @@
+// ── Symbol & Icon Maps ───────────────────────────────────────
+
 const symbolMap = {
   '</>': '&lt;/&gt;',
   '>_':  '&gt;_',
@@ -55,12 +57,12 @@ const iconMap = {
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
   youtube:      'fa-brands fa-youtube',
-  
+
   whatsapp:     'fa-brands fa-whatsapp',
   telegram:     'fa-brands fa-telegram',
   discord:      'fa-brands fa-discord',
   mailto:       'fa-solid fa-envelope',
-  
+
   linkedin:     'fa-brands fa-linkedin-in',
   medium:       'fa-brands fa-medium',
 
@@ -77,16 +79,22 @@ const iconMap = {
   info:         'fa-solid fa-info',
 };
 
-function isMobile() { return window.innerWidth <= 768; }
+// ── Viewport ─────────────────────────────────────────────────
+
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+// ── Markdown Parser ──────────────────────────────────────────
 
 function parseMarkdown(text) {
   return text
     .replace(/\r\n/g, '\n')
     .replace(/^---$/gim, '<hr />')
-    .replace(/^(#{1,6}) (.*$)/gim, (match, hashes, content) => `<h${hashes.length}>${content}</h${hashes.length}>`)
+    .replace(/^(#{1,6}) (.*$)/gim, (_, hashes, content) => `<h${hashes.length}>${content}</h${hashes.length}>`)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/^\s*-\s(.*)$/gim, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>')
+    .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
     .replace(/<\/ul>\s*<ul>/g, '')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -95,6 +103,8 @@ function parseMarkdown(text) {
     .replace(/\n\n([^#<\s].*)/g, '</p><p>$1')
     .replace(/^(?!<h|<li|<ul|<hr|<p|<a)(.*)$/gim, '<p>$1</p>');
 }
+
+// ── Content Loaders ──────────────────────────────────────────
 
 async function loadContent(path, elementId) {
   if (!path) {
@@ -112,6 +122,22 @@ async function loadContent(path, elementId) {
   }
 }
 
+async function loadMarkdownInto(path, elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    el.innerHTML = parseMarkdown(text);
+  } catch (err) {
+    el.innerHTML = '<span style="color:var(--text-deep-muted);font-size:0.82rem;">Could not load description.</span>';
+    console.warn('Markdown load error:', err);
+  }
+}
+
+// ── Media Type Helpers ───────────────────────────────────────
+
 function isImagePath(path) {
   if (typeof path !== 'string') return false;
   return /\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i.test(path.trim().split('?')[0]);
@@ -128,8 +154,7 @@ function isMarkdownPath(path) {
 }
 
 function getVideoMimeType(path) {
-  const cleanPath = path.split('?')[0].split('#')[0];
-  const ext = cleanPath.split('.').pop().toLowerCase();
+  const ext = path.split('?')[0].split('#')[0].split('.').pop().toLowerCase();
   const types = {
     mp4:  'video/mp4',
     webm: 'video/webm',
@@ -140,13 +165,11 @@ function getVideoMimeType(path) {
   return types[ext] || 'video/mp4';
 }
 
-function makeCardId(rowIndex, colIndex) {
-  return `panel-r${rowIndex}-c${colIndex}`;
-}
+// ── Content Renderer ─────────────────────────────────────────
 
 function renderContentItem(contentItem, containerId) {
   if (!contentItem) return '';
-  
+
   if (isImagePath(contentItem)) {
     return `
       <div class="image-container" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
@@ -154,7 +177,9 @@ function renderContentItem(contentItem, containerId) {
              style="max-width:100%;max-height:360px;width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;" />
       </div>
     `;
-  } else if (isVideoPath(contentItem)) {
+  }
+
+  if (isVideoPath(contentItem)) {
     const mime = getVideoMimeType(contentItem);
     return `
       <div class="video-container" style="display:flex;justify-content:center;align-items:center;width:100%;">
@@ -164,19 +189,27 @@ function renderContentItem(contentItem, containerId) {
         </video>
       </div>
     `;
-  } else if (isMarkdownPath(contentItem)) {
-    if (containerId) {
-      loadContent(contentItem, containerId);
-    }
-    return 'Loading...';
-  } else {
-    return `<p>${contentItem}</p>`;
   }
+
+  if (isMarkdownPath(contentItem)) {
+    if (containerId) loadContent(contentItem, containerId);
+    return 'Loading...';
+  }
+
+  return `<p>${contentItem}</p>`;
+}
+
+// ── Card / Row ID Helpers ────────────────────────────────────
+
+function makeCardId(rowIndex, colIndex) {
+  return `panel-r${rowIndex}-c${colIndex}`;
 }
 
 function makeRowId(rowIndex) {
   return `row-${rowIndex}`;
 }
+
+// ── Intersection Observer ────────────────────────────────────
 
 function observeCards() {
   const observer = new IntersectionObserver((entries) => {
@@ -191,6 +224,8 @@ function observeCards() {
   document.querySelectorAll('.card').forEach(card => observer.observe(card));
 }
 
+// ── Scroll Spy ───────────────────────────────────────────────
+
 function runScrollSpy(spyTargets) {
   window.addEventListener('scroll', () => {
     let activeId = 'welcome-panel';
@@ -198,22 +233,20 @@ function runScrollSpy(spyTargets) {
 
     spyTargets.forEach(view => {
       const el = document.getElementById(view.id);
-      if (el && topOffset >= el.offsetTop) {
-        activeId = view.id;
-      }
+      if (el && topOffset >= el.offsetTop) activeId = view.id;
     });
 
     spyTargets.forEach(view => {
       const items = Array.isArray(view.navIds) ? view.navIds : [view.navIds];
       items.forEach(navId => {
         const link = document.getElementById(navId);
-        if (link) {
-          link.classList.toggle('active', view.id === activeId);
-        }
+        if (link) link.classList.toggle('active', view.id === activeId);
       });
     });
   });
 }
+
+// ── Theme ────────────────────────────────────────────────────
 
 function applyThemeFromConfig(data) {
   const stored = localStorage.getItem('user-theme');
@@ -232,23 +265,7 @@ function applyThemeFromConfig(data) {
   }
 }
 
-function renderRoles(containerId, rolesArray) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-  rolesArray.forEach((role, index) => {
-    const roleSpan = document.createElement('span');
-    roleSpan.innerText = role;
-    container.appendChild(roleSpan);
-    if (index < rolesArray.length - 1) {
-      const splitDot = document.createElement('span');
-      splitDot.classList.add('separator', 'role-separator');
-      splitDot.style.margin = '0 10px';
-      splitDot.innerHTML = '&#8226;';
-      container.appendChild(splitDot);
-    }
-  });
-}
+// ── Favicon ──────────────────────────────────────────────────
 
 function applyFavicon(iconPath) {
   if (!iconPath) return;
@@ -262,4 +279,30 @@ function applyFavicon(iconPath) {
   if (iconPath.endsWith('.svg'))      link.type = 'image/svg+xml';
   else if (iconPath.endsWith('.png')) link.type = 'image/png';
   else if (iconPath.endsWith('.ico')) link.type = 'image/x-icon';
+}
+
+// ── DOM Helpers ──────────────────────────────────────────────
+
+function makeSeparator(extraClass = '') {
+  const sep = document.createElement('span');
+  sep.classList.add('separator');
+  if (extraClass) sep.classList.add(extraClass);
+  sep.innerHTML = '&#8226;';
+  return sep;
+}
+
+function renderRoles(containerId, rolesArray) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  rolesArray.forEach((role, index) => {
+    const roleSpan = document.createElement('span');
+    roleSpan.innerText = role;
+    container.appendChild(roleSpan);
+
+    if (index < rolesArray.length - 1) {
+      container.appendChild(makeSeparator('role-separator'));
+    }
+  });
 }
