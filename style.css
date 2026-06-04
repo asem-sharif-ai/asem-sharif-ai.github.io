@@ -1513,21 +1513,6 @@ body {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
-  .chat-window {
-    bottom: 84px;
-    right: 16px;
-    left: 16px;
-    width: auto;
-    max-width: none;
-    border-radius: 14px 14px 0px 14px;
-  }
-  .chat-trigger {
-    bottom: 16px;
-    right: 16px;
-  }
-}
-
 #qr-trigger {
   position: fixed;
   bottom: 84px;
@@ -1801,4 +1786,19 @@ body {
   .exp-duration-badge {
     display: none !important;
   }
+  
+  .chat-window {
+    bottom: 84px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+    border-radius: 14px 14px 0px 14px;
+  }
+
+  .chat-trigger {
+    bottom: 16px;
+    right: 16px;
+  }
+
 }
