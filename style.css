@@ -335,6 +335,7 @@ body {
 @media (max-width: 768px) {
   .navbar {
     padding: 0 16px;
+    position: relative;
   }
 
   .brand-group {
