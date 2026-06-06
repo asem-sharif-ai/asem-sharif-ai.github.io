@@ -178,7 +178,7 @@ function createQRCodeModal(qrData) {
   modalContent.classList.add('qr-modal-content');
   modalContent.innerHTML = `
     <div class='qr-modal-header'>
-      <span class='qr-modal-title'>${qrData.title || 'Scan QR Code'}</span>
+      <span class='card-title'>${qrData.title || 'Scan QR Code'}</span>
       <i class='fa-solid fa-xmark close-qr-modal'></i>
     </div>
     <div class='qr-image-wrapper'></div>
