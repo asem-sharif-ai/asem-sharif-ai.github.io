@@ -58,7 +58,7 @@
     ],
     [
       { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md" },
-      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/Files/Pro_0/image_1.png" }
+      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md" }
     ]
   ],
 
