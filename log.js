@@ -71,7 +71,7 @@ function buildLogCard(item, index) {
     <div class='log-desktop-view'>
       <div class='log-flex-row'>
         <div class='log-flex-left'>
-          <span class='log-title'>${item.title || 'Untitled'}</span>
+          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
           ${companyHtml ? `<span class='log-sep'>·</span><span class='log-company'>${companyHtml}</span>` : ''}
         </div>
         <div class='log-flex-right'>
@@ -95,7 +95,7 @@ function buildLogCard(item, index) {
     <div class='log-mobile-view'>
       <div class='log-flex-row'>
         <div class='log-flex-left'>
-          <span class='log-title'>${item.title || 'Untitled'}</span>
+          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
           ${companyHtml ? `<span class='log-sep'>·</span><span class='log-company'>${companyHtml}</span>` : ''}
         </div>
         <div class='log-flex-right'>
