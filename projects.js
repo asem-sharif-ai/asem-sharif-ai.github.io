@@ -68,28 +68,43 @@ function buildFilterDropdown(topics) {
   });
 }
 
+function _updateHeroVisibility() {
+  const hero = document.getElementById('latest-panel');
+  if (!hero) return; // removed from DOM when no latest — nothing to do
+  const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0;
+  hero.style.display = isFiltered ? 'none' : '';
+}
+
 function applyFilterAndRerender() {
   const filterBtn = document.getElementById('filter-btn');
   if (filterBtn) {
     const label = filterBtn.querySelector('.nav-label');
     if (label) {
       label.innerHTML = _activeTopics.size > 0
-        ? `Filter <span style='font-size:0.8em;font-weight:normal;opacity:0.7;margin-left:2px;'>(${[..._activeTopics].join(', ')})</span>`
+        ? `Filter <span class='post-detail'>(${[..._activeTopics].join(', ')})</span>`
         : 'Filter';
     }
   }
+  _updateHeroVisibility();
   renderProjectsGrid(_allProjects, typeof _projectsConfigData.layout === 'number' ? _projectsConfigData.layout : 4);
 }
 
 function initFilterToggle() {
-  const btn   = document.getElementById('filter-btn');
+  const btn = document.getElementById('filter-btn');
   const panel = document.getElementById('filter-panel');
   if (!btn || !panel) return;
   let isOpen  = false;
 
+  function positionPanel() {
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = `${rect.bottom + 10}px`;
+    panel.style.left = `${rect.left}px`;
+  }
+
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     isOpen = !isOpen;
+    if (isOpen) positionPanel();
     panel.classList.toggle('open', isOpen);
     btn.classList.toggle('active', isOpen);
   });
@@ -106,10 +121,15 @@ function initFilterToggle() {
 function initSearchLogic() {
   const searchInput = document.getElementById('project-search-input');
   if (!searchInput) return;
+  let _debounceTimer;
   searchInput.addEventListener('input', (e) => {
     _searchQuery = e.target.value.trim();
-    _saveFilterState();
-    renderProjectsGrid(_allProjects, _projectsConfigData.layout || 4);
+    clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(() => {
+      _saveFilterState();
+      _updateHeroVisibility();
+      renderProjectsGrid(_allProjects, _projectsConfigData.layout || 4);
+    }, 300);
   });
 }
 
@@ -117,19 +137,16 @@ function initSearchLogic() {
 
 function buildLatestHero(latest) {
   const hero = document.getElementById('latest-panel');
-  if (!hero) return;
-
   document.getElementById('latest-title').innerText = latest.title || '';
 
   const contentContainer = document.getElementById('latest-content');
   contentContainer.innerHTML = latest.subtitle ? `<p>${latest.subtitle}</p>` : '';
 
-  const topicEl = document.getElementById('latest-topic');
+  const latestKey = document.getElementById('latest-keywords-container');
   if (latest.topics?.length) {
-    topicEl.innerHTML  = latest.topics.map(t => `<span class="topic-tag">${t}</span>`).join('');
-    topicEl.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;background:transparent;border:none;box-shadow:none;padding:0;';
+    latestKey.innerHTML = latest.topics.map(t => `<span class='keyword'>${t}</span>`).join('');
   } else {
-    topicEl.style.display = 'none';
+    latestKey.style.display = 'none';
   }
 
   if (latest.url) {
@@ -159,26 +176,27 @@ function buildProjectCard(project, cardId) {
   const hasUrl = !!project.url;
 
   card.innerHTML = `
-    <div class="card-header project-card-header" id="header-${cardId}">
-      <div class="project-header-left">
-        <button class="btn star-btn${project.star ? ' starred' : ''}" id="star-${cardId}" title="Starred">
-          <i class="${project.star ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+    <div class='card-header project-card-header' id='header-${cardId}'>
+      <div class='project-header-left'>
+        <button class='btn star-btn${project.star ? ' starred' : ''}' id='star-${cardId}' title='Starred'>
+          <i class='${project.star ? 'fa-solid' : 'fa-regular'} fa-star'></i>
         </button>
-        <div class="card-title project-card-title">${project.title || 'Untitled'}</div>
+        <div class='card-title project-card-title'>${project.title || 'Untitled'}</div>
       </div>
-      <div class="card-btns dynamic-panel-btns">
+      <div class='card-btns dynamic-panel-btns'>
         ${isMultiContent ? `
-          <button class="btn prev-btn" id="prev-${cardId}" title="Previous" style="transition: opacity 0.2s ease;"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="btn next-btn" id="next-${cardId}" title="Next"     style="transition: opacity 0.2s ease;"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class='btn prev-btn' id='prev-${cardId}' title='Previous'><i class='fa-solid fa-chevron-left'></i></button>
+          <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
+          <button class='btn next-btn' id='next-${cardId}' title='Next'><i class='fa-solid fa-chevron-right'></i></button>
         ` : ''}
-        ${hasUrl ? `<button class="btn url-action-btn" id="url-${cardId}" title="Open"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>` : ''}
-        <button class="btn toggle-btn" id="toggle-btn-${cardId}" title="Collapse"><i class="fa-solid fa-chevron-up toggle-icon"></i></button>
+        ${hasUrl ? `<button class='btn url-action-btn' id='url-${cardId}' title='Open'><i class='fa-solid fa-arrow-up-right-from-square'></i></button>` : ''}
+        <button class='btn toggle-btn' id='toggle-btn-${cardId}' title='Collapse'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
       </div>
     </div>
-    <div class="card-collapse">
-      <div class="card-body">
-        <div class="scroll-area" id="${textId}">Loading...</div>
-        ${project.topics?.length ? `<div class="project-topics">${project.topics.map(t => `<span class="topic-tag">${t}</span>`).join('')}</div>` : ''}
+    <div class='card-collapse'>
+      <div class='card-body'>
+        <div class='scroll-area' id='${textId}'>Loading...</div>
+        ${project.topics?.length ? `<div class='project-topics'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
       </div>
     </div>
   `;
@@ -200,7 +218,8 @@ function buildProjectCard(project, cardId) {
   const nextBtn = card.querySelector(`#next-${cardId}`);
 
   if (isMultiContent) {
-    setContentSlider(container, contents, prevBtn, nextBtn);
+    const counter = card.querySelector(`#counter-${cardId}`);
+    setContentSlider(container, contents, prevBtn, nextBtn, counter);
   } else {
     container.innerHTML = renderContentItem(contents[0], textId);
   }
@@ -238,36 +257,59 @@ function toggleProjectCard(cardId, forceState) {
   }
 }
 
-function setContentSlider(container, contents, prevBtn, nextBtn) {
+function setContentSlider(container, contents, prevBtn, nextBtn, counter) {
   let currentIndex = 0;
+  let _animating = false;
 
-  function updateSlider() {
-    container.innerHTML = renderContentItem(contents[currentIndex], container.id);
-
+  function updateButtons() {
     if (prevBtn) {
-      prevBtn.style.opacity       = currentIndex === 0 ? '0.35' : '1';
+      prevBtn.style.opacity = currentIndex === 0 ? '0.35' : '1';
       prevBtn.style.pointerEvents = currentIndex === 0 ? 'none' : 'auto';
     }
     if (nextBtn) {
-      nextBtn.style.opacity       = currentIndex === contents.length - 1 ? '0.35' : '1';
+      nextBtn.style.opacity = currentIndex === contents.length - 1 ? '0.35' : '1';
       nextBtn.style.pointerEvents = currentIndex === contents.length - 1 ? 'none' : 'auto';
     }
+    if (counter) counter.textContent = `${currentIndex + 1}/${contents.length}`;
+  }
+
+  function updateSlider(direction) {
+    if (_animating) return;
+    _animating = true;
+
+    const outClass = direction === 'next' ? 'slide-out-left' : 'slide-out-right';
+    const inClass  = direction === 'next' ? 'slide-in-left'  : 'slide-in-right';
+
+    container.classList.add(outClass);
+
+    setTimeout(() => {
+      container.innerHTML = renderContentItem(contents[currentIndex], container.id);
+      container.classList.remove(outClass);
+      container.classList.add(inClass);
+      updateButtons();
+
+      setTimeout(() => {
+        container.classList.remove(inClass);
+        _animating = false;
+      }, 180);
+    }, 180);
   }
 
   if (prevBtn) {
     prevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (currentIndex > 0) { currentIndex--; updateSlider(); }
+      if (currentIndex > 0) { currentIndex--; updateSlider('prev'); }
     });
   }
   if (nextBtn) {
     nextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (currentIndex < contents.length - 1) { currentIndex++; updateSlider(); }
+      if (currentIndex < contents.length - 1) { currentIndex++; updateSlider('next'); }
     });
   }
 
-  updateSlider();
+  container.innerHTML = renderContentItem(contents[0], container.id);
+  updateButtons();
 }
 
 // ───── Render ────────────────────────────────────────
@@ -322,34 +364,31 @@ async function runProjectsApp() {
     const projectsData = configData.projects || { content: [], layout: 4 };
 
     _projectsConfigData = configData;
-    _projectsConfigData.layout = projectsData.layout || configData.layout || 4;
+    _projectsConfigData.layout = projectsData.layout || 4;
     _allProjects = projectsData.content || [];
 
-    applyThemeFromConfig(configData);
-    applyFavicon(configData.icon);
+    applyBaseSetup(configData);
 
     const name = configData.name || 'Anonymous';
     document.title = `${name} - Projects`;
 
-    const brandTitle = document.getElementById('proj-brand-title');
+    const brandTitle = document.getElementById('brand-title');
     if (brandTitle) brandTitle.innerText = name;
 
     renderRoles(
-      'proj-brand-role',
+      'brand-subtitle',
       Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
     );
-
-    const homeBtn = document.getElementById('nav-home-btn');
-    if (homeBtn) homeBtn.addEventListener('click', () => { window.location.href = './index.html'; });
 
     if (projectsData.latest?.title) {
       buildLatestHero(projectsData.latest);
     } else {
       const latestPanel = document.getElementById('latest-panel');
-      if (latestPanel) latestPanel.style.display = 'none';
+      if (latestPanel) latestPanel.remove();
     }
 
     _loadFilterState();
+    _updateHeroVisibility();
 
     const topics = collectTopics(_allProjects);
     buildFilterDropdown(topics);
@@ -367,7 +406,7 @@ async function runProjectsApp() {
         if (filterBtn) {
           const label = filterBtn.querySelector('.nav-label');
           if (label) {
-            label.innerHTML = `Filter <span style='font-size:0.8em;font-weight:normal;opacity:0.7;margin-left:2px;'>(${[..._activeTopics].join(', ')})</span>`;
+            label.innerHTML = `Filter <span class='post-detail'>(${[..._activeTopics].join(', ')})</span>`;
           }
         }
       }
@@ -389,6 +428,24 @@ async function runProjectsApp() {
       clearTimeout(_resizeTimer);
       _resizeTimer = setTimeout(() => renderProjectsGrid(_allProjects, _projectsConfigData.layout), 120);
     });
+
+    if (!projectsData || (!projectsData.latest?.title && !projectsData.content?.length)) {
+      renderNoData('Projects', 'projects-grid')
+
+      const filterBtn = document.getElementById('filter-btn');
+      if (filterBtn) {
+        filterBtn.disabled = true;
+        filterBtn.style.pointerEvents = 'none';
+        filterBtn.classList.add('ui-disabled');
+      }
+
+      const searchBtn = document.querySelector('.search-wrapper');
+      if (searchBtn) {
+        searchBtn.disabled = true;
+        searchBtn.style.pointerEvents = 'none';
+        searchBtn.classList.add('ui-disabled');
+      }
+    }
 
   } catch (err) {
     console.error('Projects App Setup Failure:', err);

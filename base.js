@@ -1,19 +1,9 @@
-// ── Symbol & Icon Maps ───────────────────────────────────────
+// ───── Symbol & Icon Maps ────────────────────────────────────────
 
 const symbolMap = {
   '</>': '&lt;/&gt;',
   '>_':  '&gt;_',
   '|>':  '|&gt;',
-  '~/':  '~/',
-  '()':  '()',
-  '[]':  '[]',
-  '{}':  '{}',
-  '( )': '( )',
-  '[ ]': '[ ]',
-  '{ }': '{ }',
-  '=':   '=',
-  '==':  '==',
-  '===': '===',
   '>>':  '&gt;&gt;',
   '<<':  '&lt;&lt;',
 };
@@ -77,66 +67,41 @@ const iconMap = {
 
   demo:         'fa-solid fa-laptop-code',
   info:         'fa-solid fa-info',
+
+  default:      'fa-solid fa-link',
 };
 
-// ── Viewport ─────────────────────────────────────────────────
+// ───── Viewport ────────────────────────────────────────
 
 function isMobile() {
   return window.innerWidth <= 768;
 }
 
-// ── Markdown Parser ──────────────────────────────────────────
+// ───── Markdown Parser ────────────────────────────────────────
 
 function parseMarkdown(text) {
-  return text
-    .replace(/\r\n/g, '\n')
-    .replace(/^---$/gim, '<hr />')
-    .replace(/^(#{1,6}) (.*$)/gim, (_, hashes, content) => `<h${hashes.length}>${content}</h${hashes.length}>`)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-    .replace(/^\s*-\s(.*)$/gim, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
-    .replace(/<\/ul>\s*<ul>/g, '')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/_(.*?)_/g, '<em>$1</em>')
-    .replace(/\n\n([^#<\s].*)/g, '</p><p>$1')
-    .replace(/^(?!<h|<li|<ul|<hr|<p|<a)(.*)$/gim, '<p>$1</p>');
+  if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+    console.warn('Marked or DOMPurify Library Is Missing.');
+    return text
+      .replace(/\r\n/g, '\n')
+      .replace(/^---$/gim, '<hr />')
+      .replace(/^(#{1,6}) (.*$)/gim, (_, hashes, content) => `<h${hashes.length}>${content}</h${hashes.length}>`)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+      .replace(/^\s*-\s(.*)$/gim, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
+      .replace(/<\/ul>\s*<ul>/g, '')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/_(.*?)_/g, '<em>$1</em>')
+      .replace(/\n\n([^#<\s].*)/g, '</p><p>$1')
+      .replace(/^(?!<h|<li|<ul|<hr|<p|<a)(.*)$/gim, '<p>$1</p>');
+  }
+  const rawHtml = marked.parse(text);
+  return DOMPurify.sanitize(rawHtml);
 }
 
-// ── Content Loaders ──────────────────────────────────────────
-
-async function loadContent(path, elementId) {
-  if (!path) {
-    document.getElementById(elementId).innerText = 'Resource Path Missing.';
-    return;
-  }
-  try {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-    const text = await res.text();
-    document.getElementById(elementId).innerHTML = parseMarkdown(text);
-  } catch (err) {
-    document.getElementById(elementId).innerText = 'Failed to sync panel content.';
-    console.error(err);
-  }
-}
-
-async function loadMarkdownInto(path, elementId) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-  try {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    el.innerHTML = parseMarkdown(text);
-  } catch (err) {
-    el.innerHTML = '<span style="color:var(--text-deep-muted);font-size:0.82rem;">Could not load description.</span>';
-    console.warn('Markdown load error:', err);
-  }
-}
-
-// ── Media Type Helpers ───────────────────────────────────────
+// ───── Content Helpers ────────────────────────────────────────
 
 function isImagePath(path) {
   if (typeof path !== 'string') return false;
@@ -153,6 +118,22 @@ function isMarkdownPath(path) {
   return path.trim().split('?')[0].toLowerCase().endsWith('.md');
 }
 
+async function loadContent(path, elementId) {
+  if (!path) {
+    document.getElementById(elementId).innerText = 'Resource Path Missing.';
+    return;
+  }
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    const text = await res.text();
+    document.getElementById(elementId).innerHTML = parseMarkdown(text);
+  } catch (err) {
+    document.getElementById(elementId).innerText = 'Failed To Sync Panel Content.';
+    console.error(err);
+  }
+}
+
 function getVideoMimeType(path) {
   const ext = path.split('?')[0].split('#')[0].split('.').pop().toLowerCase();
   const types = {
@@ -165,16 +146,15 @@ function getVideoMimeType(path) {
   return types[ext] || 'video/mp4';
 }
 
-// ── Content Renderer ─────────────────────────────────────────
+// ───── Content Render ────────────────────────────────────────
 
 function renderContentItem(contentItem, containerId) {
   if (!contentItem) return '';
 
   if (isImagePath(contentItem)) {
     return `
-      <div class="image-container" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
-        <img src="${contentItem}" alt=""
-             style="max-width:100%;max-height:360px;width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;" />
+      <div class='image-container'>
+        <img src='${contentItem}' alt='' />
       </div>
     `;
   }
@@ -182,9 +162,9 @@ function renderContentItem(contentItem, containerId) {
   if (isVideoPath(contentItem)) {
     const mime = getVideoMimeType(contentItem);
     return `
-      <div class="video-container" style="display:flex;justify-content:center;align-items:center;width:100%;">
-        <video controls style="max-width:100%;max-height:360px;width:100%;height:auto;display:block;border-radius:4px;background:#000;" preload="metadata">
-          <source src="${contentItem}" type="${mime}">
+      <div class='video-container'>
+        <video controls preload='metadata'>
+          <source src='${contentItem}' type='${mime}'>
           Your browser does not support the video tag.
         </video>
       </div>
@@ -199,17 +179,7 @@ function renderContentItem(contentItem, containerId) {
   return `<p>${contentItem}</p>`;
 }
 
-// ── Card / Row ID Helpers ────────────────────────────────────
-
-function makeCardId(rowIndex, colIndex) {
-  return `panel-r${rowIndex}-c${colIndex}`;
-}
-
-function makeRowId(rowIndex) {
-  return `row-${rowIndex}`;
-}
-
-// ── Intersection Observer ────────────────────────────────────
+// ───── Intersection Observer ────────────────────────────────────────
 
 function observeCards() {
   const observer = new IntersectionObserver((entries) => {
@@ -224,31 +194,9 @@ function observeCards() {
   document.querySelectorAll('.card').forEach(card => observer.observe(card));
 }
 
-// ── Scroll Spy ───────────────────────────────────────────────
+// ───── UI Utils ────────────────────────────────────────
 
-function runScrollSpy(spyTargets) {
-  window.addEventListener('scroll', () => {
-    let activeId = 'welcome-panel';
-    const topOffset = window.scrollY + 250;
-
-    spyTargets.forEach(view => {
-      const el = document.getElementById(view.id);
-      if (el && topOffset >= el.offsetTop) activeId = view.id;
-    });
-
-    spyTargets.forEach(view => {
-      const items = Array.isArray(view.navIds) ? view.navIds : [view.navIds];
-      items.forEach(navId => {
-        const link = document.getElementById(navId);
-        if (link) link.classList.toggle('active', view.id === activeId);
-      });
-    });
-  });
-}
-
-// ── Theme ────────────────────────────────────────────────────
-
-function applyThemeFromConfig(data) {
+function applyBaseSetup(data, qr = false) {
   const stored = localStorage.getItem('user-theme');
   if (stored !== null) {
     document.body.classList.toggle('light-mode', stored === 'light');
@@ -263,25 +211,46 @@ function applyThemeFromConfig(data) {
   if (data.theme) {
     document.documentElement.style.setProperty('--theme-color', data.theme);
   }
-}
-
-// ── Favicon ──────────────────────────────────────────────────
-
-function applyFavicon(iconPath) {
-  if (!iconPath) return;
-  let link = document.querySelector("link[rel*='icon']");
-  if (!link) {
-    link = document.createElement('link');
-    link.rel = 'icon';
-    document.head.appendChild(link);
+  
+  if (data.icon) {
+    let link = document.querySelector('link[rel*="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = data.icon;
+    if (data.icon.endsWith('.svg'))      link.type = 'image/svg+xml';
+    else if (data.icon.endsWith('.png')) link.type = 'image/png';
+    else if (data.icon.endsWith('.ico')) link.type = 'image/x-icon';
   }
-  link.href = iconPath;
-  if (iconPath.endsWith('.svg'))      link.type = 'image/svg+xml';
-  else if (iconPath.endsWith('.png')) link.type = 'image/png';
-  else if (iconPath.endsWith('.ico')) link.type = 'image/x-icon';
-}
 
-// ── DOM Helpers ──────────────────────────────────────────────
+  if (qr) {
+    if (data.qr_code?.url) {
+      createQRCodeModal(data.qr_code);
+    }
+  }
+  
+  if (data.assistant && data.assistant.url) {
+    if (typeof initChatAssistant === 'function') {
+      initChatAssistant(data);
+      
+      if (qr) {
+        const chatWin = document.getElementById('chat-assistant-window');
+        const targetQrBtn = document.getElementById('qr-trigger');
+        if (chatWin && targetQrBtn) {
+          const syncObserver = new MutationObserver(() => {
+            const isOpen = chatWin.classList.contains('open');
+            targetQrBtn.style.opacity = isOpen ? '0' : '1';
+            targetQrBtn.style.pointerEvents = isOpen ? 'none' : 'auto';
+            targetQrBtn.style.transform = isOpen ? 'translateY(10px) scale(0.98)' : 'translateY(0) scale(1)';
+          });
+          syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
+        }
+    }
+    }
+  }
+}
 
 function makeSeparator(extraClass = '') {
   const sep = document.createElement('span');
@@ -306,3 +275,8 @@ function renderRoles(containerId, rolesArray) {
     }
   });
 }
+
+function renderNoData(pageTitle = 'Data', containerId = 'list-container') {
+  const c = document.getElementById(containerId);
+  if (c) c.innerHTML = `<p class='keyword keyword-big'>No ${pageTitle} Yet</p>`;
+};

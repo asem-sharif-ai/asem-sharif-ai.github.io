@@ -14,11 +14,11 @@
 
     <nav class="navbar">
       <div class="brand-group">
-        <div class="brand-name" id="proj-brand-title">Loading...</div>
-        <div class="brand-role" id="proj-brand-role"></div>
+        <div class="brand-name" id="brand-title">Loading...</div>
+        <div class="brand-role" id="brand-subtitle"></div>
       </div>
-      <div class="nav-links" id="proj-nav-items">
-        <a id="nav-home-btn">
+      <div class="nav-links" id="nav-items">
+        <a href="index.html">
           <i class="fa-solid fa-house"></i>
           <span class="nav-label">Home</span>
         </a>
@@ -28,37 +28,38 @@
             <i class="fa-solid fa-filter"></i>
             <span class="nav-label">Filter</span>
           </a>
-          <div class="filter-panel" id="filter-panel">
-            <div class="filter-header">Filter by Topic</div>
-            <div class="filter-dropdown" id="filter-dropdown"></div>
-          </div>
         </div>
 
         <div class="search-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input 
-            type="text" 
-            id="project-search-input" 
-            placeholder="Search" 
+          <input
+            type="text"
+            id="project-search-input"
+            placeholder="Search"
             autocomplete="off"
           />
         </div>
       </div>
     </nav>
 
+    <div class="filter-panel" id="filter-panel">
+      <div class="filter-header">Filter By Topic</div>
+      <div class="filter-dropdown" id="filter-dropdown"></div>
+    </div>
+
     <section class="hero" id="latest-panel">
       <div class="hero-card">
-        <div class="latest-meta" style="display: flex; align-items: center; gap: 8px;">
-          <span class="latest-badge">Latest Project</span>
-          <span class="latest-star" id="latest-star" style="display: none; color: var(--star-color, #ffca28);"></span>
+        <div class="latest-meta">
+          <span class="keyword keyword-big">Latest Project</span>
+          <span class="latest-star" id="latest-star"></span>
         </div>
-        
+
         <h2 id="latest-title"></h2>
-        <div id="latest-content" class="subtitle latest-desc"></div>
-        <span class="topic-tag latest-topic" id="latest-topic" style="display:none"></span>
-        <button class="btn latest-url-btn" id="latest-url-btn" style="display:none">
+        <div id="latest-content" class="subtitle"></div>
+        <span class="latest-keywords-container" id="latest-keywords-container"></span>
+        <button class="visit-latest-btn" id="latest-url-btn">
           <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          <span>View Project</span>
+          <span>Visit Project</span>
         </button>
       </div>
     </section>
@@ -66,7 +67,9 @@
     <main class="container" id="projects-container">
       <div class="projects-grid" id="projects-grid"></div>
     </main>
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="chat.js"></script>
     <script src="base.js"></script>
     <script src="projects.js"></script>
   </body>

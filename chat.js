@@ -1,4 +1,4 @@
-const MAX_MESSAGE_LENGTH = 500;
+const MAX_MESSAGE_LENGTH = 100;
 const REQUEST_TIMEOUT_MS = 10000;
 
 let assistantConfig = null;
@@ -92,14 +92,14 @@ async function handleUserMessageSubmit() {
 
   } catch (error) {
     removeTypingIndicator();
-    let runtimeErrorMessage = 'An error occurred while communicating with the service.';
+    let runtimeErrorMessage = 'Error Occurred While Communicating With The Service.';
     
     if (error.message === 'TimeoutError') {
-      runtimeErrorMessage = 'Request timed out. Please try again later.';
+      runtimeErrorMessage = 'Request Timed Out. Please Try Again Later.';
     } else if (error.isHandledSecureError) {
       runtimeErrorMessage = error.message;
     } else {
-      runtimeErrorMessage = 'An unknown system state exception occurred.';
+      runtimeErrorMessage = 'Unknown System State Exception Occurred.';
     }
 
     const errTime = appendChatMessage('system-error', runtimeErrorMessage);
@@ -109,14 +109,14 @@ async function handleUserMessageSubmit() {
   }
 }
 
-// ───── UI Utils ────────────────────────────────────────
+// ───── UI Call ────────────────────────────────────────
 
 function initChatAssistant(configData) {
   assistantConfig = configData.assistant;
   globalProfileData = configData;
 
   const triggerBtn = document.createElement('button');
-  triggerBtn.className = 'chat-trigger';
+  triggerBtn.className = 'floating-trigger chat-trigger';
   triggerBtn.id = 'chat-assistant-trigger';
   
   updateTriggerIcon(triggerBtn);
@@ -126,23 +126,23 @@ function initChatAssistant(configData) {
   chatWindow.id = 'chat-assistant-window';
 
   chatWindow.innerHTML = `
-    <div class="chat-header">
-      <div class="chat-bot-info">
-        <div id="chat-bot-avatar-container"></div>
-        <div class="chat-bot-name-group">
-          <span class="chat-bot-name">${assistantConfig.name || 'Assistant'}</span>
-          ${assistantConfig.role ? `<span class="chat-bot-role">${assistantConfig.role}</span>` : ''}
+    <div class='chat-header'>
+      <div class='chat-bot-info'>
+        <div id='chat-bot-avatar-container'></div>
+        <div class='chat-bot-brand'>
+          <span class='brand-name'>${assistantConfig.name || 'Assistant'}</span>
+          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
         </div>
       </div>
-      <button class="chat-close-btn" id="chat-close-window" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <button class='chat-close-btn' id='chat-close-window' title='Minimize'><i class='fa-solid fa-minus'></i></button>
+      <button class='chat-clear-btn' id='chat-clear-window' title='Delete &amp; Close'><i class='fa-solid fa-xmark'></i></button>
     </div>
-    <div class="chat-messages" id="chat-messages-container"></div>
-    <div class="chat-footer">
-      <div class="chat-input-wrapper">
-        <input type="text" id="chat-user-input" placeholder="Ask Something..." autocomplete="off" maxlength="${MAX_MESSAGE_LENGTH}" />
+    <div class='chat-messages' id='chat-messages-container'></div>
+    <div class='chat-footer'>
+      <div class='chat-input-wrapper'>
+        <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${MAX_MESSAGE_LENGTH}' />
       </div>
-      <button class="chat-send-btn" id="chat-send-trigger" title="Send Message"><i class="fa-solid fa-arrow-up"></i></button>
-      <button class="chat-clear-btn" id="chat-clear-window" title="New Chat"><i class="fa-solid fa-pen-to-square"></i></button>
+      <button class='chat-send-btn' id='chat-send-trigger' title='Send Message'><i class='fa-solid fa-arrow-up'></i></button>
     </div>
   `;
 
@@ -175,6 +175,8 @@ function initChatAssistant(configData) {
   document.getElementById('chat-clear-window').addEventListener('click', (e) => {
     e.stopPropagation();
     handleChatLogPurge();
+    const win = document.getElementById('chat-assistant-window');
+    if (win) win.classList.remove('open');
   });
 
   document.addEventListener('click', (e) => {
@@ -205,7 +207,7 @@ function updateTriggerIcon(btnEl) {
   if (icons.length > 0 && (icons[0] || icons[1])) {
     const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
     if (activeIcon) {
-      btnEl.innerHTML = `<img src="${activeIcon}" alt="Chat" />`;
+      btnEl.innerHTML = `<img src='${activeIcon}' alt='Chat' />`;
       return;
     }
   }
@@ -222,7 +224,7 @@ function updateAvatarLayout() {
   if (icons.length > 0 && (icons[0] || icons[1])) {
     const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
     if (activeIcon) {
-      container.innerHTML = `<img src="${activeIcon}" class="chat-bot-avatar" alt="Avatar" />`;
+      container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
       container.style.display = 'block';
       return;
     }
@@ -266,8 +268,14 @@ function showTypingIndicator() {
   indicatorWrapper.id = 'chat-typing-indicator';
   
   indicatorWrapper.innerHTML = `
-    <div class="chat-msg"><span class="typing-dots">...</span></div>
-  `;
+      <div class='chat-msg'>
+        <div class='typing-indicator'>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
   
   container.appendChild(indicatorWrapper);
   container.scrollTop = container.scrollHeight;
@@ -295,8 +303,8 @@ function appendChatMessage(sender, text, timestampString = null) {
   msgItemWrapper.className = `chat-msg-item ${sender}`;
   
   msgItemWrapper.innerHTML = `
-    <div class="chat-msg">${text}</div>
-    <div class="chat-msg-meta">${timestampString}</div>
+    <div class='chat-msg'>${text}</div>
+    <div class='chat-msg-meta'>${timestampString}</div>
   `;
   
   container.appendChild(msgItemWrapper);
@@ -332,7 +340,7 @@ function loadChatHistory() {
     }
   }
 
-  const initialMsg = assistantConfig.initial || "Hello there! I'm your assistant. How can I help you today?";
+  const initialMsg = assistantConfig.initial || 'Hello there! I\'m your assistant. How can I help you today?';
   if (initialMsg) {
     const formattedMsg = Array.isArray(initialMsg) 
       ? initialMsg.map(line => line.trim()).join('\n') 

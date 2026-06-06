@@ -13,16 +13,16 @@ function buildGroupCard(groupKey, groupData, groupIndex) {
   const header = document.createElement('div');
   header.className = 'card-header';
   header.innerHTML = `
-    <div class="card-title">${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
-    <div class="card-btns">
-      <button class="btn"><i class="fa-solid fa-chevron-up toggle-icon"></i></button>
+    <div class='card-title'>${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
+    <div class='card-btns'>
+      <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
     </div>
   `;
   header.addEventListener('click', () => toggleGroupCard(cardId, collapseId));
 
   const collapse = document.createElement('div');
   collapse.className = 'card-collapse';
-  collapse.id        = collapseId;
+  collapse.id = collapseId;
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -58,12 +58,12 @@ function buildSkillCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
 
-  const size        = 100;
+  const size = 100;
   const strokeWidth = 12;
-  const rx          = 16;
-  const pad         = strokeWidth / 2 + 1;
-  const rectSize    = size - pad * 2;
-  const perimeter   = 2 * (rectSize + rectSize) - (8 - 2 * Math.PI) * rx;
+  const rx = 16;
+  const pad = strokeWidth / 2 + 1;
+  const rectSize = size - pad * 2;
+  const perimeter = 2 * (rectSize + rectSize) - (8 - 2 * Math.PI) * rx;
 
   const level            = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
   const strokeDashoffset = perimeter * (1 - level);
@@ -80,44 +80,44 @@ function buildSkillCard(skill) {
   }
 
   card.innerHTML = `
-    <div class="skill-card-header">
-      <span class="skill-title">${skill.title || 'Skill'}</span>
-      <div class="skill-card-header-right">
-        <span class="skill-source">${skill.source || ''}</span>
+    <div class='skill-card-header'>
+      <span class='item-card-title'>${skill.title || 'Skill'}</span>
+      <div class='skill-card-header-right'>
+        <span class='post-detail'>${skill.source || ''}</span>
         ${skill.url ? `
-          <a class="skill-url-btn" href="${skill.url}" target="_blank" rel="noopener noreferrer" title="Open">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <a class='post-detail skill-url-btn' href='${skill.url}' target='_blank' rel='noopener noreferrer' title='Open'>
+            <i class='fa-solid fa-arrow-up-right-from-square'></i>
           </a>` : ''}
       </div>
     </div>
-    <div class="skill-card-body">
-      <div class="gauge-wrapper">
-        <svg class="gauge-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-          <rect class="gauge-bg"
-            x="${pad}" y="${pad}"
-            width="${rectSize}" height="${rectSize}"
-            rx="${rx}" ry="${rx}"
+    <div class='skill-card-body'>
+      <div class='gauge-wrapper'>
+        <svg class='gauge-svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>
+          <rect class='gauge-bg'
+            x='${pad}' y='${pad}'
+            width='${rectSize}' height='${rectSize}'
+            rx='${rx}' ry='${rx}'
           />
-          <rect class="gauge-fill"
-            x="${pad}" y="${pad}"
-            width="${rectSize}" height="${rectSize}"
-            rx="${rx}" ry="${rx}"
-            stroke-dasharray="${perimeter}"
-            stroke-dashoffset="${strokeDashoffset}"
+          <rect class='gauge-fill'
+            x='${pad}' y='${pad}'
+            width='${rectSize}' height='${rectSize}'
+            rx='${rx}' ry='${rx}'
+            stroke-dasharray='${perimeter}'
+            stroke-dashoffset='${strokeDashoffset}'
           />
         </svg>
         ${currentSrc ? `
           <img
-            class="gauge-icon thematic-icon"
-            src="${currentSrc}"
-            data-dark="${darkIconPath}"
-            data-light="${lightIconPath}"
-            alt="${skill.title || 'Skill'}"
+            class='gauge-icon thematic-icon'
+            src='${currentSrc}'
+            data-dark='${darkIconPath}'
+            data-light='${lightIconPath}'
+            alt='${skill.title || 'Skill'}'
           />` : ''}
       </div>
       ${skill.proof ? `
-        <div class="skill-proof-panel">
-          <span class="topic-tag">${skill.proof}</span>
+        <div>
+          <span class='keyword'>${skill.proof}</span>
         </div>` : ''}
     </div>
   `;
@@ -135,7 +135,7 @@ function buildSkillCard(skill) {
 // ───── Render ────────────────────────────────────────
 
 function renderSkillsGroups(skillsData) {
-  const container = document.getElementById('skills-container');
+  const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
@@ -207,8 +207,7 @@ async function runSkillsApp() {
     const name = configData.name || 'Anonymous';
     document.title = `${name} - Skills`;
 
-    applyThemeFromConfig(configData);
-    applyFavicon(configData.icon);
+    applyBaseSetup(configData);
 
     const brandTitle = document.getElementById('skills-brand-title');
     if (brandTitle) brandTitle.innerText = name;
@@ -218,8 +217,10 @@ async function runSkillsApp() {
       Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
     );
 
-    if (configData.skills && typeof configData.skills === 'object') {
+    if (configData.skills && configData.skills.content && typeof configData.skills === 'object') {
       renderSkillsGroups(configData.skills);
+    } else {
+      renderNoData('Skills')
     }
 
   } catch (err) {

@@ -2,12 +2,12 @@
   "theme": null,
   "dark_mode": null,
   "symbol": ">_",
-  "icon": "./Data/I/icon.png",
+  "icon": "./icon.png",
   "name": "Asem E. Sharif",
   "role": ["AI & Computer Vision Engineer", "Qt Developer"],
   "location": "Cairo, Egypt.",
-  "resume_path": "./Data/F/[CV]-Asem-Sharif.pdf",
-  "cv_path": "./Data/F/[CV]-Asem-Sharif.pdf",
+  "resume_path": "",
+  "cv_path": "./Data/Files/[CV]-Asem-Sharif.pdf",
   "cv_date": "04/2026",
 
   "qr_code": {
@@ -16,10 +16,9 @@
   },
 
   "assistant": {
-    "enabled": true,
     "name":"Twin",
     "role": "Digital Assistant",
-    "icon": ["./Data/I/chat_dark.png", "./Data/I/chat_light.png"],
+    "icon": ["./Data/Icons/chat_dark.png", "./Data/Icons/chat_light.png"],
     "url": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
     "initial": [
       "Hello there! I'm Twin, Asem's digital assistant, and here to give you an inside look at his portfolio",
@@ -55,13 +54,57 @@
 
   "sections": [
     [
-      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/S/about.md" }
+      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md" }
     ],
     [
-      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/S/status.md" },
-      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/S/update.md" }
+      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md" },
+      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/Files/Pro_0/image_1.png" }
     ]
   ],
+
+  "education": [
+    {
+      "title": "Faculty of Artificial Intelligence",
+      "company": "Menoufia University",
+      "company_url": "https://mu.menofia.edu.eg/ai/Home/en",
+      "subtitle": "BSc in Artificial Intelligence - Cyber Security Department",
+      "type": "120 Hours",
+      "location": "Egypt",
+      "from_date": "10/2022",
+      "to_date": null,
+      "description": "Data/Files/Edu_0/mufai.md",
+      "gallery": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"],
+      "achievements": [
+        "BSc in Artificial Intelligence from Menoufia University, specializing in the Cyber Security Department.",
+        "Graduated with an A-Excellent Standing and a cumulative GPA of 3.45 / 4.0.",
+        "Core foundations in OOP, Data Structures, Operating Systems, Software Engineering, and advanced Mathematics.",
+        "Specialized in AI, Data Science, Machine Learning, Deep Learning, and Computer Vision.",
+        "Specialized in Cyber Security, including Cryptography, Network Security, Digital Forensics, and Secure Software Development.",
+        "Studied hardware-adjacent engineering covering Electronics, Digital Signal Processing, and Robotics.",
+        "Trained in industry soft skills including Project Management processes and Technical Report Writing."
+      ]
+    }
+  ],
+
+  "experience": [
+    {
+      "title": "Technical Instructor",
+      "company": "Digital Egypt Cubs Initiative (DECI)",
+      "company_url": "https://mcit.gov.eg/en/Human_Capacity/MCIT/Digital_Egypt_Cubs_Initiative",
+      "subtitle": "Technical Instructor For <b>Computer Science</b> & <b>Digital Skills</b> • Powered by <b>Udacity</b> & <b>CLS</b>.",
+      "type": "Part-Time",
+      "location": "Egypt",
+      "from_date": "02/2025",
+      "to_date": "12/2025",
+      "description": "Data/Files/Exp_0/deci.md",
+      "gallery": [],
+      "achievements": [
+        "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
+        "Designed small applied exercises to successfully bridge theory and practice."
+      ]
+    }
+  ],
+
 
   "projects": {
     "layout": 6,
@@ -79,10 +122,10 @@
         {
           "title": "Lynx DMS",
           "content": [
-            "./Data/P/Project_0/lynx_dms.md",
-            "./Data/P/Project_0/image_1.png",
-            "./Data/P/Project_0/image_2.png",
-            "./Data/P/Project_0/image_3.png"
+            "./Data/Files/Pro_0/lynx_dms.md",
+            "./Data/Files/Pro_0/image_1.png",
+            "./Data/Files/Pro_0/image_2.png",
+            "./Data/Files/Pro_0/image_3.png"
           ],
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
@@ -92,12 +135,12 @@
         {
           "title": "DMD",
           "content": [
-            "./Data/P/Project_1/dmd_dataset.md",
-            "./Data/P/Project_1/image_1.png",
-            "./Data/P/Project_1/image_2.png",
-            "./Data/P/Project_1/image_3.png",
-            "./Data/P/Project_1/image_4.png",
-            "./Data/P/Project_1/image_5.png"
+            "./Data/Files/Pro_1/dmd_dataset.md",
+            "./Data/Files/Pro_1/image_1.png",
+            "./Data/Files/Pro_1/image_2.png",
+            "./Data/Files/Pro_1/image_3.png",
+            "./Data/Files/Pro_1/image_4.png",
+            "./Data/Files/Pro_1/image_5.png"
           ],
           "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
           "topics": [],
@@ -194,10 +237,10 @@
       "Programming": [
         {
           "title": "Python",
-          "source": "Source",
+          "source": "sb",
           "proof": "Proof",
-          "url": "",
-          "icon": ["./Data/I/python_dark.png", "./Data/I/python_light.png"],
+          "url": "sds",
+          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
           "level": 0.95,
           "span": 1
         },
@@ -503,24 +546,5 @@
         }
       ]
     }
-  },
-
-  "experience": [
-    {
-      "title": "Technical Instructor",
-      "company": "Digital Egypt Cubs Initiative (DECI)",
-      "company_url": "https://mcit.gov.eg/en/Human_Capacity/MCIT/Digital_Egypt_Cubs_Initiative",
-      "subtitle": "Technical Instructor For <b>Computer Science</b> & <b>Digital Skills</b> • Powered by <b>Udacity</b> & <b>CLS</b>.",
-      "type": "Part-Time",
-      "location": "Egypt",
-      "from_date": "02/2025",
-      "to_date": "12/2025",
-      "description": "Data/E/Exp_0/deci.md",
-      "gallery": [],
-      "achievements": [
-        "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
-        "Designed small applied exercises to successfully bridge theory and practice."
-      ]
-    }
-  ]
+  }
 }
