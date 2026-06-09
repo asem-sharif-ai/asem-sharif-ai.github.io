@@ -36,6 +36,7 @@ const sectionMap = {
   analytics:    'fa-solid fa-chart-line',
 
   faq:          'fa-solid fa-circle-question',
+  hub:          'fa-solid fa-share-nodes',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
 
@@ -75,6 +76,46 @@ const iconMap = {
 
 function isMobile() {
   return window.innerWidth <= 768;
+}
+
+// ───── QR Code Modal ────────────────────────────────────────
+
+function createQRCodeModal(qrData) {
+  const qrBtn = document.createElement('button');
+  qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
+  qrBtn.id = 'qr-trigger';
+  qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;
+  document.body.appendChild(qrBtn);
+
+  const modalOverlay = document.createElement('div');
+  modalOverlay.classList.add('qr-modal-overlay');
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('qr-modal-content');
+  modalContent.innerHTML = `
+    <div class='qr-modal-header'>
+      <span class='item-card-title'>${qrData.title || 'Scan QR Code'}</span>
+      <i class='fa-solid fa-xmark close-qr-modal'></i>
+    </div>
+    <div class='qr-image-wrapper'></div>
+  `;
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
+
+  const encodedUrl = encodeURIComponent(qrData.url);
+  const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
+  
+  qrWrapper.innerHTML = `
+    <img id='qr-light' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=000000&bgcolor=f5f5f7' alt='QR Code Light' class='qr-code-img' />
+    <img id='qr-dark' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=ffffff&bgcolor=111113' alt='QR Code Dark' class='qr-code-img' />
+  `;
+
+  const openModal = () => { modalOverlay.classList.add('open'); };
+  const closeModal = () => { modalOverlay.classList.remove('open'); };
+
+  qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+  modalOverlay.querySelector('.close-qr-modal').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 }
 
 // ───── Markdown Parser ────────────────────────────────────────
@@ -196,22 +237,9 @@ function observeCards() {
 
 // ───── UI Utils ────────────────────────────────────────
 
-function applyBaseSetup(data, qr = false) {
-  const stored = localStorage.getItem('user-theme');
-  if (stored !== null) {
-    document.body.classList.toggle('light-mode', stored === 'light');
-  } else if (data.dark_mode == null) {
-    document.body.classList.toggle('light-mode', window.matchMedia('(prefers-color-scheme: light)').matches);
-  } else if (data.dark_mode === false) {
-    document.body.classList.add('light-mode');
-  } else {
-    document.body.classList.remove('light-mode');
-  }
+function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
+  if (data.name) document.title = data.name + (page !== '' ? ` - ${page}` : '');
 
-  if (data.theme) {
-    document.documentElement.style.setProperty('--theme-color', data.theme);
-  }
-  
   if (data.icon) {
     let link = document.querySelector('link[rel*="icon"]');
     if (!link) {
@@ -225,13 +253,34 @@ function applyBaseSetup(data, qr = false) {
     else if (data.icon.endsWith('.ico')) link.type = 'image/x-icon';
   }
 
-  if (qr) {
-    if (data.qr_code?.url) {
-      createQRCodeModal(data.qr_code);
-    }
+  let appliedTheme = 'dark';
+
+  const stored = localStorage.getItem('user-theme');
+  if (stored !== null) {
+    const isLight = stored === 'light';
+    document.body.classList.toggle('light-mode', isLight);
+    appliedTheme = isLight ? 'light' : 'dark';
+  } else if (data.dark_mode == null) {
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    document.body.classList.toggle('light-mode', prefersLight);
+    appliedTheme = prefersLight ? 'light' : 'dark';
+  } else if (data.dark_mode === false) {
+    document.body.classList.add('light-mode');
+    appliedTheme = 'light';
+  } else {
+    document.body.classList.remove('light-mode');
+    appliedTheme = 'dark';
   }
-  
-  if (data.assistant && data.assistant.url) {
+
+  if (data.theme) {
+    // document.documentElement.style.setProperty('--theme-color', data.theme);
+  }
+
+  if (qr && data.qr_code?.url) {
+      createQRCodeModal(data.qr_code);
+  }
+
+  if (data.assistant && data.assistant.endpoint) {
     if (typeof initChatAssistant === 'function') {
       initChatAssistant(data);
       
@@ -247,9 +296,11 @@ function applyBaseSetup(data, qr = false) {
           });
           syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
         }
-    }
+      }
     }
   }
+
+  return appliedTheme;
 }
 
 function makeSeparator(extraClass = '') {

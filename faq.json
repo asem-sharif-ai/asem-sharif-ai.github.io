@@ -1,0 +1,18 @@
+[
+    {
+        "q": "What hardware environments do you specialize in deploying for?",
+        "a": "I specialize in engineering high-performance, resource-constrained applications tailored for edge computing hardware. My primary focus is deploying optimized perception engines on platforms like the Raspberry Pi 5 integrated with hardware accelerators, such as the Hailo-8L Neural Processing Unit (NPU), where maintaining low latency and strict execution budgets is critical."
+    },
+    {
+        "q": "How do you approach processing large-scale computer vision datasets?",
+        "a": "Efficiency is key. I design automated preprocessing and cloud-bridge pipelines to significantly reduce storage footprints without sacrificing data integrity. For instance, I successfully optimized a massive 25 TB Driver Monitoring Dataset (DMD) down to an agile, under-15 GB version using customized FFmpeg filtration and downscaling workflows."
+    },
+    {
+        "q": "What is your philosophy regarding user interface design?",
+        "a": "I believe developer tools and desktop applications should be as beautiful as they are functional. I focus on object-oriented desktop application development using PyQt6, prioritizing highly polished dark-mode aesthetics, custom CSS styling, modular component design, and sleek visual layers like glassmorphism."
+    },
+    {
+        "q": "Are you open to relocation or international collaboration?",
+        "a": "Yes! I am highly open to remote collaborations and international opportunities. Looking ahead, I am also planning to relocate to Lithuania in mid-2027 to pursue my Master’s degree, targeting deep-tech engineering ecosystems at institutions like Kaunas University of Technology (KTU) or Vilnius Tech."
+    }
+]

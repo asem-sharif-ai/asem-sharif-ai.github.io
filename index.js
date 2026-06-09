@@ -1,9 +1,7 @@
 // ───── Cards Setup ────────────────────────────────────────
 
 function buildCard(section, cardId) {
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.id = cardId;
+  const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId});
 
   const textId = `text-${cardId}`;
   const copyId = `copy-${cardId}`;
@@ -29,26 +27,23 @@ function buildCard(section, cardId) {
   `;
 
   card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId));
-
-  const actionHandler = isMedia
-    ? (e) => { e.stopPropagation(); downloadPanelMedia(cardId); }
-    : (e) => { e.stopPropagation(); copyPanelText(cardId); };
-  card.querySelector(`#${copyId}`).addEventListener('click', actionHandler);
+  card.querySelector(`#${copyId}`).addEventListener('click', (e) => {
+    e.stopPropagation(); isMedia ? downloadPanelMedia(cardId) : copyPanelText(cardId);
+  });
 
   const container = card.querySelector(`#${textId}`);
 
   if (isImage) {
     container.innerHTML = `
-      <div class='image-container' style='display:flex;justify-content:center;align-items:center;width:100%;height:100%;'>
-        <img src='${section.path}' alt='${section.title}'
-             style='max-width:100%;max-height:400px;width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;' />
+      <div class='media-container image-container'>
+        <img src='${section.path}' alt='${section.title}' class='media-element image-element' />
       </div>
     `;
   } else if (isVideo) {
     const mime = getVideoMimeType(section.path);
     container.innerHTML = `
-      <div class='video-container' style='display:flex;justify-content:center;align-items:center;width:100%;height:100%;'>
-        <video controls style='max-width:100%;max-height:400px;width:100%;height:auto;display:block;border-radius:4px;background:#000;' preload='metadata'>
+      <div class='media-container video-container'>
+        <video controls class='media-element video-element' preload='metadata'>
           <source src='${section.path}' type='${mime}'>
           Your browser does not support the video tag.
         </video>
@@ -64,7 +59,7 @@ function buildCard(section, cardId) {
 
 function highlightCard(cardId) {
   document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
-  if (cardId !== 'welcome-panel') {
+  if (cardId !== 'home-panel') {
     const target = document.getElementById(cardId);
     if (target) {
       target.classList.add('focus');
@@ -136,15 +131,11 @@ function makePanelId(rowIndex, colIndex) {
   return `panel-r${rowIndex}-c${colIndex}`;
 }
 
-function makeRowId(rowIndex) {
-  return `row-${rowIndex}`;
-}
-
 // ───── Scroll Spy ────────────────────────────────────────
 
 function runScrollSpy(spyTargets) {
   window.addEventListener('scroll', () => {
-    let activeId = 'welcome-panel';
+    let activeId = 'home-panel';
     const topOffset = window.scrollY + 250;
 
     spyTargets.forEach(view => {
@@ -162,78 +153,6 @@ function runScrollSpy(spyTargets) {
   });
 }
 
-// ───── QR Code Modal ────────────────────────────────────────
-
-function createQRCodeModal(qrData) {
-  const qrBtn = document.createElement('button');
-  qrBtn.className = 'qr-trigger floating-trigger';
-  qrBtn.id = 'qr-trigger';
-  qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;
-  document.body.appendChild(qrBtn);
-
-  const modalOverlay = document.createElement('div');
-  modalOverlay.classList.add('qr-modal-overlay');
-
-  const modalContent = document.createElement('div');
-  modalContent.classList.add('qr-modal-content');
-  modalContent.innerHTML = `
-    <div class='qr-modal-header'>
-      <span class='card-title'>${qrData.title || 'Scan QR Code'}</span>
-      <i class='fa-solid fa-xmark close-qr-modal'></i>
-    </div>
-    <div class='qr-image-wrapper'></div>
-  `;
-  modalOverlay.appendChild(modalContent);
-  document.body.appendChild(modalOverlay);
-
-  const styles = window.getComputedStyle(document.body);
-  const currentBg = styles.getPropertyValue('--bg-primary').trim().replace('#', '');
-  const isLight = document.body.classList.contains('light-mode');
-  const lightBg = isLight ? currentBg : 'f5f5f7';
-  const darkBg = isLight ? '111113' : currentBg;
-
-  const encodedUrl = encodeURIComponent(qrData.url);
-
-  const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
-  qrWrapper.innerHTML = `
-    <img id='qr-light' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=000000&bgcolor=${lightBg}' alt='QR Code' style='display:none; width:220px; height:220px;' />
-    <img id='qr-dark' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=ffffff&bgcolor=${darkBg}' alt='QR Code' style='display:none; width:220px; height:220px;' />
-  `;
-
-  const lightImg = qrWrapper.querySelector('#qr-light');
-  const darkImg = qrWrapper.querySelector('#qr-dark');
-
-  const openModal = () => {
-    const isLight = document.body.classList.contains('light-mode');
-    
-    const currentBg = isLight ? `#${lightBg}` : `#${darkBg}`;
-    modalContent.style.background = currentBg;
-    qrWrapper.style.background = currentBg;
-
-    if (isLight) {
-      darkImg.style.display = 'none';
-      lightImg.style.display = 'block';
-    } else {
-      lightImg.style.display = 'none';
-      darkImg.style.display = 'block';
-    }
-
-    modalOverlay.style.opacity = '1';
-    modalOverlay.style.pointerEvents = 'auto';
-    modalContent.style.transform = 'scale(1)';
-  };
-
-  const closeModal = () => {
-    modalOverlay.style.opacity = '0';
-    modalOverlay.style.pointerEvents = 'none';
-    modalContent.style.transform = 'scale(0.95)';
-  };
-
-  qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
-  modalOverlay.querySelector('.close-qr-modal').addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-}
-
 // ───── Profile App ────────────────────────────────────────
 
 async function runProfileApp() {
@@ -241,38 +160,53 @@ async function runProfileApp() {
     const res = await fetch('config.json');
     const data = await res.json();
 
-    applyBaseSetup(data, true);
+    const navItems = document.getElementById('nav-items');
+    const homePanel = document.getElementById('home-panel');
+    const navUserName = document.getElementById('nav-user-name');
+    const navUserRole = document.getElementById('nav-user-role');
+    const userName = document.getElementById('user-name');
+    const userLocation = document.getElementById('user-location');
+    const socialIcons = document.getElementById('social-icons');
+    const sectionsContainer = document.getElementById('sections-container');
+
+    let theme = applyBaseSetup(data, '', true);
 
     if (data.symbol) {
       const logoContainer = document.querySelector('.hero-logo');
-      logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
-      logoContainer.addEventListener('click', () => {
-        localStorage.setItem('user-theme', document.body.classList.toggle('light-mode') ? 'light' : 'dark');
-      });
+      if (logoContainer) {
+        logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
+        logoContainer.addEventListener('click', () => {
+          const isLight = document.body.classList.toggle('light-mode');
+          theme = isLight ? 'light' : 'dark';
+          localStorage.setItem('user-theme', theme);
+        });
+      }
     }
 
     const name = data.name || 'Anonymous';
-    document.title = name;
-    document.getElementById('brand-title').innerText = name;
-    document.getElementById('user-name').innerText = name;
+    if (userName) userName.innerText = name;
+    if (navUserName) navUserName.innerText = name;
 
     const role = data.role || '';
-    if (typeof role === 'string') {
-      document.getElementById('user-role').innerText = role;
-    } else if (Array.isArray(role) && role.length > 0) {
-      renderRoles('user-role', role);
-    } else {
-      document.getElementById('user-role').remove();
+    if (navUserRole) {
+      if (typeof role === 'string' && role) {
+        navUserRole.innerText = role;
+      } else if (Array.isArray(role) && role.length > 0) {
+        renderRoles('user-role', role);
+      } else {
+        navUserRole.remove();
+      }
     }
 
-    if (data.location) {
-      document.getElementById('user-location').innerText = data.location;
-    } else {
-      document.getElementById('user-location').remove();
+    if (userLocation) {
+      if (data.location) {
+        userLocation.innerText = data.location;
+      } else {
+        userLocation.remove();
+      }
     }
 
-    if (Array.isArray(data.socials) ) {
-      const baseSocials = document.getElementById('social-links');
+    if (Array.isArray(data.socials) && socialIcons) {
       data.socials.forEach((group, groupIndex) => {
         if (!Array.isArray(group)) return;
         group.forEach(link => {
@@ -289,41 +223,38 @@ async function runProfileApp() {
           icon.className = iconMap[link.site] || iconMap.default;
 
           anchor.appendChild(icon);
-          baseSocials.appendChild(anchor);
+          socialIcons.appendChild(anchor);
         });
 
         if (groupIndex < data.socials.length - 1) {
-          baseSocials.appendChild(makeSeparator());
+          socialIcons.appendChild(makeSeparator());
         }
       });
     }
 
-    const linksContainer = document.getElementById('nav-items');
-    const sectionsContainer = document.getElementById('sections-container');
+    const spyTargets = [{ id: 'home-panel', navIds: 'nav-home' }];
 
-    const spyTargets = [{ id: 'welcome-panel', navIds: 'nav-welcome' }];
-
-    const baseNavItems = [
-      { id: 'nav-welcome', label: 'Welcome', icon: 'fa-solid fa-house', target: 'welcome-panel', cardId: 'welcome-panel' }
-    ];
+    const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-panel', cardId: 'home-panel' }];
 
     const fileNavItems = [
       { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
-      { id: 'nav-cv', label: `CV <span class='post-detail'>(${data.cv_date})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
+      { id: 'nav-cv', label: `CV <span class='post-detail'>(${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
     ];
 
-    baseNavItems.forEach(item => {
-      const btn = document.createElement('a');
-      btn.id = item.id;
-      btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
-      btn.onclick = () => jumpToCard(item.target, item.cardId);
-      linksContainer.appendChild(btn);
-    });
+    if (navItems) {
+      baseNavItems.forEach(item => {
+        const btn = document.createElement('a');
+        btn.id = item.id;
+        btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
+        btn.onclick = () => jumpToCard(item.target, item.cardId);
+        navItems.appendChild(btn);
+      });
+    }
 
-    if (Array.isArray(data.sections)) {
+    if (Array.isArray(data.sections) && sectionsContainer && navItems) {
       data.sections.forEach((row, rowIndex) => {
         const colCount = row.length;
-        const rowId = makeRowId(rowIndex);
+        const rowId = `row-${rowIndex}`;
         const cardIds = row.map((_, colIndex) => makePanelId(rowIndex, colIndex));
         const rowNavIds = [];
 
@@ -347,7 +278,7 @@ async function runProfileApp() {
             navBtn.id = navId;
             navBtn.innerHTML = `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
-            linksContainer.appendChild(navBtn);
+            navItems.appendChild(navBtn);
           }
         });
 
@@ -361,34 +292,75 @@ async function runProfileApp() {
       experience: './log.html?page=experience',
       projects:   './projects.html',
       skills:     './skills.html',
+      hub:        './hub.html',
     };
     const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
 
-    orderedKeys.forEach(key => {
-      const btn = document.createElement('a');
-      btn.id = `nav-${key}`;
-      const label = key.charAt(0).toUpperCase() + key.slice(1);
-      btn.innerHTML = `<i class='${sectionMap[key]}'></i><span class='nav-label'> ${label}</span>`;
-      btn.href = allowedKeys[key];
-      linksContainer.appendChild(btn);
-    });
+    if (navItems) {
+      orderedKeys.forEach(key => {
+        const btn = document.createElement('a');
+        btn.id = `nav-${key}`;
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        btn.innerHTML = `<i class='${sectionMap[key]}'></i><span class='nav-label'> ${label}</span>`;
+        btn.href = allowedKeys[key];
+        navItems.appendChild(btn);
+      });
 
-    fileNavItems.forEach(item => {
-      if (!item.target) return;
-      const btn = document.createElement('a');
-      btn.id = item.id;
-      btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
-      btn.href = item.target;
-      btn.target = '_blank';
-      linksContainer.appendChild(btn);
-    });
+      fileNavItems.forEach(item => {
+        if (!item.target) return;
+        const btn = document.createElement('a');
+        btn.id = item.id;
+        btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
+        btn.href = item.target;
+        btn.target = '_blank';
+        navItems.appendChild(btn);
+      });
+    }
 
     observeCards();
     runScrollSpy(spyTargets);
 
+    return true;
+
   } catch (error) {
     console.error('Application Setup Validation Failure:', error);
+    return false;
   }
 }
 
-document.addEventListener('DOMContentLoaded', runProfileApp);
+document.addEventListener('DOMContentLoaded', async () => {
+  await runProfileApp();
+
+  if (window.location.hash) {
+    const targetId = window.location.hash.substring(1);
+
+    let retries = 0;
+    const retryLimit = 10;
+
+    const scrollInterval = setInterval(() => {
+      const targetCard = document.getElementById(targetId);
+      retries++;
+
+      if (targetCard && targetCard.offsetHeight > 0) {
+        clearInterval(scrollInterval);
+        
+        const collapse = targetCard.querySelector('.card-collapse');
+        if (collapse && collapse.classList.contains('closed')) {
+          toggleCard(targetId);
+        }
+
+        const headerOffset = 90; 
+        const elementPosition = targetCard.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+
+      } else if (retries >= retryLimit) {
+        clearInterval(scrollInterval);
+      }
+    }, 100);
+  }
+});

@@ -14,9 +14,9 @@
   <body>
 
     <nav class="navbar">
-      <div class="brand-group">
-        <div class="brand-name" id="brand-title">Loading...</div>
-        <div class="brand-role" id="brand-subtitle"></div>
+      <div class="nav-profile">
+        <div class="nav-name" id="brand-title">Loading...</div>
+        <div class="nav-role" id="nav-user-role"></div>
       </div>
       <div class="nav-links" id="nav-items">
         <a href="index.html">
@@ -38,6 +38,7 @@
             id="project-search-input"
             placeholder="Search"
             autocomplete="off"
+            maxlength="50"
           />
         </div>
       </div>
@@ -58,7 +59,7 @@
         <h2 id="latest-title"></h2>
         <div id="latest-content" class="subtitle"></div>
         <span class="latest-keywords-container" id="latest-keywords-container"></span>
-        <button class="visit-latest-btn" id="latest-url-btn">
+        <button class="action-btn" id="visit-latest-btn">
           <i class="fa-solid fa-arrow-up-right-from-square"></i>
           <span>Visit Project</span>
         </button>

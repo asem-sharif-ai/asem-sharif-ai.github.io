@@ -2,26 +2,29 @@ let _projectsConfigData = {};
 let _allProjects = [];
 let _searchQuery = '';
 let _activeTopics = new Set();
-
-const _SS_FILTER = 'proj-active-topics';
-const _SS_SEARCH = 'proj-search-query';
+let _starredOnly = false;
+let _filterMode = 'OR';
 
 // ───── State Persistence ────────────────────────────────────────
 
 function _saveFilterState() {
-  sessionStorage.setItem(_SS_FILTER, JSON.stringify([..._activeTopics]));
-  sessionStorage.setItem(_SS_SEARCH, _searchQuery);
+  sessionStorage.setItem('proj-active-topics', JSON.stringify([..._activeTopics]));
+  sessionStorage.setItem('proj-search-query', _searchQuery);
+  sessionStorage.setItem('proj-starred-only', _starredOnly ? 'true' : 'false');
+  sessionStorage.setItem('proj-filter-mode', _filterMode);
 }
 
 function _loadFilterState() {
   try {
-    const saved = sessionStorage.getItem(_SS_FILTER);
+    const saved = sessionStorage.getItem('proj-active-topics');
     if (saved) _activeTopics = new Set(JSON.parse(saved));
   } catch (_) { _activeTopics = new Set(); }
-  _searchQuery = sessionStorage.getItem(_SS_SEARCH) || '';
+  _searchQuery = sessionStorage.getItem('proj-search-query') || '';
+  _starredOnly = sessionStorage.getItem('proj-starred-only') === 'true';
+  _filterMode = sessionStorage.getItem('proj-filter-mode') || 'OR';
 }
 
-// ───── Filter & Search Logic ────────────────────────────────────────
+// ───── Setup ────────────────────────────────────────
 
 function collectTopics(projectRows) {
   const all = new Set();
@@ -35,24 +38,90 @@ function buildFilterDropdown(topics) {
   dropdown.innerHTML = '';
 
   const allItem = document.createElement('div');
-  allItem.className = 'filter-item filter-item-all active';
+  allItem.className = `filter-item filter-item-all ${_activeTopics.size === 0 && !_starredOnly ? 'active' : ''}`;
   allItem.innerText = 'All';
   allItem.addEventListener('click', () => {
     _activeTopics.clear();
+    _starredOnly = false;
     dropdown.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
     allItem.classList.add('active');
+    segmentContainer.className = 'filter-segment-line inactive-mode';
     applyFilterAndRerender();
     _saveFilterState();
   });
   dropdown.appendChild(allItem);
 
+  const starredItem = document.createElement('div');
+  starredItem.className = `filter-item filter-item-starred ${_starredOnly ? 'active' : ''}`;
+  starredItem.innerHTML = '<i class="fa-solid fa-star star-btn star-item"></i> Starred';
+  starredItem.addEventListener('click', () => {
+    _activeTopics.clear();
+    _starredOnly = true;
+    dropdown.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
+    starredItem.classList.add('active');
+    segmentContainer.className = 'filter-segment-line inactive-mode';
+    applyFilterAndRerender();
+    _saveFilterState();
+  });
+  dropdown.appendChild(starredItem);
+
+  const segmentContainer = document.createElement('div');
+  segmentContainer.className = `filter-segment-line ${_activeTopics.size === 0 ? 'inactive-mode' : ''}`;
+
+  const modeOr = document.createElement('span');
+  modeOr.className = `segment-btn ${_filterMode === 'OR' ? 'active' : ''}`;
+  modeOr.innerText = 'ANY (OR)';
+
+  const modeAnd = document.createElement('span');
+  modeAnd.className = `segment-btn ${_filterMode === 'AND' ? 'active' : ''}`;
+  modeAnd.innerText = 'ALL (AND)';
+
+  const lineLeft = document.createElement('div');
+  lineLeft.className = 'segment-line line-left';
+
+  const lineMiddle = document.createElement('div');
+  lineMiddle.className = 'segment-line line-middle';
+
+  const lineRight = document.createElement('div');
+  lineRight.className = 'segment-line line-right';
+
+  modeOr.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (_activeTopics.size === 0) return;
+    _filterMode = 'OR';
+    modeAnd.classList.remove('active');
+    modeOr.classList.add('active');
+    applyFilterAndRerender();
+    _saveFilterState();
+  });
+
+  modeAnd.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (_activeTopics.size === 0) return;
+    _filterMode = 'AND';
+    modeOr.classList.remove('active');
+    modeAnd.classList.add('active');
+    applyFilterAndRerender();
+    _saveFilterState();
+  });
+
+  segmentContainer.appendChild(lineLeft);
+  segmentContainer.appendChild(modeOr);
+  segmentContainer.appendChild(lineMiddle);
+  segmentContainer.appendChild(modeAnd);
+  segmentContainer.appendChild(lineRight);
+  dropdown.appendChild(segmentContainer);
+
   topics.forEach(topic => {
     const item = document.createElement('div');
-    item.className = 'filter-item';
+    item.className = `filter-item ${_activeTopics.has(topic) ? 'active' : ''}`;
     item.innerText = topic;
     item.dataset.topic = topic;
     item.addEventListener('click', () => {
       allItem.classList.remove('active');
+      starredItem.classList.remove('active');
+      _starredOnly = false;
+
       if (_activeTopics.has(topic)) {
         _activeTopics.delete(topic);
         item.classList.remove('active');
@@ -60,7 +129,14 @@ function buildFilterDropdown(topics) {
         _activeTopics.add(topic);
         item.classList.add('active');
       }
-      if (_activeTopics.size === 0) allItem.classList.add('active');
+      
+      if (_activeTopics.size === 0) {
+        allItem.classList.add('active');
+        segmentContainer.className = 'filter-segment-line inactive-mode';
+      } else {
+        segmentContainer.className = `filter-segment-line ${_activeTopics.size <= 1 ? "inactive-mode" : ""}`;
+      }
+      
       applyFilterAndRerender();
       _saveFilterState();
     });
@@ -68,10 +144,10 @@ function buildFilterDropdown(topics) {
   });
 }
 
-function _updateHeroVisibility() {
+function updateHeroVisibility() {
   const hero = document.getElementById('latest-panel');
-  if (!hero) return; // removed from DOM when no latest — nothing to do
-  const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0;
+  if (!hero) return;
+  const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0 || _starredOnly;
   hero.style.display = isFiltered ? 'none' : '';
 }
 
@@ -80,12 +156,17 @@ function applyFilterAndRerender() {
   if (filterBtn) {
     const label = filterBtn.querySelector('.nav-label');
     if (label) {
-      label.innerHTML = _activeTopics.size > 0
-        ? `Filter <span class='post-detail'>(${[..._activeTopics].join(', ')})</span>`
-        : 'Filter';
+      if (_starredOnly) {
+        label.innerHTML = `Filter <span class='post-detail'>(Starred)</span>`;
+      } else {
+        const connector = _filterMode === 'AND' ? ' & ' : ', ';
+        label.innerHTML = _activeTopics.size > 0
+          ? `Filter <span class='post-detail'>(${[..._activeTopics].join(connector)})</span>`
+          : 'Filter';
+      }
     }
   }
-  _updateHeroVisibility();
+  updateHeroVisibility();
   renderProjectsGrid(_allProjects, typeof _projectsConfigData.layout === 'number' ? _projectsConfigData.layout : 4);
 }
 
@@ -127,13 +208,13 @@ function initSearchLogic() {
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
       _saveFilterState();
-      _updateHeroVisibility();
+      updateHeroVisibility();
       renderProjectsGrid(_allProjects, _projectsConfigData.layout || 4);
     }, 300);
   });
 }
 
-// ───── Cards Setup ────────────────────────────────────────
+// ───── Build ────────────────────────────────────────
 
 function buildLatestHero(latest) {
   const hero = document.getElementById('latest-panel');
@@ -150,7 +231,7 @@ function buildLatestHero(latest) {
   }
 
   if (latest.url) {
-    const btn = document.getElementById('latest-url-btn');
+    const btn = document.getElementById('visit-latest-btn');
     btn.style.display = '';
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
@@ -176,30 +257,32 @@ function buildProjectCard(project, cardId) {
   const hasUrl = !!project.url;
 
   card.innerHTML = `
-    <div class='card-header project-card-header' id='header-${cardId}'>
-      <div class='project-header-left'>
-        <button class='btn star-btn${project.star ? ' starred' : ''}' id='star-${cardId}' title='Starred'>
-          <i class='${project.star ? 'fa-solid' : 'fa-regular'} fa-star'></i>
-        </button>
-        <div class='card-title project-card-title'>${project.title || 'Untitled'}</div>
+      <div class='card-header project-card-header' id='header-${cardId}'>
+        <div class='project-header-left'>
+          ${project.star ? `
+          <button class='btn star-btn starred' id='star-${cardId}' title='Starred'>
+            <i class='fa-solid fa-star'></i>
+          </button>
+          ` : ''}
+          <div class='card-title project-card-title'>${project.title || 'Untitled'}</div>
+        </div>
+        <div class='card-btns dynamic-panel-btns'>
+          ${isMultiContent ? `
+            <button class='btn prev-btn' id='prev-${cardId}' title='Previous'><i class='fa-solid fa-chevron-left'></i></button>
+            <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
+            <button class='btn next-btn' id='next-${cardId}' title='Next'><i class='fa-solid fa-chevron-right'></i></button>
+          ` : ''}
+          ${hasUrl ? `<button class='btn url-action-btn' id='url-${cardId}' title='Open'><i class='fa-solid fa-arrow-up-right-from-square card-url-btn'></i></button>` : ''}
+          <button class='btn toggle-btn' id='toggle-btn-${cardId}' title='Collapse'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
+        </div>
       </div>
-      <div class='card-btns dynamic-panel-btns'>
-        ${isMultiContent ? `
-          <button class='btn prev-btn' id='prev-${cardId}' title='Previous'><i class='fa-solid fa-chevron-left'></i></button>
-          <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
-          <button class='btn next-btn' id='next-${cardId}' title='Next'><i class='fa-solid fa-chevron-right'></i></button>
-        ` : ''}
-        ${hasUrl ? `<button class='btn url-action-btn' id='url-${cardId}' title='Open'><i class='fa-solid fa-arrow-up-right-from-square'></i></button>` : ''}
-        <button class='btn toggle-btn' id='toggle-btn-${cardId}' title='Collapse'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
+      <div class='card-collapse'>
+        <div class='card-body'>
+          <div class='scroll-area' id='${textId}'>Loading...</div>
+          ${project.topics?.length ? `<div class='project-topics'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
+        </div>
       </div>
-    </div>
-    <div class='card-collapse'>
-      <div class='card-body'>
-        <div class='scroll-area' id='${textId}'>Loading...</div>
-        ${project.topics?.length ? `<div class='project-topics'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
-      </div>
-    </div>
-  `;
+    `;
 
   card.querySelector(`#toggle-btn-${cardId}`).addEventListener('click', (e) => {
     e.stopPropagation();
@@ -328,10 +411,19 @@ function renderProjectsGrid(projectRows, columns) {
   const processedRows = [];
   projectRows.forEach(row => {
     const activeItems = row.filter(project => {
-      const matchesTopic  = _activeTopics.size === 0
-        || project.topics?.some(t => _activeTopics.has(t));
       const matchesSearch = (project.title || '').toLowerCase().includes(_searchQuery.toLowerCase());
-      return matchesTopic && matchesSearch;
+      const matchesStarred = !_starredOnly || !!project.star;
+
+      let matchesTopic = true;
+      if (_activeTopics.size > 0) {
+        if (_filterMode === 'AND') {
+          matchesTopic = [..._activeTopics].every(t => project.topics?.includes(t));
+        } else {
+          matchesTopic = project.topics?.some(t => _activeTopics.has(t));
+        }
+      }
+
+      return matchesTopic && matchesSearch && matchesStarred;
     });
     if (activeItems.length) processedRows.push(activeItems);
   });
@@ -376,7 +468,7 @@ async function runProjectsApp() {
     if (brandTitle) brandTitle.innerText = name;
 
     renderRoles(
-      'brand-subtitle',
+      'nav-user-role',
       Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
     );
 
@@ -388,14 +480,22 @@ async function runProjectsApp() {
     }
 
     _loadFilterState();
-    _updateHeroVisibility();
+    updateHeroVisibility();
 
     const topics = collectTopics(_allProjects);
     buildFilterDropdown(topics);
 
-    if (_activeTopics.size > 0) {
-      const dropdown = document.getElementById('filter-dropdown');
-      if (dropdown) {
+    const dropdown = document.getElementById('filter-dropdown');
+    if (dropdown) {
+      if (_starredOnly) {
+        dropdown.querySelector('.filter-item-all')?.classList.remove('active');
+        dropdown.querySelector('.filter-item-starred')?.classList.add('active');
+        
+        const filterBtn = document.getElementById('filter-btn');
+        if (filterBtn && filterBtn.querySelector('.nav-label')) {
+          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail'>(Starred)</span>`;
+        }
+      } else if (_activeTopics.size > 0) {
         dropdown.querySelectorAll('.filter-item').forEach(el => {
           if (el.dataset.topic && _activeTopics.has(el.dataset.topic)) {
             el.classList.add('active');
@@ -403,11 +503,9 @@ async function runProjectsApp() {
           }
         });
         const filterBtn = document.getElementById('filter-btn');
-        if (filterBtn) {
-          const label = filterBtn.querySelector('.nav-label');
-          if (label) {
-            label.innerHTML = `Filter <span class='post-detail'>(${[..._activeTopics].join(', ')})</span>`;
-          }
+        if (filterBtn && filterBtn.querySelector('.nav-label')) {
+          const connector = _filterMode === 'AND' ? ' & ' : ', ';
+          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail'>(${[..._activeTopics].join(connector)})</span>`;
         }
       }
     }

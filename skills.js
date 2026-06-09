@@ -92,7 +92,7 @@ function buildSkillCard(skill) {
     </div>
     <div class='skill-card-body'>
       <div class='gauge-wrapper'>
-        <svg class='gauge-svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>
+        <svg class='gauge-svg' viewBox='0 0 ${size} ${size}' xmlns='http://www.w3.org/2000/svg'>
           <rect class='gauge-bg'
             x='${pad}' y='${pad}'
             width='${rectSize}' height='${rectSize}'
@@ -180,11 +180,16 @@ function updateSkillsIcons() {
 // ───── Setup ────────────────────────────────────────
 
 let _resizeTimer;
+let _wasMobile = null;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
   _resizeTimer = setTimeout(() => {
-    if (_skillsConfigData.skills) renderSkillsGroups(_skillsConfigData.skills);
-  }, 120);
+    const nowMobile = isMobile();
+    if (nowMobile !== _wasMobile) {
+      _wasMobile = nowMobile;
+      if (_skillsConfigData.skills) renderSkillsGroups(_skillsConfigData.skills);
+    }
+  }, 150);
 });
 
 const _themeObserver = new MutationObserver((mutations) => {
@@ -213,7 +218,7 @@ async function runSkillsApp() {
     if (brandTitle) brandTitle.innerText = name;
 
     renderRoles(
-      'skills-brand-role',
+      'skills-nav-role',
       Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
     );
 

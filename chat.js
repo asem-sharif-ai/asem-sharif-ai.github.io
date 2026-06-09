@@ -3,6 +3,7 @@ const REQUEST_TIMEOUT_MS = 10000;
 
 let assistantConfig = null;
 let globalProfileData = null;
+let chatStorageKey = 'portfolio_chat_history';
 
 // ───── Core API Functions ────────────────────────────────────────
 
@@ -13,7 +14,7 @@ async function getModelResponse(configData = {}, newMessage = '', conversationLo
   delete safeConfig.assistant.limit;
 
   try {
-    const response = await fetch(configData.assistant.url, {
+    const response = await fetch(configData.assistant.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ config: safeConfig, history: conversationLog, message: newMessage }),
@@ -27,8 +28,15 @@ async function getModelResponse(configData = {}, newMessage = '', conversationLo
       throw errInstance;
     }
 
+    const systemAlerts = Array.isArray(data?.systemAlerts) ? data.systemAlerts : null;
+
+    // Block response: worker returns empty response string + alerts (no AI text to render).
+    if (!data.response && systemAlerts && systemAlerts.length > 0) {
+      return { text: null, systemAlerts };
+    }
+
     const raw = data?.response ?? 'No Response.';
-    return { text: parseMarkdown(raw), systemAlert: data?.systemAlert ?? null };
+    return { text: parseMarkdown(raw), systemAlerts };
   } catch (err) {
     throw err;
   }
@@ -43,19 +51,17 @@ async function handleUserMessageSubmit() {
     text = text.substring(0, MAX_MESSAGE_LENGTH);
   }
 
-  const userTime = appendChatMessage('user', text);
-  saveChatHistory('user', text, userTime);
   input.value = '';
 
   toggleChatInteractiveState(true);
   showTypingIndicator();
 
   let conversationHistory = [];
-  const stored = localStorage.getItem('portfolio_chat_history');
+  const stored = localStorage.getItem(chatStorageKey);
   if (stored) {
     try {
       conversationHistory = JSON.parse(stored);
-      conversationHistory = conversationHistory.slice(1);
+      conversationHistory = conversationHistory.filter(m => m.sender === 'user' || m.sender === 'assistant');
     } catch(e) {
       conversationHistory = [];
     }
@@ -81,13 +87,23 @@ async function handleUserMessageSubmit() {
     clearTimeout(timeoutId);
     removeTypingIndicator();
 
-    const systemTime = appendChatMessage('assistant', finalResponse.text);
-    saveChatHistory('assistant', finalResponse.text, systemTime);
+    const isBlocked = !finalResponse.text && finalResponse.systemAlerts && finalResponse.systemAlerts.length > 0;
 
-    if (finalResponse.systemAlert) {
-      const alert = finalResponse.systemAlert;
-      const alertTime = appendChatMessage('system-error', alert.label);
-      saveChatHistory('system-error', alert.label, alertTime);
+    if (!isBlocked) {
+      const userTime = appendChatMessage('user', text);
+      saveChatHistory('user', text, userTime);
+    }
+
+    if (finalResponse.text) {
+      const systemTime = appendChatMessage('assistant', finalResponse.text);
+      saveChatHistory('assistant', finalResponse.text, systemTime);
+    }
+
+    if (finalResponse.systemAlerts && finalResponse.systemAlerts.length > 0) {
+      for (const alert of finalResponse.systemAlerts) {
+        const alertTime = appendChatMessage('system-error', alert.label);
+        saveChatHistory('system-error', alert.label, alertTime);
+      }
     }
 
   } catch (error) {
@@ -114,9 +130,10 @@ async function handleUserMessageSubmit() {
 function initChatAssistant(configData) {
   assistantConfig = configData.assistant;
   globalProfileData = configData;
+  chatStorageKey = 'portfolio_chat_history:' + btoa(assistantConfig.url).replace(/=/g, '');
 
   const triggerBtn = document.createElement('button');
-  triggerBtn.className = 'floating-trigger chat-trigger';
+  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow'; 
   triggerBtn.id = 'chat-assistant-trigger';
   
   updateTriggerIcon(triggerBtn);
@@ -130,19 +147,19 @@ function initChatAssistant(configData) {
       <div class='chat-bot-info'>
         <div id='chat-bot-avatar-container'></div>
         <div class='chat-bot-brand'>
-          <span class='brand-name'>${assistantConfig.name || 'Assistant'}</span>
+          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
           ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
         </div>
       </div>
-      <button class='chat-close-btn' id='chat-close-window' title='Minimize'><i class='fa-solid fa-minus'></i></button>
-      <button class='chat-clear-btn' id='chat-clear-window' title='Delete &amp; Close'><i class='fa-solid fa-xmark'></i></button>
+      <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
+      <button class='chat-clear-btn' id='chat-clear-window'><i class='fa-solid fa-xmark'></i></button>
     </div>
     <div class='chat-messages' id='chat-messages-container'></div>
     <div class='chat-footer'>
       <div class='chat-input-wrapper'>
         <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${MAX_MESSAGE_LENGTH}' />
       </div>
-      <button class='chat-send-btn' id='chat-send-trigger' title='Send Message'><i class='fa-solid fa-arrow-up'></i></button>
+      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
     </div>
   `;
 
@@ -314,12 +331,12 @@ function appendChatMessage(sender, text, timestampString = null) {
 
 function saveChatHistory(sender, text, timestamp) {
   let history = [];
-  const stored = localStorage.getItem('portfolio_chat_history');
+  const stored = localStorage.getItem(chatStorageKey);
   if (stored) {
     try { history = JSON.parse(stored); } catch(e) { history = []; }
   }
   history.push({ sender, text, timestamp });
-  localStorage.setItem('portfolio_chat_history', JSON.stringify(history));
+  localStorage.setItem(chatStorageKey, JSON.stringify(history));
 }
 
 function loadChatHistory() {
@@ -327,7 +344,7 @@ function loadChatHistory() {
   if (!container) return;
   container.innerHTML = '';
 
-  const stored = localStorage.getItem('portfolio_chat_history');
+  const stored = localStorage.getItem(chatStorageKey);
   if (stored) {
     try {
       const history = JSON.parse(stored);
@@ -351,7 +368,7 @@ function loadChatHistory() {
 }
 
 function handleChatLogPurge() {
-  localStorage.removeItem('portfolio_chat_history');
+  localStorage.removeItem(chatStorageKey);
   loadChatHistory();
   const input = document.getElementById('chat-user-input');
   if (input && !input.disabled) input.focus();

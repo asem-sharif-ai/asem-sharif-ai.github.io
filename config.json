@@ -19,7 +19,7 @@
     "name":"Twin",
     "role": "Digital Assistant",
     "icon": ["./Data/Icons/chat_dark.png", "./Data/Icons/chat_light.png"],
-    "url": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
+    "endpoint": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
     "initial": [
       "Hello there! I'm Twin, Asem's digital assistant, and here to give you an inside look at his portfolio",
       "Ask me anything about his specialized deep-tech projects, core skillsets, or system architectural approach.",
@@ -545,5 +545,11 @@
         }
       ]
     }
+  },
+
+  "_hub": {
+    "faq":       "./faq.json",
+    "guestbook": "https://minimal-portfolio-guestbook.asem-sharif-ai.workers.dev"
   }
+
 }

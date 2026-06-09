@@ -168,11 +168,11 @@ function buildGalleryPane(gallery) {
     if (isVideoPath(src)) {
       const mime = getVideoMimeType(src);
       slide.innerHTML = `
-        <video controls preload='metadata' class='video-container'>
+        <video controls preload='metadata' class='video-container' draggable='false'>
           <source src='${src}' type='${mime}'>
         </video>`;
     } else {
-      slide.innerHTML = `<img src='${src}' alt='' loading='lazy' />`;
+      slide.innerHTML = `<img src='${src}' alt='' loading='lazy' draggable='false' />`;
     }
 
     track.appendChild(slide);
@@ -220,6 +220,41 @@ function buildGalleryPane(gallery) {
 
   prevBtn.addEventListener('click', () => goTo(current - 1));
   nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  let pointerStartX = 0;
+  let pointerEndX = 0;
+  let isDragging = false;
+
+  viewport.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return; 
+    isDragging = true;
+    pointerStartX = e.clientX;
+    viewport.setPointerCapture(e.pointerId); 
+  });
+
+  viewport.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const currentX = e.clientX;
+    if (Math.abs(currentX - pointerStartX) > 10) {
+      if (e.cancelable) e.preventDefault();
+    }
+  });
+
+  viewport.addEventListener('pointerup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    pointerEndX = e.clientX;
+    viewport.releasePointerCapture(e.pointerId);
+    handlePointerSwipe();
+  });
+
+  viewport.addEventListener('pointercancel', (e) => { isDragging = false; });
+
+  function handlePointerSwipe() {
+    const swipeDistance = pointerEndX - pointerStartX;
+    if (swipeDistance < -40) { goTo(current + 1); }
+    else if (swipeDistance > 40) { goTo(current - 1); }
+  }
 
   controls.appendChild(prevBtn);
   controls.appendChild(counter);
@@ -349,7 +384,7 @@ async function runLogApp() {
     if (brandTitle) brandTitle.innerText = name;
 
     renderRoles(
-      'log-brand-role',
+      'log-nav-role',
       Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
     );
 
