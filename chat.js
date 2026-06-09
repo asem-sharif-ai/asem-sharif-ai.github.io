@@ -53,6 +53,9 @@ async function handleUserMessageSubmit() {
 
   input.value = '';
 
+  const userTime = appendChatMessage('user', text);
+  saveChatHistory('user', text, userTime);
+
   toggleChatInteractiveState(true);
   showTypingIndicator();
 
@@ -86,13 +89,6 @@ async function handleUserMessageSubmit() {
     const finalResponse = await Promise.race([workerCallPromise, abortPromise]);
     clearTimeout(timeoutId);
     removeTypingIndicator();
-
-    const isBlocked = !finalResponse.text && finalResponse.systemAlerts && finalResponse.systemAlerts.length > 0;
-
-    if (!isBlocked) {
-      const userTime = appendChatMessage('user', text);
-      saveChatHistory('user', text, userTime);
-    }
 
     if (finalResponse.text) {
       const systemTime = appendChatMessage('assistant', finalResponse.text);

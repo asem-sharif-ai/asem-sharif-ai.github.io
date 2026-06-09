@@ -5,7 +5,7 @@ let _activeTopics = new Set();
 let _starredOnly = false;
 let _filterMode = 'OR';
 
-// ───── State Persistence ────────────────────────────────────────
+// ───── State ────────────────────────────────────────
 
 function _saveFilterState() {
   sessionStorage.setItem('proj-active-topics', JSON.stringify([..._activeTopics]));
@@ -18,28 +18,59 @@ function _loadFilterState() {
   try {
     const saved = sessionStorage.getItem('proj-active-topics');
     if (saved) _activeTopics = new Set(JSON.parse(saved));
-  } catch (_) { _activeTopics = new Set(); }
+  } catch (e) { _activeTopics = new Set(); }
   _searchQuery = sessionStorage.getItem('proj-search-query') || '';
   _starredOnly = sessionStorage.getItem('proj-starred-only') === 'true';
   _filterMode = sessionStorage.getItem('proj-filter-mode') || 'OR';
 }
 
-// ───── Setup ────────────────────────────────────────
+// ───── Filter & Search ────────────────────────────────────────
 
-function collectTopics(projectRows) {
-  const all = new Set();
-  projectRows.forEach(row => row.forEach(p => (p.topics || []).forEach(t => all.add(t))));
-  return [...all].sort();
+function initFilterToggle() {
+  const btn = document.getElementById('filter-btn');
+  const panel = document.getElementById('filter-panel');
+  if (!btn || !panel) return;
+  let isOpen  = false;
+
+  function positionPanel() {
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = `${rect.bottom + 10}px`;
+    panel.style.left = `${rect.left}px`;
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isOpen = !isOpen;
+    if (isOpen) positionPanel();
+    panel.classList.toggle('open', isOpen);
+    btn.classList.toggle('active', isOpen);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && e.target !== btn) {
+      isOpen = false;
+      panel.classList.remove('open');
+      btn.classList.remove('active');
+    }
+  });
 }
 
-function buildFilterDropdown(topics) {
+function buildFilterDropdown(projectRows) {
+  function collectTopics(projectRows) {
+    const all = new Set();
+    projectRows.forEach(row => row.forEach(p => (p.topics || []).forEach(t => all.add(t))));
+    return [...all].sort();
+  }
+
+  const topics = collectTopics(projectRows)
+
   const dropdown = document.getElementById('filter-dropdown');
   if (!dropdown) return;
   dropdown.innerHTML = '';
 
   const allItem = document.createElement('div');
   allItem.className = `filter-item filter-item-all ${_activeTopics.size === 0 && !_starredOnly ? 'active' : ''}`;
-  allItem.innerText = 'All';
+  allItem.innerText = `All Projects (${_allProjects.flat().length})`;
   allItem.addEventListener('click', () => {
     _activeTopics.clear();
     _starredOnly = false;
@@ -52,8 +83,8 @@ function buildFilterDropdown(topics) {
   dropdown.appendChild(allItem);
 
   const starredItem = document.createElement('div');
-  starredItem.className = `filter-item filter-item-starred ${_starredOnly ? 'active' : ''}`;
-  starredItem.innerHTML = '<i class="fa-solid fa-star star-btn star-item"></i> Starred';
+  starredItem.className = `filter-item filter-item-star ${_starredOnly ? 'active' : ''}`;
+  starredItem.innerHTML = `<span class='star-icon star-item'></span> Starred (${_allProjects.flat().filter(p => p.star).length})`;
   starredItem.addEventListener('click', () => {
     _activeTopics.clear();
     _starredOnly = true;
@@ -134,7 +165,7 @@ function buildFilterDropdown(topics) {
         allItem.classList.add('active');
         segmentContainer.className = 'filter-segment-line inactive-mode';
       } else {
-        segmentContainer.className = `filter-segment-line ${_activeTopics.size <= 1 ? "inactive-mode" : ""}`;
+        segmentContainer.className = `filter-segment-line ${_activeTopics.size <= 1 ? 'inactive-mode' : ''}`;
       }
       
       applyFilterAndRerender();
@@ -144,59 +175,23 @@ function buildFilterDropdown(topics) {
   });
 }
 
-function updateHeroVisibility() {
-  const hero = document.getElementById('latest-panel');
-  if (!hero) return;
-  const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0 || _starredOnly;
-  hero.style.display = isFiltered ? 'none' : '';
-}
-
 function applyFilterAndRerender() {
   const filterBtn = document.getElementById('filter-btn');
   if (filterBtn) {
     const label = filterBtn.querySelector('.nav-label');
     if (label) {
       if (_starredOnly) {
-        label.innerHTML = `Filter <span class='post-detail'>(Starred)</span>`;
+        label.innerHTML = `Filter <span class='post-detail filter-detail'>(Starred)</span>`;
       } else {
         const connector = _filterMode === 'AND' ? ' & ' : ', ';
         label.innerHTML = _activeTopics.size > 0
-          ? `Filter <span class='post-detail'>(${[..._activeTopics].join(connector)})</span>`
+          ? `Filter <span class='post-detail filter-detail'>(${[..._activeTopics].join(connector)})</span>`
           : 'Filter';
       }
     }
   }
   updateHeroVisibility();
   renderProjectsGrid(_allProjects, typeof _projectsConfigData.layout === 'number' ? _projectsConfigData.layout : 4);
-}
-
-function initFilterToggle() {
-  const btn = document.getElementById('filter-btn');
-  const panel = document.getElementById('filter-panel');
-  if (!btn || !panel) return;
-  let isOpen  = false;
-
-  function positionPanel() {
-    const rect = btn.getBoundingClientRect();
-    panel.style.top = `${rect.bottom + 10}px`;
-    panel.style.left = `${rect.left}px`;
-  }
-
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isOpen = !isOpen;
-    if (isOpen) positionPanel();
-    panel.classList.toggle('open', isOpen);
-    btn.classList.toggle('active', isOpen);
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && e.target !== btn) {
-      isOpen = false;
-      panel.classList.remove('open');
-      btn.classList.remove('active');
-    }
-  });
 }
 
 function initSearchLogic() {
@@ -214,13 +209,13 @@ function initSearchLogic() {
   });
 }
 
-// ───── Build ────────────────────────────────────────
+// ───── Hero ────────────────────────────────────────
 
 function buildLatestHero(latest) {
-  const hero = document.getElementById('latest-panel');
+  const hero = document.getElementById('latest-hero');
   document.getElementById('latest-title').innerText = latest.title || '';
 
-  const contentContainer = document.getElementById('latest-content');
+  const contentContainer = document.getElementById('latest-subtitle');
   contentContainer.innerHTML = latest.subtitle ? `<p>${latest.subtitle}</p>` : '';
 
   const latestKey = document.getElementById('latest-keywords-container');
@@ -240,10 +235,19 @@ function buildLatestHero(latest) {
 
   if (latest.star) {
     const starEl = document.getElementById('latest-star');
-    starEl.innerHTML = '<i class="fa-solid fa-star"></i>';
+    starEl.className = 'star-icon';
     starEl.style.display = '';
   }
 }
+
+function updateHeroVisibility() {
+  const hero = document.getElementById('latest-hero');
+  if (!hero) return;
+  const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0 || _starredOnly;
+  hero.style.display = isFiltered ? 'none' : '';
+}
+
+// ───── Cards ────────────────────────────────────────
 
 function buildProjectCard(project, cardId) {
   const card = document.createElement('div');
@@ -258,12 +262,8 @@ function buildProjectCard(project, cardId) {
 
   card.innerHTML = `
       <div class='card-header project-card-header' id='header-${cardId}'>
-        <div class='project-header-left'>
-          ${project.star ? `
-          <button class='btn star-btn starred' id='star-${cardId}' title='Starred'>
-            <i class='fa-solid fa-star'></i>
-          </button>
-          ` : ''}
+        <div class='project-card-title-container'>
+        ${project.star ? `<span class='star-icon'></span>` : ''}
           <div class='card-title project-card-title'>${project.title || 'Untitled'}</div>
         </div>
         <div class='card-btns dynamic-panel-btns'>
@@ -279,7 +279,7 @@ function buildProjectCard(project, cardId) {
       <div class='card-collapse'>
         <div class='card-body'>
           <div class='scroll-area' id='${textId}'>Loading...</div>
-          ${project.topics?.length ? `<div class='project-topics'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
+          ${project.topics?.length ? `<div class='project-card-footer'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
         </div>
       </div>
     `;
@@ -402,11 +402,8 @@ function renderProjectsGrid(projectRows, columns) {
   grid.innerHTML = '';
   const totalCols = isMobile() ? 1 : (columns || 4);
 
-  grid.style.setProperty('--proj-cols', totalCols);
-  grid.style.display = 'grid';
+  grid.style.setProperty('--projects-cols', totalCols);
   grid.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
-  grid.style.gridAutoRows = 'auto';
-  grid.style.gridAutoFlow = 'row dense';
 
   const processedRows = [];
   projectRows.forEach(row => {
@@ -444,7 +441,7 @@ function renderProjectsGrid(projectRows, columns) {
     });
   });
 
-  if (typeof observeCards === 'function') observeCards();
+  observeCards();
 }
 
 // ───── Projects App ────────────────────────────────────────
@@ -459,41 +456,32 @@ async function runProjectsApp() {
     _projectsConfigData.layout = projectsData.layout || 4;
     _allProjects = projectsData.content || [];
 
-    applyBaseSetup(configData);
+    applyBaseSetup(configData, 'Projects');
 
-    const name = configData.name || 'Anonymous';
-    document.title = `${name} - Projects`;
+    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
 
-    const brandTitle = document.getElementById('brand-title');
-    if (brandTitle) brandTitle.innerText = name;
-
-    renderRoles(
-      'nav-user-role',
-      Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
-    );
+    renderRoles('nav-user-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
 
     if (projectsData.latest?.title) {
       buildLatestHero(projectsData.latest);
     } else {
-      const latestPanel = document.getElementById('latest-panel');
-      if (latestPanel) latestPanel.remove();
+      document.getElementById('latest-hero').remove();
     }
 
     _loadFilterState();
     updateHeroVisibility();
 
-    const topics = collectTopics(_allProjects);
-    buildFilterDropdown(topics);
+    buildFilterDropdown(_allProjects);
 
     const dropdown = document.getElementById('filter-dropdown');
     if (dropdown) {
       if (_starredOnly) {
         dropdown.querySelector('.filter-item-all')?.classList.remove('active');
-        dropdown.querySelector('.filter-item-starred')?.classList.add('active');
+        dropdown.querySelector('.filter-item-star')?.classList.add('active');
         
         const filterBtn = document.getElementById('filter-btn');
         if (filterBtn && filterBtn.querySelector('.nav-label')) {
-          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail'>(Starred)</span>`;
+          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail filter-detail'>(Starred)</span>`;
         }
       } else if (_activeTopics.size > 0) {
         dropdown.querySelectorAll('.filter-item').forEach(el => {
@@ -505,7 +493,7 @@ async function runProjectsApp() {
         const filterBtn = document.getElementById('filter-btn');
         if (filterBtn && filterBtn.querySelector('.nav-label')) {
           const connector = _filterMode === 'AND' ? ' & ' : ', ';
-          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail'>(${[..._activeTopics].join(connector)})</span>`;
+          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail filter-detail'>(${[..._activeTopics].join(connector)})</span>`;
         }
       }
     }
@@ -545,8 +533,8 @@ async function runProjectsApp() {
       }
     }
 
-  } catch (err) {
-    console.error('Projects App Setup Failure:', err);
+  } catch (e) {
+    console.error('Projects App Setup Failure:', e);
   }
 }
 

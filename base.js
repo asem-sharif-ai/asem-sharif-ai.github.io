@@ -327,7 +327,8 @@ function renderRoles(containerId, rolesArray) {
   });
 }
 
-function renderNoData(pageTitle = 'Data', containerId = 'list-container') {
+function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
   const c = document.getElementById(containerId);
-  if (c) c.innerHTML = `<p class='keyword keyword-big'>No ${pageTitle} Yet</p>`;
-};
+  if (!c) return;
+  c.innerHTML = `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
+}

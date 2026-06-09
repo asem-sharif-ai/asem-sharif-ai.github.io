@@ -1,4 +1,4 @@
-let _logConfigData = {};
+let _configData = {};
 
 // ───── Helpers ────────────────────────────────────────
 
@@ -373,20 +373,14 @@ async function runLogApp() {
 
     const cfgRes = await fetch('config.json');
     const configData = await cfgRes.json();
-    _logConfigData = configData;
+    _configData = configData;
 
-    const name = configData.name || 'Anonymous';
-    document.title = `${name} - ${pageLabel}`;
+    applyBaseSetup(configData, pageLabel);
 
-    applyBaseSetup(configData);
+    const brandTitle = document.getElementById('log-nav-user-name');
+    if (brandTitle) brandTitle.innerText = configData.name || 'Anonymous';
 
-    const brandTitle = document.getElementById('log-brand-title');
-    if (brandTitle) brandTitle.innerText = name;
-
-    renderRoles(
-      'log-nav-role',
-      Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
-    );
+    renderRoles('log-nav-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
 
     const data = configData[dataKey];
 

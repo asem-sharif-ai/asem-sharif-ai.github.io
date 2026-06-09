@@ -1,4 +1,4 @@
-let _skillsConfigData = {};
+let _configData = {};
 
 // ───── Build ────────────────────────────────────────
 
@@ -26,11 +26,11 @@ function buildGroupCard(groupKey, groupData, groupIndex) {
 
   const body = document.createElement('div');
   body.className = 'card-body';
-
+  
   const gridWrapper = document.createElement('div');
-  gridWrapper.style.cssText = 'padding:16px;box-sizing:border-box;';
+  gridWrapper.className = 'skill-group-grid';
 
-  renderSkillsGrid(groupData.content, groupData.layout, gridWrapper);
+  renderGroupGrid(groupData.content, groupData.layout, gridWrapper);
 
   body.appendChild(gridWrapper);
   collapse.appendChild(body);
@@ -58,116 +58,87 @@ function buildSkillCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
 
-  const size = 100;
-  const strokeWidth = 12;
-  const rx = 16;
-  const pad = strokeWidth / 2 + 1;
-  const rectSize = size - pad * 2;
-  const perimeter = 2 * (rectSize + rectSize) - (8 - 2 * Math.PI) * rx;
-
-  const level            = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
-  const strokeDashoffset = perimeter * (1 - level);
+  const level = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
+  const progressPercentage = (level * 100).toFixed(1);
 
   const isLight = document.body.classList.contains('light-mode');
   let darkIconPath = '', lightIconPath = '', currentSrc = '';
 
   if (Array.isArray(skill.icon)) {
-    darkIconPath  = skill.icon[0] || '';
+    darkIconPath = skill.icon[0] || '';
     lightIconPath = skill.icon[1] || darkIconPath;
-    currentSrc    = isLight ? lightIconPath : darkIconPath;
+    currentSrc = isLight ? lightIconPath : darkIconPath;
   } else if (typeof skill.icon === 'string') {
     darkIconPath = lightIconPath = currentSrc = skill.icon;
   }
 
+  const hasValidSource = skill.source && (skill.source.startsWith('http') || skill.source.includes('.'));
+
   card.innerHTML = `
-    <div class='skill-card-header'>
-      <span class='item-card-title'>${skill.title || 'Skill'}</span>
-      <div class='skill-card-header-right'>
-        <span class='post-detail'>${skill.source || ''}</span>
-        ${skill.url ? `
-          <a class='post-detail skill-url-btn' href='${skill.url}' target='_blank' rel='noopener noreferrer' title='Open'>
-            <i class='fa-solid fa-arrow-up-right-from-square'></i>
-          </a>` : ''}
-      </div>
-    </div>
-    <div class='skill-card-body'>
-      <div class='gauge-wrapper'>
-        <svg class='gauge-svg' viewBox='0 0 ${size} ${size}' xmlns='http://www.w3.org/2000/svg'>
-          <rect class='gauge-bg'
-            x='${pad}' y='${pad}'
-            width='${rectSize}' height='${rectSize}'
-            rx='${rx}' ry='${rx}'
-          />
-          <rect class='gauge-fill'
-            x='${pad}' y='${pad}'
-            width='${rectSize}' height='${rectSize}'
-            rx='${rx}' ry='${rx}'
-            stroke-dasharray='${perimeter}'
-            stroke-dashoffset='${strokeDashoffset}'
-          />
-        </svg>
+    <div class='skill-card-main-row'>
+      <div class='skill-card-title-group'>
         ${currentSrc ? `
           <img
-            class='gauge-icon thematic-icon'
+            class='skill-card-image thematic-icon'
             src='${currentSrc}'
             data-dark='${darkIconPath}'
             data-light='${lightIconPath}'
             alt='${skill.title || 'Skill'}'
           />` : ''}
+        <div class='skill-card-text'>
+          <span class='item-card-title'>${skill.title || 'Skill'}</span>
+          ${skill.proof ? `<span class='post-detail'>${skill.proof}</span>` : ''}
+        </div>
       </div>
-      ${skill.proof ? `
-        <div>
-          <span class='keyword'>${skill.proof}</span>
-        </div>` : ''}
+      
+      <div>
+        ${hasValidSource ? `
+          <a class='skill-url-btn' href='${skill.source}' target='_blank' rel='noopener noreferrer'>
+            <i class='fa-solid fa-arrow-up-right-from-square'></i>
+          </a>` : ''}
+      </div>
+    </div>
+
+    <div class='progress-container'>
+      <div class='progress-bar-fill has-glow' style='width: ${progressPercentage}%;'></div>
     </div>
   `;
 
   card.querySelector('.skill-url-btn')?.addEventListener('click', e => e.stopPropagation());
-
-  if (skill.source?.startsWith('http')) {
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => window.open(skill.source, '_blank', 'noopener noreferrer'));
-  }
 
   return card;
 }
 
 // ───── Render ────────────────────────────────────────
 
-function renderSkillsGroups(skillsData) {
+function renderGroupGrid(skills, columns, container) {
+  container.innerHTML = '';
+  const totalCols = isMobile() ? 1 : columns;
+  container.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
+  skills.forEach(skill => {
+    const card = buildSkillCard(skill);
+    if (!isMobile() && skill.span) { card.style.gridColumn = `span ${Math.min(skill.span, totalCols)}`; }
+    container.appendChild(card);
+  });
+}
+
+function renderGroups(skillsData) {
   const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
   const globalLayout = skillsData.layout  || 4;
-  const content      = skillsData.content || {};
+  const content = skillsData.content || {};
 
   Object.entries(content).forEach(([groupKey, groupSkills], groupIndex) => {
     if (!groupSkills || !Array.isArray(groupSkills)) return;
     container.appendChild(buildGroupCard(groupKey, { content: groupSkills, layout: globalLayout }, groupIndex));
   });
 
-  if (typeof observeCards === 'function') observeCards();
+  observeCards();
 }
 
-function renderSkillsGrid(skills, columns, container) {
-  container.innerHTML = '';
-  const totalCols = isMobile() ? 1 : columns;
-
-  container.style.display             = 'grid';
-  container.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
-  container.style.gap                 = '16px';
-
-  skills.forEach(skill => {
-    const card = buildSkillCard(skill);
-    if (!isMobile() && skill.span) {
-      card.style.gridColumn = `span ${Math.min(skill.span, totalCols)}`;
-    }
-    container.appendChild(card);
-  });
-}
-
-function updateSkillsIcons() {
+function updateIcons() {
   const isLightMode = document.body.classList.contains('light-mode');
   document.querySelectorAll('.thematic-icon').forEach(img => {
     const darkSrc  = img.getAttribute('data-dark');
@@ -187,14 +158,14 @@ window.addEventListener('resize', () => {
     const nowMobile = isMobile();
     if (nowMobile !== _wasMobile) {
       _wasMobile = nowMobile;
-      if (_skillsConfigData.skills) renderSkillsGroups(_skillsConfigData.skills);
+      if (_configData.skills) renderGroups(_configData.skills);
     }
   }, 150);
 });
 
 const _themeObserver = new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
-    if (mutation.attributeName === 'class') updateSkillsIcons();
+    if (mutation.attributeName === 'class') updateIcons();
   });
 });
 _themeObserver.observe(document.body, { attributes: true });
@@ -207,28 +178,19 @@ async function runSkillsApp() {
   try {
     const cfgRes = await fetch('config.json');
     const configData = await cfgRes.json();
-    _skillsConfigData = configData;
+    _configData = configData;
 
-    const name = configData.name || 'Anonymous';
-    document.title = `${name} - Skills`;
+    applyBaseSetup(configData, 'Skills');
+    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
+    renderRoles('nav-user-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
 
-    applyBaseSetup(configData);
-
-    const brandTitle = document.getElementById('skills-brand-title');
-    if (brandTitle) brandTitle.innerText = name;
-
-    renderRoles(
-      'skills-nav-role',
-      Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : [])
-    );
-
-    if (configData.skills && configData.skills.content && typeof configData.skills === 'object') {
-      renderSkillsGroups(configData.skills);
+    if (configData.skills.content && typeof configData.skills.content === 'object' && Object.keys(configData.skills.content).length > 0) {
+      renderGroups(configData.skills);
     } else {
-      renderNoData('Skills')
+      renderNoData('Skills', 'list-container')
     }
 
-  } catch (err) {
-    console.error('Skills Setup Failure:', err);
+  } catch (e) {
+    console.error('Skills Setup Failure:', e);
   }
 }

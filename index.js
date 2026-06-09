@@ -198,13 +198,32 @@ async function runProfileApp() {
       }
     }
 
-    if (userLocation) {
-      if (data.location) {
-        userLocation.innerText = data.location;
-      } else {
-        userLocation.remove();
+  if (userLocation) {
+    const location = data.location;
+    const timezone = data.timezone;
+
+    if (location) {
+      let timezoneUI = '';
+
+      if (timezone) {
+        if (timezone.includes('/')) {
+          try {
+            const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' });
+            const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
+            timezoneUI = offsetPart ? offsetPart.value.replace('GMT', 'UTC') : '';
+          } catch (e) {
+            timezoneUI = '';
+          }
+        } else if (timezone.includes('+') || timezone.includes('-')) {
+          timezoneUI = timezone;
+        }
       }
+
+      userLocation.innerHTML = `${location}` + (timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : '');
+    } else {
+      userLocation.remove();
     }
+  }
 
     if (Array.isArray(data.socials) && socialIcons) {
       data.socials.forEach((group, groupIndex) => {
@@ -233,18 +252,18 @@ async function runProfileApp() {
     }
 
     const spyTargets = [{ id: 'home-panel', navIds: 'nav-home' }];
-
     const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-panel', cardId: 'home-panel' }];
 
     const fileNavItems = [
       { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
-      { id: 'nav-cv', label: `CV <span class='post-detail'>(${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
+      { id: 'nav-cv', label: `CV<span class='post-detail cv-date'> (${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
     ];
 
     if (navItems) {
       baseNavItems.forEach(item => {
         const btn = document.createElement('a');
         btn.id = item.id;
+        btn.className = 'home-nav-home'; // Added line
         btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
         btn.onclick = () => jumpToCard(item.target, item.cardId);
         navItems.appendChild(btn);
@@ -276,6 +295,7 @@ async function runProfileApp() {
             const sectionIcon = sectionMap[section.icon?.toLowerCase()] ?? sectionMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
+            navBtn.className = 'home-nav-file'; // Added line
             navBtn.innerHTML = `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);

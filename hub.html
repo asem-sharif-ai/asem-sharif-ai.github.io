@@ -15,25 +15,25 @@
 
     <nav class="navbar">
       <div class="nav-profile">
-        <div class="nav-name" id="hub-brand-title">Loading...</div>
-        <div class="nav-role" id="hub-nav-role"></div>
+        <div class="nav-name" id="nav-user-name">Loading...</div>
+        <div class="nav-role" id="nav-user-role"></div>
       </div>
       <div class="nav-links">
         <a href="index.html">
           <i class="fa-solid fa-house"></i>
           <span class="nav-label">Home</span>
         </a>
-        <a id="hub-tab-faq" class="hub-tab active">
+        <a class="hub-tab active" id="hub-tab-faq">
           <i class="fa-solid fa-circle-question"></i>
           <span class="nav-label">FAQ</span>
         </a>
-        <a id="hub-tab-guestbook" class="hub-tab">
+        <a class="hub-tab" id="hub-tab-guestbook">
           <i class="fa-solid fa-book"></i>
           <span class="nav-label">Guestbook</span>
         </a>
         <div class="search-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="hub-search-input" placeholder="Search" autocomplete="off" />
+          <input type="text" id="hub-search-input" placeholder="Search" autocomplete="off" maxlength="100"/>
         </div>
       </div>
     </nav>
@@ -43,69 +43,19 @@
 
         <div class="hub-panel" id="hub-panel-faq">
           <div class="container">
-            <div id="faq-container"></div>
+            <div id="faq-list"></div>
           </div>
         </div>
 
         <div class="hub-panel hub-panel-gb" id="hub-panel-guestbook">
           <div class="gb-scroll-area">
             <div class="container">
-              <div id="guestbook-container"></div>
+              <div id="gb-list"></div>
             </div>
           </div>
 
-<div class="gb-footer gb-hidden" id="gb-footer">
-  <div class="gb-footer-card">
-    <div id="gb-state-init" class="gb-hidden">
-      <button class="action-btn gb-sign-btn" id="gb-verify-btn">
-        <i class="fa-brands fa-google" id="gb-verify-icon"></i> Sign in with Google
-      </button>
-    </div>
-
-    <div id="gb-state-user" class="gb-hidden">
-      <div class="gb-identity-row">
-        <div class="gb-profile-side">
-          <img id="gb-avatar-img" class="gb-avatar-photo gb-hidden" alt="avatar" />
-          <div class="gb-avatar-fallback gb-hidden"><i class="fa-solid fa-user"></i></div>
-          <div class="gb-identity-meta">
-            <span class="gb-hello-name" id="gb-user-name"></span>
-            <span class="gb-email-sub" id="gb-user-email"></span>
-          </div>
-        </div>
-        
-        <div class="gb-controls-side">
-          <button class="btn gb-icon-btn gb-icon-submit gb-hidden" id="gb-submit-btn" title="Submit">
-            <i class="fa-solid fa-paper-plane"></i>
-          </button>
-          <button class="btn gb-icon-btn gb-icon-edit gb-hidden" id="gb-edit-btn" title="Edit">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="btn gb-icon-btn gb-icon-delete gb-hidden" id="gb-delete-btn" title="Delete">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-          <button class="btn gb-unlink-btn" id="gb-unlink-btn" title="Sign out">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="gb-content-row">
-        <input type="text" id="gb-textarea" class="gb-hidden" placeholder="Leave A Message..." maxlength="500">
-        <div id="gb-entry-preview" class="gb-hidden">
-          <p class="gb-preview-text" id="gb-preview-text"></p>
-          <div class="gb-entry-meta">
-            <span id="gb-preview-date"></span>
-            <span id="gb-preview-status"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="gb-footer-status"></div>
-  </div>
-</div>
-
-            </div>
+          <div class="gb-footer gb-hidden" id="gb-footer">
+            <div class="gb-footer-card" id="gb-footer-inner"></div>
           </div>
         </div>
 
@@ -116,7 +66,7 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="chat.js"></script>
     <script src="base.js"></script>
-    <script src="guestbook.js"></script>
+    <!-- <script src="guestbook.js"></script> -->
     <script src="hub.js"></script>
   </body>
 </html>

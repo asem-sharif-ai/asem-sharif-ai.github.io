@@ -6,6 +6,7 @@
   "name": "Asem E. Sharif",
   "role": ["AI & Computer Vision Engineer", "Qt Developer"],
   "location": "Cairo, Egypt.",
+  "timezone": "Africa/Cairo",
   "resume_path": "",
   "cv_path": "./Data/Files/[CV]-Asem-Sharif.pdf",
   "cv_date": "04/2026",
@@ -236,18 +237,16 @@
       "Programming": [
         {
           "title": "Python",
-          "source": "sb",
           "proof": "Proof",
-          "url": "sds",
+          "source": "https://x.com",
           "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
           "level": 0.95,
           "span": 1
         },
         {
           "title": "C++",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.55,
           "span": 1
@@ -256,36 +255,32 @@
       "Artificial Intelligence": [
         {
           "title": "Machine Learning",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Deep Learning",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Neural Networks",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Transformers",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
@@ -294,63 +289,56 @@
       "Computer Vision": [
         {
           "title": "Image Processing",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Preprocessing & Augmentation",
-          "source": "",
           "proof": "Proof",
-          "url": "",
+          "source": "",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "CNNs",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "ViTs",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
         },
         {
           "title": "Person Detection",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.95,
           "span": 1
         },
         {
           "title": "Object Tracking",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.95,
           "span": 1
         },
         {
           "title": "Tracking & Segmentation",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
@@ -359,81 +347,72 @@
       "Frameworks": [
         {
           "title": "PyTorch",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "TensorFlow",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
         },
         {
           "title": "Keras",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
         },
         {
           "title": "OpenCV",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "MediaPipe",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "YOLO",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Scikit-Learn",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "Scikit-Image",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
         },
         {
           "title": "PyQt6",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
@@ -442,54 +421,48 @@
       "Edge Deployment": [
         {
           "title": "Raspberry Pi 5",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "Hailo-8L NPU",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "ONNX Runtime",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "Quantization",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "Pruning",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
         },
         {
           "title": "Prototyping",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
@@ -498,18 +471,16 @@
       "Application Development": [
         {
           "title": "Desktop GUI",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "SQLite",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.75,
           "span": 1
@@ -518,27 +489,24 @@
       "Tools": [
         {
           "title": "Git",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
           "title": "Linux",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.8,
           "span": 1
         },
         {
           "title": "Colab",
-          "source": "Source",
           "proof": "Proof",
-          "url": "",
+          "source": "Source",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
@@ -547,7 +515,7 @@
     }
   },
 
-  "_hub": {
+  "hub": {
     "faq":       "./faq.json",
     "guestbook": "https://minimal-portfolio-guestbook.asem-sharif-ai.workers.dev"
   }

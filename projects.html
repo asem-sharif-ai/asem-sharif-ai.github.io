@@ -13,9 +13,9 @@
   </head>
   <body>
 
-    <nav class="navbar">
+    <nav class="navbar has-glow">
       <div class="nav-profile">
-        <div class="nav-name" id="brand-title">Loading...</div>
+        <div class="nav-name" id="nav-user-name">Loading...</div>
         <div class="nav-role" id="nav-user-role"></div>
       </div>
       <div class="nav-links" id="nav-items">
@@ -33,31 +33,25 @@
 
         <div class="search-wrapper">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input
-            type="text"
-            id="project-search-input"
-            placeholder="Search"
-            autocomplete="off"
-            maxlength="50"
-          />
+          <input type="text" id="project-search-input" placeholder="Search" autocomplete="off" maxlength="50"/>
         </div>
       </div>
     </nav>
 
     <div class="filter-panel" id="filter-panel">
-      <div class="filter-header">Filter By Topic</div>
+      <div class="filter-header">Filter By Domain</div>
       <div class="filter-dropdown" id="filter-dropdown"></div>
     </div>
 
-    <section class="hero" id="latest-panel">
-      <div class="hero-card">
+    <section class="hero" id="latest-hero">
+      <div class="hero-card", id="latest-hero-card">
         <div class="latest-meta">
           <span class="keyword keyword-big">Latest Project</span>
-          <span class="latest-star" id="latest-star"></span>
+          <span class="star-icon" id="latest-star"></span>
         </div>
 
         <h2 id="latest-title"></h2>
-        <div id="latest-content" class="subtitle"></div>
+        <div class="subtitle" id="latest-subtitle"></div>
         <span class="latest-keywords-container" id="latest-keywords-container"></span>
         <button class="action-btn" id="visit-latest-btn">
           <i class="fa-solid fa-arrow-up-right-from-square"></i>
