@@ -72,7 +72,7 @@ function switchHubTab(targetTab) {
       _saveHubState();
 
       if (_searchQuery) {
-        if (_currentTab === 'faq') renderFaq(_allFaq);
+        if (_currentTab === 'faq') renderFAQ(_allFaq);
         else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') gbApplySearch(_searchQuery);
       }
     }, { once: true });
@@ -93,7 +93,7 @@ function initHubSearch() {
     _debounceTimer = setTimeout(() => {
       _saveHubState();
       if (_currentTab === 'faq') {
-        renderFaq(_allFaq);
+        renderFAQ(_allFaq);
       } else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') {
         gbApplySearch(_searchQuery);
       }
@@ -125,7 +125,7 @@ async function getFAQ(configData) {
   }
 }
 
-function renderFaq(faqList) {
+function renderFAQ(faqList) {
   const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
@@ -145,24 +145,27 @@ function renderFaq(faqList) {
     const words = raw.toLowerCase().split(/\s+/).filter(Boolean);
     filtered = (words.length > 0
       ? faqList.filter(item => {
-          const haystack = `${item.q || ''} ${item.a || ''}`.toLowerCase();
+          const a = Array.isArray(item.a) ? item.a.join(' ') : (item.a || '');
+          const haystack = `${item.q || ''} ${a}`.toLowerCase();
           return words.every(w => haystack.includes(w));
         })
       : faqList
     ).map((item, i) => ({ item, originalIndex: i }));
   }
 
-  if (filtered.length === 0) { renderNoData('FAQ', 'list-container'); return; }
+  if (filtered.length === 0) { renderNoData('No FAQ Matched The Search Text', 'list-container', false); return; }
   filtered.forEach(({ item, originalIndex }) => {
     if (item.q && item.a) container.appendChild(buildFaqCard(item, originalIndex));
   });
-  if (typeof observeCards === 'function') observeCards();
+  observeCards();
 }
 
 function buildFaqCard(item, index) {
   const cardId = `faq-card-${index}`;
   const collapseId = `faq-collapse-${index}`;
   const q = _searchQuery;
+
+  const aText = Array.isArray(item.a) ? item.a.join('\n') : (item.a || '');
 
   const card = document.createElement('div');
   card.className = 'card faq-card visible';
@@ -171,10 +174,10 @@ function buildFaqCard(item, index) {
   const header = document.createElement('div');
   header.className = 'card-header faq-card-header';
   header.innerHTML = `
-    <div class='faq-question'>${highlightText(item.q, q)}</div>
+    <div class='faq-question'>${highlightText(parseMarkdown(item.q), q)}</div>
     <div class='card-btns'>
       <span class='faq-index'>#${index + 1}</span>
-      <button class='btn'><i class='fa-solid fa-chevron-down faq-toggle-icon'></i></button>
+      <button class='btn'><i class='fa-solid fa-chevron-down faq-card-toggle-btn'></i></button>
     </div>
   `;
   header.addEventListener('click', () => toggleFaqCard(cardId, collapseId));
@@ -185,7 +188,7 @@ function buildFaqCard(item, index) {
 
   const body = document.createElement('div');
   body.className = 'card-body faq-card-body';
-  body.innerHTML = `<p class='faq-answer'>${highlightText(item.a, q)}</p>`;
+  body.innerHTML = `<div class='faq-answer'>${highlightText(parseMarkdown(aText), q)}</div>`;
 
   collapse.appendChild(body);
   card.appendChild(header);
@@ -195,14 +198,14 @@ function buildFaqCard(item, index) {
 
 function toggleFaqCard(cardId, collapseId) {
   const collapse = document.getElementById(collapseId);
-  const icon     = document.getElementById(cardId).querySelector('.faq-toggle-icon');
+  const icon     = document.getElementById(cardId).querySelector('.faq-card-toggle-btn');
   if (!collapse || !icon) return;
   if (collapse.classList.contains('closed')) {
     collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up faq-toggle-icon';
+    icon.className = 'fa-solid fa-chevron-up faq-card-toggle-btn';
   } else {
     collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down faq-toggle-icon';
+    icon.className = 'fa-solid fa-chevron-down faq-card-toggle-btn';
   }
 }
 
@@ -267,7 +270,7 @@ async function runHubApp() {
     } catch {
       _allFaq = [];
     }
-    renderFaq(_allFaq);
+    renderFAQ(_allFaq);
     
     try {
       await getGuestbook();

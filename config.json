@@ -33,18 +33,18 @@
 
   "socials": [
     [
-      { "site": "facebook",    "url": "https://www.facebook.com/notasem.fb" },
-      { "site": "instagram",   "url": "https://www.instagram.com/_notasem_"},
-      { "site": "twitter",     "url": "https://x.com/_notasem_"},
-      { "site": "linkedin",    "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "medium",      "url": "https://medium.com/@asem-sharif-ai" },
-      { "site": "youtube",     "_url": "https://www.youtube.com/@AsemSharif-AI" }
+      { "site": "facebook",  "url": "https://www.facebook.com/notasem.fb" },
+      { "site": "instagram", "url": "https://www.instagram.com/_notasem_"},
+      { "site": "twitter",   "url": "https://x.com/_notasem_"},
+      { "site": "linkedin",  "url": "https://www.linkedin.com/in/asem-sharif" },
+      { "site": "medium",    "url": "https://medium.com/@asem-sharif-ai" },
+      { "site": "youtube",   "_url": "https://www.youtube.com/@AsemSharif-AI" }
     ],
     [
-      { "site": "mailto",      "url": "mailto:asem.sharif.ai@gmail.com" },
-      { "site": "whatsapp",    "url": "https://wa.me/+201010057162" },
-      { "site": "telegram",    "url": "https://t.me/notasem" },
-      { "site": "discord",     "url": "https://discord.com/users/asem.sharif.ai" }
+      { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" },
+      { "site": "whatsapp", "url": "https://wa.me/+201010057162" },
+      { "site": "telegram", "url": "https://t.me/notasem" },
+      { "site": "discord",  "url": "https://discord.com/users/asem.sharif.ai" }
     ],
     [
       { "site": "github",      "url": "https://github.com/asem-sharif-ai" },
@@ -55,11 +55,11 @@
 
   "sections": [
     [
-      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "size": 2 }
+      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "summary": "", "size": 2 }
     ],
     [
-      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "size": 2 },
-      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "size": 1 }
+      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "summary": "", "size": 2 },
+      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "summary": "", "size": 1 }
     ]
   ],
 
@@ -68,14 +68,14 @@
       "title": "Faculty of Artificial Intelligence",
       "entity": "Menoufia University",
       "entity_url": "https://mu.menofia.edu.eg/ai/Home/en",
-      "subtitle": "BSc in Artificial Intelligence - Cyber Security Department",
-      "type": "120 Hours",
-      "location": "Egypt",
       "from_date": "10/2022",
       "to_date": null,
-      "description": "Data/Files/Edu_0/mufai.md",
+      "subtitle": "BSc in Artificial Intelligence - Cyber Security Department",
+      "type": "120 Credit Hours",
+      "location": "Egypt",
+      "markdown": "Data/Files/Edu_0/mufai.md",
       "gallery": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"],
-      "achievements": [
+      "summary": [
         "BSc in Artificial Intelligence from Menoufia University, specializing in the Cyber Security Department.",
         "Graduated with an A-Excellent Standing and a cumulative GPA of 3.45 / 4.0.",
         "Core foundations in OOP, Data Structures, Operating Systems, Software Engineering, and advanced Mathematics.",
@@ -97,9 +97,9 @@
       "location": "Egypt",
       "from_date": "02/2025",
       "to_date": "12/2025",
-      "description": "Data/Files/Exp_0/deci.md",
+      "markdown": "Data/Files/Exp_0/deci.md",
       "gallery": [],
-      "achievements": [
+      "summary": [
         "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
         "Designed small applied exercises to successfully bridge theory and practice."
       ]
@@ -112,6 +112,7 @@
       "subtitle": "Intelligent Edge-Deployed Driver Monitoring System",
       "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
       "url": "https://github.com/asem-sharif-ai/Lynx-DMS",
+      "summary": "",
       "star": true
     },
 
@@ -127,6 +128,7 @@
           ],
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
+          "summary": "",
           "star": true,
           "size": 2
         },
@@ -142,6 +144,7 @@
           ],
           "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 1
         }
@@ -152,6 +155,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Desktop", "Tools", "PyQt6", "yt-dlp", "APIs"],
+          "summary": "",
           "star": false,
           "size": 3
         },
@@ -160,6 +164,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Desktop", "Tools", "PyQt6"],
+          "summary": "",
           "star": false,
           "size": 3
         }
@@ -170,6 +175,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 3
         },
@@ -178,6 +184,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 3
         }
@@ -188,6 +195,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 2
         },
@@ -196,6 +204,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 2
         },
@@ -204,6 +213,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 2
         }
@@ -214,6 +224,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 3
         },
@@ -222,6 +233,7 @@
           "content": [],
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
+          "summary": "",
           "star": false,
           "size": 3
         }
@@ -237,7 +249,7 @@
           "title": "Python",
           "proof": "Proof",
           "source": "https://x.com",
-          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
+          "icon": "./Data/Icons/python.png",
           "level": 0.95,
           "span": 1
         },

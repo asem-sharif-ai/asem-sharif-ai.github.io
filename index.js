@@ -18,7 +18,7 @@ function buildCard(section, cardId) {
       <div class='card-btns'>
       <button class='btn' id='${copyId}'>${actionIcon}</button>
       <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
-        <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
+        <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
     </div>
     <div class='card-collapse' id='card-collapse-${cardId}'>

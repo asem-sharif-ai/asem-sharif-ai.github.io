@@ -316,7 +316,7 @@
 // // ─── Footer: admin ────────────────────────────────────────────────────────────
 
 // function _gbRenderFooterAdmin() {
-//   const footer = _qs('gb-footer-inner');
+//   const footer = _qs('gb-project-card-footer-inner');
 //   if (!footer) return;
 //   const p = _gbProfile;
 //   footer.innerHTML = `
@@ -335,7 +335,7 @@
 // // ─── Footer: guest ────────────────────────────────────────────────────────────
 
 // function _gbRenderFooterGuest() {
-//   const footer = _qs('gb-footer-inner');
+//   const footer = _qs('gb-project-card-footer-inner');
 //   if (!footer) return;
 
 //   if (!_gbProfile) {
@@ -538,7 +538,7 @@
 //   const origin = window.location.origin + window.location.pathname.replace(/hub\.html$/i, '');
 //   window.history.replaceState({}, document.title, window.location.pathname);
 
-//   const footer = _qs('gb-footer-inner');
+//   const footer = _qs('gb-project-card-footer-inner');
 //   if (footer) footer.innerHTML = `<p class='gb-footer-loading'><i class='fa-solid fa-circle-notch fa-spin'></i> Signing in…</p>`;
 
 //   try {

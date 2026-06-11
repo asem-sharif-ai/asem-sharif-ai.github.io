@@ -15,7 +15,7 @@ function buildGroup(groupKey, groupData, groupIndex) {
   header.innerHTML = `
     <div class='card-title'>${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
     <div class='card-btns'>
-      <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
+      <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
     </div>
   `;
   header.addEventListener('click', () => toggleCard(cardId, collapseId));
@@ -114,7 +114,7 @@ function buildCard(skill) {
       </div>
     </div>
 
-    <div class='progress-container'>
+    <div class='progress-bar'>
       <div class='progress-bar-fill has-glow' style='width: ${progressPercentage}%;'></div>
     </div>
   `;

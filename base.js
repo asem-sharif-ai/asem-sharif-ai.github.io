@@ -130,9 +130,9 @@ async function loadContent(path, elementId) {
     if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
     const text = await res.text();
     document.getElementById(elementId).innerHTML = parseMarkdown(text);
-  } catch (err) {
-    document.getElementById(elementId).innerText = 'Failed To Sync Panel Content.';
-    console.error(err);
+  } catch (e) {
+    document.getElementById(elementId).innerText = 'Failed To Sync Content.';
+    console.error(e);
   }
 }
 
@@ -154,8 +154,7 @@ function parseMarkdown(text) {
       .replace(/\n\n([^#<\s].*)/g, '</p><p>$1')
       .replace(/^(?!<h|<li|<ul|<hr|<p|<a)(.*)$/gim, '<p>$1</p>');
   }
-  const rawHtml = marked.parse(text);
-  return DOMPurify.sanitize(rawHtml);
+  return DOMPurify.sanitize(marked.parse(text));
 }
 
 function isMarkdownPath(path) {
@@ -185,7 +184,7 @@ function getVideoMimeType(path) {
   return types[ext] || 'video/mp4';
 }
 
-// ───── Content Render ────────────────────────────────────────
+// ───── Content Render (Projects / Log) ────────────────────────────────────────
 
 function renderContentItem(contentItem, containerId) {
   if (!contentItem) return '';
@@ -193,7 +192,7 @@ function renderContentItem(contentItem, containerId) {
   if (isImagePath(contentItem)) {
     return `
       <div class='image-container'>
-        <img src='${contentItem}' alt='' />
+        <img src='${contentItem}' alt='' draggable='false' />
       </div>
     `;
   }
@@ -202,7 +201,7 @@ function renderContentItem(contentItem, containerId) {
     const mime = getVideoMimeType(contentItem);
     return `
       <div class='video-container'>
-        <video controls preload='metadata'>
+        <video controls preload='metadata' draggable='false'>
           <source src='${contentItem}' type='${mime}'>
           Your browser does not support the video tag.
         </video>
@@ -216,6 +215,59 @@ function renderContentItem(contentItem, containerId) {
   }
 
   return `<p>${contentItem}</p>`;
+}
+
+function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight) {
+  let pointerStartX = 0;
+  let pointerEndX = 0;
+  let pointerStartY = 0;
+  let isDragging = false;
+
+  element.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    
+    const targetTag = e.target.tagName.toLowerCase();
+    if (targetTag === 'input' || targetTag === 'textarea' || e.target.isContentEditable) return;
+
+    isDragging = true;
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+    element.setPointerCapture(e.pointerId);
+  });
+
+  element.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    
+    const currentX = e.clientX;
+    const currentY = e.clientY;
+    const diffX = Math.abs(currentX - pointerStartX);
+    const diffY = Math.abs(currentY - pointerStartY);
+
+    if (diffX > 10 && diffX > diffY) {
+      if (e.cancelable) e.preventDefault();
+    }
+  });
+
+  element.addEventListener('pointerup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    pointerEndX = e.clientX;
+    element.releasePointerCapture(e.pointerId);
+
+    const selection = window.getSelection().toString();
+    if (e.pointerType === 'mouse' && selection.length > 0) return;
+
+    const swipeDistance = pointerEndX - pointerStartX;
+    if (swipeDistance < -40) {
+      onSwipeLeft();
+    } else if (swipeDistance > 40) {
+      onSwipeRight();
+    }
+  });
+
+  element.addEventListener('pointercancel', (e) => {
+    isDragging = false;
+  });
 }
 
 // ───── Intersection Observer ────────────────────────────────────────
@@ -345,14 +397,14 @@ function renderFooter() {
 
 function toggleCard(cardId, collapseId) {
   const collapse = document.getElementById(collapseId);
-  const icon = document.getElementById(cardId).querySelector('.toggle-icon');
+  const icon = document.getElementById(cardId).querySelector('.card-toggle-btn');
   if (!collapse || !icon) return;
 
   if (collapse.classList.contains('closed')) {
     collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up toggle-icon';
+    icon.className = 'fa-solid fa-chevron-up card-toggle-btn';
   } else {
     collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down toggle-icon';
+    icon.className = 'fa-solid fa-chevron-down card-toggle-btn';
   }
 }

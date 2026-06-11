@@ -3,21 +3,18 @@ const REQUEST_TIMEOUT_MS = 10000;
 
 let assistantConfig = null;
 let globalProfileData = null;
-let chatStorageKey = 'portfolio_chat_history';
+let chatStorageKey = 'minimal-portfolio-chat-history';
 
 // ───── Core API Functions ────────────────────────────────────────
 
 async function getModelResponse(configData = {}, newMessage = '', conversationLog = []) {
   if (!newMessage || typeof newMessage !== 'string') return { text: 'No message provided.', systemAlert: null };
 
-  const safeConfig = { ...configData, assistant: { ...configData.assistant } };
-  delete safeConfig.assistant.limit;
-
   try {
     const response = await fetch(configData.assistant.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ config: safeConfig, history: conversationLog, message: newMessage }),
+      body: JSON.stringify({ config: configData, history: conversationLog, message: newMessage }),
     });
 
     const data = await response.json();
@@ -30,15 +27,13 @@ async function getModelResponse(configData = {}, newMessage = '', conversationLo
 
     const systemAlerts = Array.isArray(data?.systemAlerts) ? data.systemAlerts : null;
 
-    // Block response: worker returns empty response string + alerts (no AI text to render).
     if (!data.response && systemAlerts && systemAlerts.length > 0) {
       return { text: null, systemAlerts };
     }
 
-    const raw = data?.response ?? 'No Response.';
-    return { text: parseMarkdown(raw), systemAlerts };
-  } catch (err) {
-    throw err;
+    return { text: parseMarkdown(data?.response ?? 'No Response.'), systemAlerts };
+  } catch (e) {
+    throw e;
   }
 }
 
@@ -56,7 +51,7 @@ async function handleUserMessageSubmit() {
   const userTime = appendChatMessage('user', text);
   saveChatHistory('user', text, userTime);
 
-  toggleChatInteractiveState(true);
+  toggleChatState(true);
   showTypingIndicator();
 
   let conversationHistory = [];
@@ -102,14 +97,14 @@ async function handleUserMessageSubmit() {
       }
     }
 
-  } catch (error) {
+  } catch (e) {
     removeTypingIndicator();
-    let runtimeErrorMessage = 'Error Occurred While Communicating With The Service.';
+    let runtimeErrorMessage = 'Communication Error Occurred.';
     
-    if (error.message === 'TimeoutError') {
-      runtimeErrorMessage = 'Request Timed Out. Please Try Again Later.';
-    } else if (error.isHandledSecureError) {
-      runtimeErrorMessage = error.message;
+    if (e.message === 'TimeoutError') {
+      runtimeErrorMessage = 'Request Timed Out. Try Again Later.';
+    } else if (e.isHandledSecureError) {
+      runtimeErrorMessage = e.message;
     } else {
       runtimeErrorMessage = 'Unknown System State Exception Occurred.';
     }
@@ -117,7 +112,7 @@ async function handleUserMessageSubmit() {
     const errTime = appendChatMessage('system-error', runtimeErrorMessage);
     saveChatHistory('system-error', runtimeErrorMessage, errTime);
   } finally {
-    toggleChatInteractiveState(false);
+    toggleChatState(false);
   }
 }
 
@@ -126,7 +121,7 @@ async function handleUserMessageSubmit() {
 function initChatAssistant(configData) {
   assistantConfig = configData.assistant;
   globalProfileData = configData;
-  chatStorageKey = 'portfolio_chat_history:' + btoa(assistantConfig.url).replace(/=/g, '');
+  chatStorageKey = 'minimal-portfolio-chat-history:' + btoa(assistantConfig.url).replace(/=/g, '');
 
   const triggerBtn = document.createElement('button');
   triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow'; 
@@ -257,7 +252,7 @@ function toggleChatWindow() {
   }
 }
 
-function toggleChatInteractiveState(disabled) {
+function toggleChatState(disabled) {
   const input = document.getElementById('chat-user-input');
   const sendBtn = document.getElementById('chat-send-trigger');
   const clearBtn = document.getElementById('chat-clear-window');
@@ -349,7 +344,7 @@ function loadChatHistory() {
         return;
       }
     } catch(e) {
-      // do not log raw exceptions to the console output target
+      // do not log raw exceptions to the console output
     }
   }
 

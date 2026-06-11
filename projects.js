@@ -4,6 +4,7 @@ let _searchQuery = '';
 let _activeTopics = new Set();
 let _starredOnly = false;
 let _filterMode = 'OR';
+let _hasResults = true;
 
 // ───── State ────────────────────────────────────────
 
@@ -21,6 +22,13 @@ function _buildShareUrl() {
   }
 
   return url.toString();
+}
+
+function _updateShareIcon() {
+  const shareBtn = document.getElementById('nav-share-icon');
+  if (!shareBtn) return;
+  const hasState = _searchQuery.length > 0 || _activeTopics.size > 0 || _starredOnly;
+  shareBtn.classList.toggle('ui-disabled', !hasState || !_hasResults);
 }
 
 function _saveFilterState() {
@@ -132,7 +140,7 @@ function buildFilterDropdown(projectRows) {
 
   modeOr.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (_activeTopics.size === 0) return;
+    if (_activeTopics.size <= 1) return;
     _filterMode = 'OR';
     modeAnd.classList.remove('active');
     modeOr.classList.add('active');
@@ -142,7 +150,7 @@ function buildFilterDropdown(projectRows) {
 
   modeAnd.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (_activeTopics.size === 0) return;
+    if (_activeTopics.size <= 1) return;
     _filterMode = 'AND';
     modeOr.classList.remove('active');
     modeAnd.classList.add('active');
@@ -241,6 +249,7 @@ function applyFilterAndRerender() {
     const detail = filterBtn?.querySelector('.filter-detail');
     navProfile.style.display = (detail ? detail.innerText.length : 0) >= 50 ? 'none' : '';
   }
+  _updateShareIcon();
 }
 
 function initSearchLogic() {
@@ -252,6 +261,7 @@ function initSearchLogic() {
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
       _saveFilterState();
+      _updateShareIcon();
       updateLatestVisibility();
       renderProjectsGrid(_allProjects);
     }, 300);
@@ -354,22 +364,29 @@ function buildProjectCard(project, cardId) {
   const contents = Array.isArray(project.content) ? project.content : [project.content].filter(Boolean);
   const isMultiContent = contents.length > 1;
   const hasUrl = !!project.url;
-  const cleanTopics = project.topics.map(topic => topic.replace(/^_+/, '').trim());
+  const cleanTopics = (project.topics || []).map(topic => topic.replace(/^_+/, '').trim());
+
+  let titleHtml = `<div class='card-title'>${project.title || 'Untitled'}</div>`;
+  if (hasUrl) {
+    titleHtml = `<a href='${project.url}' target='_blank' rel='noopener noreferrer' class='card-title-link'><div class='card-title'>${project.title || 'Untitled'}</div></a>`;
+  }
 
   card.innerHTML = `
       <div class='card-header project-card-header' id='header-${cardId}'>
-        <div class='project-card-title-container'>
+        <div class='project-title-container'>
         ${project.star ? `<span class='star-icon'></span>` : ''}
-          <div class='card-title project-card-title'>${project.title || 'Untitled'}</div>
+        ${titleHtml}
         </div>
-        <div class='card-btns dynamic-panel-btns'>
+        <div class='card-btns'>
           ${isMultiContent ? `
-            <button class='btn prev-btn' id='prev-${cardId}' title='Previous'><i class='fa-solid fa-chevron-left'></i></button>
+            <button class='btn prev-btn header-slide-btn' id='prev-${cardId}'><i class='fa-solid fa-chevron-left'></i></button>
             <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
-            <button class='btn next-btn' id='next-${cardId}' title='Next'><i class='fa-solid fa-chevron-right'></i></button>
+            <button class='btn next-btn header-slide-btn' id='next-${cardId}'><i class='fa-solid fa-chevron-right'></i></button>
           ` : ''}
-          ${hasUrl ? `<button class='btn url-action-btn' id='url-${cardId}' title='Open'><i class='fa-solid fa-arrow-up-right-from-square card-url-btn'></i></button>` : ''}
-          <button class='btn toggle-btn' id='toggle-btn-${cardId}' title='Collapse'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
+          ${hasUrl ?
+            `<button class='btn url-action-btn' id='url-${cardId}'><i class='fa-solid fa-arrow-up-right-from-square card-url-btn'></i></button>
+          ` : ''}
+          <button class='btn toggle-btn' id='toggle-btn-${cardId}'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>
       <div class='card-collapse'>
@@ -378,9 +395,9 @@ function buildProjectCard(project, cardId) {
         </div>
       </div>
       ${project.topics?.length ? `
-        <div class='project-card-footer closed' id='footer-${cardId}'>
-          <div class='footer-inner'>
-            <div class='footer-topics'>${cleanTopics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>
+        <div class='project-card-footer card-collapse closed' id='footer-${cardId}'>
+          <div class='project-card-footer-inner'>
+            <div class='project-card-footer-topics'>${cleanTopics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>
           </div>
         </div>` : ''}
   `;
@@ -412,6 +429,20 @@ function buildProjectCard(project, cardId) {
   if (isMultiContent) {
     const counter = card.querySelector(`#counter-${cardId}`);
     setContentSlider(container, contents, prevBtn, nextBtn, counter);
+
+    container.querySelectorAll('img, video').forEach(media => {
+      media.setAttribute('draggable', 'false');
+    });
+
+    setupSwipeNavigation(
+      container,
+      () => {
+        if (nextBtn && nextBtn.style.pointerEvents !== 'none') nextBtn.click();
+      },
+      () => {
+        if (prevBtn && prevBtn.style.pointerEvents !== 'none') prevBtn.click();
+      }
+    );
   } else {
     container.innerHTML = renderContentItem(contents[0], textId);
   }
@@ -424,7 +455,7 @@ function toggleProjectCard(cardId, forceState) {
   if (!card) return;
 
   const collapse = card.querySelector('.card-collapse');
-  const icon = card.querySelector('.toggle-icon');
+  const icon = card.querySelector('.card-toggle-btn');
   const prevBtn = card.querySelector('.prev-btn');
   const nextBtn = card.querySelector('.next-btn');
   const urlBtn = card.querySelector('.url-action-btn');
@@ -438,13 +469,13 @@ function toggleProjectCard(cardId, forceState) {
 
   if (forceState === 'open' || (forceState === undefined && collapse.classList.contains('closed'))) {
     collapse.classList.remove('closed');
-    if (icon) icon.className = 'fa-solid fa-chevron-up toggle-icon';
+    if (icon) icon.className = 'fa-solid fa-chevron-up card-toggle-btn';
     applyVisibility(true);
     const leftBtn = card.querySelector('.prev-btn');
     if (leftBtn && leftBtn.style.opacity === '0.35') leftBtn.style.pointerEvents = 'none';
   } else if (forceState === 'close' || (forceState === undefined && !collapse.classList.contains('closed'))) {
     collapse.classList.add('closed');
-    if (icon) icon.className = 'fa-solid fa-chevron-down toggle-icon';
+    if (icon) icon.className = 'fa-solid fa-chevron-down card-toggle-btn';
     applyVisibility(false);
   }
 }
@@ -530,6 +561,14 @@ function renderProjectsGrid(projectRows) {
     if (activeItems.length) processedRows.push(activeItems);
   });
 
+  if (!processedRows.length) {
+    _hasResults = false;
+    const isFiltered = _searchQuery.length > 0 || _activeTopics.size > 0 || _starredOnly;
+    if (isFiltered) renderNoData('No Projects Matched The Specified Requirements', 'list-container', false);
+    return;
+  }
+  _hasResults = true;
+
   let globalIndex = 0;
   processedRows.forEach((row, rowIndex) => {
     const colCount = row.length;
@@ -544,7 +583,7 @@ function renderProjectsGrid(projectRows) {
     wrapper.id = rowId;
 
     row.forEach(project => {
-      const cardId = `proj-${globalIndex}`;
+      const cardId = `project-${globalIndex}`;
       const card = buildProjectCard(project, cardId);
       if (colCount > 1) card.style.gridColumn = `span ${project.size || 1}`;
       wrapper.appendChild(card);
@@ -620,6 +659,7 @@ async function runProjectsApp() {
     const shareBtn = document.getElementById('nav-share-icon');
     if (shareBtn) {
       shareBtn.addEventListener('click', (e) => {
+        if (shareBtn.classList.contains('ui-disabled')) return;
         e.stopPropagation();
         navigator.clipboard.writeText(_buildShareUrl()).then(() => {
           const original = shareBtn.innerHTML;

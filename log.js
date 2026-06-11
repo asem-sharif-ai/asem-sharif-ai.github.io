@@ -57,11 +57,9 @@ function buildLogCard(item, index) {
   const toLabel = item.to_date ? _formatDate(item.to_date) : 'Present';
   const duration = _calculateDuration(item.from_date, item.to_date);
 
-  const entityHtml = item.entity
+  const entityUI = item.entity
     ? (item.entity_url ? `<a href='${item.entity_url}' target='_blank' rel='noopener noreferrer'>${item.entity}</a>` : item.entity)
     : '';
-
-  const locationHtml = item.location ? item.location : '';
 
   const header = document.createElement('div');
   header.className = 'log-card-header';
@@ -70,42 +68,43 @@ function buildLogCard(item, index) {
       <div class='log-flex-row'>
         <div class='log-flex-left'>
           <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${entityHtml ? `<span class='log-sep'>·</span><span class='log-entity'>${entityHtml}</span>` : ''}
+          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
         </div>
         <div class='log-flex-right'>
-          <span class='log-date-range'>${fromLabel} – ${toLabel}</span>
+          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
           ${duration ? `<span class='keyword'>${duration}</span>` : ''}
-          <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
         </div>
       </div>
       <div class='log-flex-row'>
         <div class='log-flex-left'>
-          <span class='log-subtitle'>${item.subtitle || ''}</span>
+          <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
         </div>
         <div class='log-flex-right'>
-          ${item.type ? `<span class='log-job-type'>${item.type}</span>` : ''}
-          ${item.type && locationHtml ? `<span class='log-sep'>·</span>` : ''}
-          ${locationHtml ? `<span class='log-location'><i class='fa-solid fa-location-dot'></i> ${locationHtml}</span>` : ''}
-        </div>
-      </div>
-    </div>
-
-    <div class='log-mobile-view'>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
+          ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''}
+          ${item.type && item.location ? `<span class='separator'>·</span>` : ''}
+          ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
+          <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+          </div>
+          </div>
+          </div>
+          
+          <div class='log-mobile-view'>
+          <div class='log-flex-row'>
+          <div class='log-flex-left'>
           <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${entityHtml ? `<span class='log-sep'>·</span><span class='log-entity'>${entityHtml}</span>` : ''}
-        </div>
-        <div class='log-flex-right'>
-          <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
-        </div>
-      </div>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
-          <span class='log-date-range'>${fromLabel} – ${toLabel}</span>
-        </div>
-        <div class='log-flex-right'>
-          ${item.type ? `<span class='log-job-type'>${item.type}</span>` : ''}
+          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
+          </div>
+          <div class='log-flex-right'>
+          </div>
+          </div>
+          <div class='log-flex-row'>
+          <div class='log-flex-left'>
+          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
+          </div>
+          <div class='log-flex-right'>
+            ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''}
+            ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
+        <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>
     </div>
@@ -160,17 +159,7 @@ function buildGalleryPane(gallery) {
   gallery.forEach(src => {
     const slide = document.createElement('div');
     slide.className = 'log-gallery-slide';
-
-    if (isVideoPath(src)) {
-      const mime = getVideoMimeType(src);
-      slide.innerHTML = `
-        <video controls preload='metadata' class='video-container' draggable='false'>
-          <source src='${src}' type='${mime}'>
-        </video>`;
-    } else {
-      slide.innerHTML = `<img src='${src}' alt='' loading='lazy' draggable='false' />`;
-    }
-
+    slide.innerHTML = renderContentItem(src);
     track.appendChild(slide);
   });
 
@@ -217,40 +206,11 @@ function buildGalleryPane(gallery) {
   prevBtn.addEventListener('click', () => goTo(current - 1));
   nextBtn.addEventListener('click', () => goTo(current + 1));
 
-  let pointerStartX = 0;
-  let pointerEndX = 0;
-  let isDragging = false;
-
-  viewport.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return; 
-    isDragging = true;
-    pointerStartX = e.clientX;
-    viewport.setPointerCapture(e.pointerId); 
-  });
-
-  viewport.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
-    const currentX = e.clientX;
-    if (Math.abs(currentX - pointerStartX) > 10) {
-      if (e.cancelable) e.preventDefault();
-    }
-  });
-
-  viewport.addEventListener('pointerup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    pointerEndX = e.clientX;
-    viewport.releasePointerCapture(e.pointerId);
-    handlePointerSwipe();
-  });
-
-  viewport.addEventListener('pointercancel', (e) => { isDragging = false; });
-
-  function handlePointerSwipe() {
-    const swipeDistance = pointerEndX - pointerStartX;
-    if (swipeDistance < -40) { goTo(current + 1); }
-    else if (swipeDistance > 40) { goTo(current - 1); }
-  }
+  setupSwipeNavigation(
+    viewport,
+    () => goTo(current + 1),
+    () => goTo(current - 1)
+  );
 
   controls.appendChild(prevBtn);
   controls.appendChild(counter);
@@ -272,8 +232,8 @@ function renderLogList(items) {
     listContainer.appendChild(card);
 
     const mdId = `log-md-${index}`;
-    if (item.description) {
-      loadContent(item.description, mdId);
+    if (item.markdown) {
+      loadContent(item.markdown, mdId);
     } else {
       const markdown = document.getElementById(mdId);
       if (markdown) markdown.innerHTML = '';
