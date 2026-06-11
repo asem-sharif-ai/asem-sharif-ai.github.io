@@ -285,6 +285,20 @@ function observeCards() {
   document.querySelectorAll('.card').forEach(card => observer.observe(card));
 }
 
+function toggleCard(cardId, collapseId) {
+  const collapse = document.getElementById(collapseId);
+  const icons = document.getElementById(cardId).querySelectorAll('.card-toggle-btn');
+  if (!collapse || !icons.length) return;
+
+  if (collapse.classList.contains('closed')) {
+    collapse.classList.remove('closed');
+    icons.forEach(icon => icon.className = 'fa-solid fa-chevron-up card-toggle-btn');
+  } else {
+    collapse.classList.add('closed');
+    icons.forEach(icon => icon.className = 'fa-solid fa-chevron-down card-toggle-btn');
+  }
+}
+
 // ───── UI Utils ────────────────────────────────────────
 
 function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
@@ -393,18 +407,4 @@ function renderFooter() {
   footerUI.className = 'site-footer';
   footerUI.innerHTML = `<span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> (V.2.8)</span>`;
   document.body.appendChild(footerUI);
-}
-
-function toggleCard(cardId, collapseId) {
-  const collapse = document.getElementById(collapseId);
-  const icon = document.getElementById(cardId).querySelector('.card-toggle-btn');
-  if (!collapse || !icon) return;
-
-  if (collapse.classList.contains('closed')) {
-    collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up card-toggle-btn';
-  } else {
-    collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down card-toggle-btn';
-  }
 }

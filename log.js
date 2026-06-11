@@ -86,13 +86,10 @@ function buildLogCard(item, index) {
           ''} ${item.location ? `<span class="log-subtitle log-location"
             >${item.location}</span
           >` : ''}
-          <button class="btn log-toggle-btn">
-            <i class="fa-solid fa-chevron-up card-toggle-btn"></i>
-          </button>
+          <button class="btn log-toggle-btn"><i class="fa-solid fa-chevron-up card-toggle-btn"></i></button>
         </div>
       </div>
     </div>
-
     <div class="log-mobile-view">
       <div class="log-flex-row">
         <div class="log-flex-left">
@@ -107,10 +104,7 @@ function buildLogCard(item, index) {
           <span class="log-subtitle log-date">${fromLabel} – ${toLabel}</span>
         </div>
         <div class="log-flex-right">
-
-          <button class="btn log-toggle-btn">
-            <i class="fa-solid fa-chevron-up card-toggle-btn"></i>
-          </button>
+          <button class="btn log-toggle-btn"> <i class="fa-solid fa-chevron-up card-toggle-btn"></i></button>
         </div>
       </div>
     </div>
