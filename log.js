@@ -103,7 +103,6 @@ function buildLogCard(item, index) {
           </div>
           <div class='log-flex-right'>
             ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''}
-            ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
         <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>

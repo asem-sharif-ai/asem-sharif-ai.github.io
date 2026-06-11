@@ -436,12 +436,8 @@ function buildProjectCard(project, cardId) {
 
     setupSwipeNavigation(
       container,
-      () => {
-        if (nextBtn && nextBtn.style.pointerEvents !== 'none') nextBtn.click();
-      },
-      () => {
-        if (prevBtn && prevBtn.style.pointerEvents !== 'none') prevBtn.click();
-      }
+      () => { if (nextBtn && nextBtn.style.pointerEvents !== 'none') nextBtn.click(); },
+      () => { if (prevBtn && prevBtn.style.pointerEvents !== 'none') prevBtn.click(); }
     );
   } else {
     container.innerHTML = renderContentItem(contents[0], textId);
