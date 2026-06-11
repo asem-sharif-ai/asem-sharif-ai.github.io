@@ -1032,7 +1032,7 @@ body {
   }
 
   #list-container {
-    margin-top: -5px;
+    margin-top: 50px;
   }
 }
 
@@ -1979,7 +1979,7 @@ body {
   }
 
   .log-card-header {
-    padding: 16px 12px 12px 16px;
+    padding: 16px 10px 12px 16px;
   }
 
   .log-entity {
