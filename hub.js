@@ -1,38 +1,46 @@
 let _configData = {};
 let _currentTab = 'faq';
 let _isSwitching = false;
-let _hubSearchQuery = '';
+let _searchQuery = '';
 let _allFaq = [];
 let _allGuestbook = [];
 let _guestbookSession = {};
 
 // ───── State ────────────────────────────────────────
 
+function _buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('tab', _currentTab);
+  if (_searchQuery) url.searchParams.set('search', _searchQuery);
+  return url.toString();
+}
+
 function _saveHubState() {
-  sessionStorage.setItem('hub-search-query', _hubSearchQuery);
+  sessionStorage.setItem('hub-search-query', _searchQuery);
   sessionStorage.setItem('hub-active-tab', _currentTab);
 }
 
 function _loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
-  const pageParam = urlParams.get('page');
+  const tabParam = urlParams.get('tab');
   const searchParam = urlParams.get('search');
 
-  if (pageParam || searchParam) {
-    if (pageParam) {
-      const normalizedPage = pageParam.toLowerCase().trim();
+  if (tabParam || searchParam) {
+    if (tabParam) {
+      const normalizedPage = tabParam.toLowerCase().trim();
       _currentTab = normalizedPage === 'guestbook' ? 'guestbook' : 'faq';
     } else {
       _currentTab = 'faq';
     }
 
-    _hubSearchQuery = searchParam ? searchParam.trim() : '';
+    _searchQuery = searchParam ? searchParam.trim() : '';
 
     window.history.replaceState({}, document.title, window.location.pathname);
     return;
   }
 
-  _hubSearchQuery = sessionStorage.getItem('hub-search-query') || '';
+  _searchQuery = sessionStorage.getItem('hub-search-query') || '';
   const savedTab  = sessionStorage.getItem('hub-active-tab');
   if (savedTab === 'guestbook') _currentTab = 'guestbook';
 }
@@ -63,9 +71,9 @@ function switchHubTab(targetTab) {
       _isSwitching = false;
       _saveHubState();
 
-      if (_hubSearchQuery) {
+      if (_searchQuery) {
         if (_currentTab === 'faq') renderFaq(_allFaq);
-        else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') gbApplySearch(_hubSearchQuery);
+        else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') gbApplySearch(_searchQuery);
       }
     }, { once: true });
   }, { once: true });
@@ -76,18 +84,18 @@ function switchHubTab(targetTab) {
 function initHubSearch() {
   const searchInput = document.getElementById('hub-search-input');
   if (!searchInput) return;
-  if (_hubSearchQuery) searchInput.value = _hubSearchQuery;
+  if (_searchQuery) searchInput.value = _searchQuery;
 
   let _debounceTimer;
   searchInput.addEventListener('input', (e) => {
-    _hubSearchQuery = e.target.value.trim();
+    _searchQuery = e.target.value.trim();
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
       _saveHubState();
       if (_currentTab === 'faq') {
         renderFaq(_allFaq);
       } else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') {
-        gbApplySearch(_hubSearchQuery);
+        gbApplySearch(_searchQuery);
       }
     }, 300);
   });
@@ -118,13 +126,13 @@ async function getFAQ(configData) {
 }
 
 function renderFaq(faqList) {
-  const container = document.getElementById('faq-list');
+  const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
-  if (!Array.isArray(faqList) || faqList.length === 0) { renderNoData('FAQ', 'faq-list'); return; }
+  if (!Array.isArray(faqList) || faqList.length === 0) { renderNoData('FAQ', 'list-container'); return; }
 
-  const raw = _hubSearchQuery;
+  const raw = _searchQuery;
   const indexTokens = [...raw.matchAll(/#(\d+)/g)].map(m => parseInt(m[1], 10));
 
   let filtered;
@@ -144,7 +152,7 @@ function renderFaq(faqList) {
     ).map((item, i) => ({ item, originalIndex: i }));
   }
 
-  if (filtered.length === 0) { renderNoData('FAQ', 'faq-list'); return; }
+  if (filtered.length === 0) { renderNoData('FAQ', 'list-container'); return; }
   filtered.forEach(({ item, originalIndex }) => {
     if (item.q && item.a) container.appendChild(buildFaqCard(item, originalIndex));
   });
@@ -154,7 +162,7 @@ function renderFaq(faqList) {
 function buildFaqCard(item, index) {
   const cardId = `faq-card-${index}`;
   const collapseId = `faq-collapse-${index}`;
-  const q = _hubSearchQuery;
+  const q = _searchQuery;
 
   const card = document.createElement('div');
   card.className = 'card faq-card visible';
@@ -220,12 +228,24 @@ async function runHubApp() {
 
     applyBaseSetup(configData, 'Hub');
     document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
-    renderRoles('nav-user-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
+    renderRoles('nav-user-role', configData.role);
 
     _loadHubState();
 
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
     document.getElementById('hub-tab-guestbook').addEventListener('click', () => switchHubTab('guestbook'));
+
+    const shareBtn = document.getElementById('nav-share-icon');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(_buildShareUrl()).then(() => {
+          const original = shareBtn.innerHTML;
+          shareBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
+          setTimeout(() => { shareBtn.innerHTML = original; }, 2000);
+        }).catch(err => console.error('Share copy failed: ', err));
+      });
+    }
 
     if (_currentTab === 'guestbook') {
       document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
@@ -239,7 +259,7 @@ async function runHubApp() {
 
     initHubSearch();
 
-    renderNoData('Loading FAQ', 'faq-list', false);
+    renderNoData('Loading FAQ', 'list-container', false);
     renderNoData('Loading Guestbook', 'gb-list', false);
 
     try {

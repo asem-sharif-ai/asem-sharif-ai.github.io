@@ -2,9 +2,9 @@ let _configData = {};
 
 // ───── Helpers ────────────────────────────────────────
 
-function _parseDate(str) {
-  if (!str) return null;
-  const parts = str.split('/');
+function _parseDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('/');
   if (parts.length !== 2) return null;
   const monthRaw = parts[0].trim();
   const year = parseInt(parts[1].trim(), 10);
@@ -16,9 +16,9 @@ function _parseDate(str) {
   return parsed;
 }
 
-function _formatDate(str) {
-  const d = _parseDate(str);
-  if (!d) return str || '';
+function _formatDate(dateStr) {
+  const d = _parseDate(dateStr);
+  if (!d) return dateStr || '';
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
@@ -34,10 +34,10 @@ function _calculateDuration(from, to) {
   const mos = months % 12;
   const plural = (n, u) => `${n} ${u}${n !== 1 ? 's' : ''}`;
 
-  if (yrs === 0 && mos === 0) return '0 Months';
+  if (yrs === 0 && mos === 0) return 'Less Than A Month';
   if (yrs === 0) return plural(mos, 'Month');
   if (mos === 0) return plural(yrs, 'Year');
-  return `${plural(yrs, 'Year')} - ${plural(mos, 'Month')}`;
+  return `${plural(yrs, 'Year')} – ${plural(mos, 'Month')}`;
 }
 
 // ───── Build ────────────────────────────────────────
@@ -51,16 +51,14 @@ function buildLogCard(item, index) {
   const card = document.createElement('div');
   card.className = 'card visible';
   card.id = cardId;
-  card.style.animationDelay = `${index * 0.07}s`;
+  card.style.animationDelay = `${index * 0.075}s`;
 
   const fromLabel = _formatDate(item.from_date);
   const toLabel = item.to_date ? _formatDate(item.to_date) : 'Present';
   const duration = _calculateDuration(item.from_date, item.to_date);
 
-  const companyHtml = item.company
-    ? (item.company_url
-        ? `<a href='${item.company_url}' target='_blank' rel='noopener noreferrer'>${item.company}</a>`
-        : item.company)
+  const entityHtml = item.entity
+    ? (item.entity_url ? `<a href='${item.entity_url}' target='_blank' rel='noopener noreferrer'>${item.entity}</a>` : item.entity)
     : '';
 
   const locationHtml = item.location ? item.location : '';
@@ -72,7 +70,7 @@ function buildLogCard(item, index) {
       <div class='log-flex-row'>
         <div class='log-flex-left'>
           <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${companyHtml ? `<span class='log-sep'>·</span><span class='log-company'>${companyHtml}</span>` : ''}
+          ${entityHtml ? `<span class='log-sep'>·</span><span class='log-entity'>${entityHtml}</span>` : ''}
         </div>
         <div class='log-flex-right'>
           <span class='log-date-range'>${fromLabel} – ${toLabel}</span>
@@ -96,7 +94,7 @@ function buildLogCard(item, index) {
       <div class='log-flex-row'>
         <div class='log-flex-left'>
           <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${companyHtml ? `<span class='log-sep'>·</span><span class='log-company'>${companyHtml}</span>` : ''}
+          ${entityHtml ? `<span class='log-sep'>·</span><span class='log-entity'>${entityHtml}</span>` : ''}
         </div>
         <div class='log-flex-right'>
           <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
@@ -116,7 +114,7 @@ function buildLogCard(item, index) {
   header.querySelectorAll('.log-toggle-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleLogCard(cardId, collapseId);
+      toggleCard(cardId, collapseId);
     });
   });
 
@@ -139,10 +137,8 @@ function buildLogCard(item, index) {
   mdPane.appendChild(mdContent);
   logBody.appendChild(mdPane);
 
-  if (hasGallery) {
-    logBody.appendChild(buildGalleryPane(item.gallery));
-  }
-
+  if (hasGallery) logBody.appendChild(buildGalleryPane(item.gallery));
+  
   cardBody.appendChild(logBody);
   collapse.appendChild(cardBody);
   card.appendChild(header);
@@ -264,148 +260,68 @@ function buildGalleryPane(gallery) {
   return pane;
 }
 
-function toggleLogCard(cardId, collapseId) {
-  const collapse = document.getElementById(collapseId);
-  const icon = document.getElementById(cardId).querySelector('.toggle-icon');
-  if (!collapse || !icon) return;
-
-  if (collapse.classList.contains('closed')) {
-    collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up toggle-icon';
-  } else {
-    collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down toggle-icon';
-  }
-}
-
 // ───── Render ────────────────────────────────────────
 
-function renderLogFlat(items) {
-  const container = document.getElementById('list-container');
-  if (!container) return;
-  container.innerHTML = '';
+function renderLogList(items) {
+  const listContainer = document.getElementById('list-container');
+  if (!listContainer) return;
+  listContainer.innerHTML = '';
 
   items.forEach((item, index) => {
     const card = buildLogCard(item, index);
-    container.appendChild(card);
+    listContainer.appendChild(card);
 
     const mdId = `log-md-${index}`;
     if (item.description) {
       loadContent(item.description, mdId);
     } else {
-      const mdEl = document.getElementById(mdId);
-      if (mdEl) mdEl.innerHTML = '';
+      const markdown = document.getElementById(mdId);
+      if (markdown) markdown.innerHTML = '';
     }
   });
 
-  if (typeof observeCards === 'function') observeCards();
+  observeCards();
 }
 
-function renderLogGroup(groupKey, items, groupIndex) {
-  const cardId = `log-group-${groupIndex}`;
-  const collapseId = `log-group-collapse-${groupIndex}`;
+// ───── Log Rounter (Education, Experience, & Skills) ────────────────────────────────────────
 
-  const card = document.createElement('div');
-  card.className = 'card visible';
-  card.id = cardId;
-
-  const header = document.createElement('div');
-  header.className = 'card-header';
-  header.innerHTML = `
-    <div class='card-title'>${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
-    <div class='card-btns'>
-      <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
-    </div>
-  `;
-  header.addEventListener('click', () => toggleLogCard(cardId, collapseId));
-
-  const collapse = document.createElement('div');
-  collapse.className = 'card-collapse';
-  collapse.id = collapseId;
-
-  const body = document.createElement('div');
-  body.className = 'card-body';
-
-  items.forEach((item, index) => {
-    const logCard = buildLogCard(item, `${groupIndex}-${index}`);
-    body.appendChild(logCard);
-
-    const mdId = `log-md-${groupIndex}-${index}`;
-    if (item.description) {
-      loadContent(item.description, mdId);
-    } else {
-      const mdEl = document.getElementById(mdId);
-      if (mdEl) mdEl.innerHTML = '';
-    }
-  });
-
-  collapse.appendChild(body);
-  card.appendChild(header);
-  card.appendChild(collapse);
-
-  return card;
-}
-
-function renderLogGroups(groupedData) {
-  const container = document.getElementById('list-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  Object.entries(groupedData).forEach(([groupKey, items], groupIndex) => {
-    if (!Array.isArray(items) || !items.length) return;
-    container.appendChild(renderLogGroup(groupKey, items, groupIndex));
-  });
-
-  if (typeof observeCards === 'function') observeCards();
-}
-// ───── Log App ────────────────────────────────────────
-
-async function runLogApp() {
+async function runLogRouter() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const page = (params.get('page')).toLowerCase();
-
-    if (!['education', 'experience', 'edu', 'exp'].includes(page)) return;
+    const page = params.get('page')?.toLowerCase() ?? '';
     
-    const isEdu = page === 'education' || page === 'edu' ;
-    const dataKey = isEdu ? 'education' : 'experience';
-    const pageLabel = isEdu ? 'Education' : 'Experience';
+    if (!['education', 'experience', 'skills'].includes(page)) {
+      document.title = 'SlateMP - Invalid Request'
+      console.warn(`Routing Fallback: Invalid OR Missing Parameter: '${page}'`);
+      renderNoData('Invalid Request', 'list-container', false)
+      return;
+    }
 
     const cfgRes = await fetch('config.json');
     const configData = await cfgRes.json();
     _configData = configData;
 
-    applyBaseSetup(configData, pageLabel);
+    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
+    renderRoles('nav-user-role', configData.role);
+    
+    const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+    applyBaseSetup(configData, capitalize(page));
 
-    const brandTitle = document.getElementById('log-nav-user-name');
-    if (brandTitle) brandTitle.innerText = configData.name || 'Anonymous';
-
-    renderRoles('log-nav-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
-
-    const data = configData[dataKey];
-
-    if (!data) {
-      renderNoData(pageLabel);
-      return;
-    }
-
-    if (Array.isArray(data)) {
-      if (data.length) {
-        renderLogFlat(data);
+    if (page === 'skills') {
+      const skillsModule = await import('./skills.js');
+      skillsModule.initSkillsPage(configData);
+    } else if (['education', 'experience'].includes(page)) {
+      const data = configData[page];
+      if (data && Array.isArray(data) && data.length) {
+        renderLogList(data);
       } else {
-        renderNoData(pageLabel);
-      }
-    } else if (typeof data === 'object') {
-      if (Object.keys(data).length > 0) {
-        renderLogGroups(data);
-      } else {
-        renderNoData(pageLabel);
+        renderNoData(page);
       }
     }
 
-  } catch (err) {
-    console.error('Log Setup Failure:', err);
+  } catch (e) {
+    console.error('Log Core Router Failure:', e);
   }
 }
 
-window.addEventListener('DOMContentLoaded', runLogApp);
+window.addEventListener('DOMContentLoaded', runLogRouter);

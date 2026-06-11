@@ -75,7 +75,7 @@ const iconMap = {
 // ───── Viewport ────────────────────────────────────────
 
 function isMobile() {
-  return window.innerWidth <= 768;
+  return window.innerWidth <= 840;
 }
 
 // ───── QR Code Modal ────────────────────────────────────────
@@ -118,7 +118,23 @@ function createQRCodeModal(qrData) {
   modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 }
 
-// ───── Markdown Parser ────────────────────────────────────────
+// ───── Content Helpers ────────────────────────────────────────
+
+async function loadContent(path, elementId) {
+  if (!path) {
+    document.getElementById(elementId).innerText = 'Resource Path Missing.';
+    return;
+  }
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    const text = await res.text();
+    document.getElementById(elementId).innerHTML = parseMarkdown(text);
+  } catch (err) {
+    document.getElementById(elementId).innerText = 'Failed To Sync Panel Content.';
+    console.error(err);
+  }
+}
 
 function parseMarkdown(text) {
   if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
@@ -142,7 +158,10 @@ function parseMarkdown(text) {
   return DOMPurify.sanitize(rawHtml);
 }
 
-// ───── Content Helpers ────────────────────────────────────────
+function isMarkdownPath(path) {
+  if (typeof path !== 'string') return false;
+  return path.trim().split('?')[0].toLowerCase().endsWith('.md');
+}
 
 function isImagePath(path) {
   if (typeof path !== 'string') return false;
@@ -152,27 +171,6 @@ function isImagePath(path) {
 function isVideoPath(path) {
   if (typeof path !== 'string') return false;
   return /\.(mp4|webm|ogg|mov|m4v)$/i.test(path.trim().split('?')[0]);
-}
-
-function isMarkdownPath(path) {
-  if (typeof path !== 'string') return false;
-  return path.trim().split('?')[0].toLowerCase().endsWith('.md');
-}
-
-async function loadContent(path, elementId) {
-  if (!path) {
-    document.getElementById(elementId).innerText = 'Resource Path Missing.';
-    return;
-  }
-  try {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-    const text = await res.text();
-    document.getElementById(elementId).innerHTML = parseMarkdown(text);
-  } catch (err) {
-    document.getElementById(elementId).innerText = 'Failed To Sync Panel Content.';
-    console.error(err);
-  }
 }
 
 function getVideoMimeType(path) {
@@ -311,24 +309,50 @@ function makeSeparator(extraClass = '') {
   return sep;
 }
 
-function renderRoles(containerId, rolesArray) {
+function renderRoles(containerId, role) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  container.innerHTML = '';
 
-  rolesArray.forEach((role, index) => {
-    const roleSpan = document.createElement('span');
-    roleSpan.innerText = role;
-    container.appendChild(roleSpan);
+  if (typeof role === 'string' && role) {
+    container.innerText = role;
+  } else if (Array.isArray(role) && role.length > 0) {
+    role.forEach((r, index) => {
+      const roleSpan = document.createElement('span');
+      roleSpan.innerText = r;
+      container.appendChild(roleSpan);
 
-    if (index < rolesArray.length - 1) {
-      container.appendChild(makeSeparator('role-separator'));
-    }
-  });
+      if (index < role.length - 1) {
+        container.appendChild(makeSeparator('role-separator'));
+      }
+    });
+  } else {
+    container.remove();
+  }
 }
 
 function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
   const c = document.getElementById(containerId);
   if (!c) return;
   c.innerHTML = `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
+}
+
+function renderFooter() {
+  const footerUI = document.createElement('footer');
+  footerUI.className = 'site-footer';
+  footerUI.innerHTML = `<span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> (V.2.8)</span>`;
+  document.body.appendChild(footerUI);
+}
+
+function toggleCard(cardId, collapseId) {
+  const collapse = document.getElementById(collapseId);
+  const icon = document.getElementById(cardId).querySelector('.toggle-icon');
+  if (!collapse || !icon) return;
+
+  if (collapse.classList.contains('closed')) {
+    collapse.classList.remove('closed');
+    icon.className = 'fa-solid fa-chevron-up toggle-icon';
+  } else {
+    collapse.classList.add('closed');
+    icon.className = 'fa-solid fa-chevron-down toggle-icon';
+  }
 }

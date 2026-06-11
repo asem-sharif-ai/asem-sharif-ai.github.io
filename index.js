@@ -1,34 +1,46 @@
-// ───── Cards Setup ────────────────────────────────────────
+// ───── Card Setup ────────────────────────────────────────
 
 function buildCard(section, cardId) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId});
 
   const textId = `text-${cardId}`;
   const copyId = `copy-${cardId}`;
+  const shareId = `share-${cardId}`
   const isImage = isImagePath(section.path);
   const isVideo = isVideoPath(section.path);
   const isMedia = isImage || isVideo;
 
-  const actionIcon = `<i class='${isMedia ? 'fa-solid fa-file-arrow-down' : 'fa-regular fa-copy'}'></i>`;
+  const actionIcon = `<i class='${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}'></i>`;
 
   card.innerHTML = `
     <div class='card-header' id='header-${cardId}'>
       <div class='card-title'>${section.title}</div>
       <div class='card-btns'>
-        <button class='btn' id='${copyId}'>${actionIcon}</button>
+      <button class='btn' id='${copyId}'>${actionIcon}</button>
+      <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
         <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
       </div>
     </div>
-    <div class='card-collapse'>
+    <div class='card-collapse' id='card-collapse-${cardId}'>
       <div class='card-body'>
         <div class='scroll-area' id='${textId}'>Loading...</div>
       </div>
     </div>
   `;
 
-  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId));
+  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, `card-collapse-${cardId}`));
   card.querySelector(`#${copyId}`).addEventListener('click', (e) => {
-    e.stopPropagation(); isMedia ? downloadPanelMedia(cardId) : copyPanelText(cardId);
+    e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);
+  });
+  card.querySelector(`#${shareId}`).addEventListener('click', (e) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}${window.location.pathname}#${cardId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById(`${shareId}`);
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
+      setTimeout(() => { btn.innerHTML = original; }, 2000);
+    }).catch(err => console.error('Share copy failed: ', err));
   });
 
   const container = card.querySelector(`#${textId}`);
@@ -59,38 +71,17 @@ function buildCard(section, cardId) {
 
 function highlightCard(cardId) {
   document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
-  if (cardId !== 'home-panel') {
+  if (cardId !== 'home-hero') {
     const target = document.getElementById(cardId);
     if (target) {
       target.classList.add('focus');
       const collapse = target.querySelector('.card-collapse');
-      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId);
+      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
     }
   }
 }
 
-function toggleCard(cardId) {
-  const card = document.getElementById(cardId);
-  const icon = card.querySelector('.toggle-icon');
-  const collapse = card.querySelector('.card-collapse');
-  if (collapse.classList.contains('closed')) {
-    collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up toggle-icon';
-  } else {
-    collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down toggle-icon';
-  }
-}
-
-function jumpToCard(targetId, targetCardId) {
-  const cardId = targetCardId || targetId;
-  const target = document.getElementById(cardId);
-  if (!target) return;
-  target.scrollIntoView({ behavior: 'smooth' });
-  if (targetCardId) highlightCard(targetCardId);
-}
-
-function copyPanelText(cardId) {
+function copyCardText(cardId) {
   const card = document.getElementById(cardId);
   const scrollArea = card.querySelector('.scroll-area');
   navigator.clipboard.writeText(scrollArea.innerText).then(() => {
@@ -101,7 +92,7 @@ function copyPanelText(cardId) {
   }).catch(err => console.error('Copy failed: ', err));
 }
 
-function downloadPanelMedia(cardId) {
+function downloadCardMedia(cardId) {
   const card = document.getElementById(cardId);
   const scrollArea = card.querySelector('.scroll-area');
   const image = scrollArea.querySelector('img');
@@ -127,15 +118,15 @@ function downloadPanelMedia(cardId) {
   setTimeout(() => { btn.innerHTML = original; }, 2000);
 }
 
-function makePanelId(rowIndex, colIndex) {
-  return `panel-r${rowIndex}-c${colIndex}`;
+function makeCardId(rowIndex, colIndex, title) {
+  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
 }
 
 // ───── Scroll Spy ────────────────────────────────────────
 
 function runScrollSpy(spyTargets) {
   window.addEventListener('scroll', () => {
-    let activeId = 'home-panel';
+    let activeId = 'home-hero';
     const topOffset = window.scrollY + 250;
 
     spyTargets.forEach(view => {
@@ -153,6 +144,14 @@ function runScrollSpy(spyTargets) {
   });
 }
 
+function jumpToCard(targetId, targetCardId) {
+  const cardId = targetCardId || targetId;
+  const target = document.getElementById(cardId);
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth' });
+  if (targetCardId) highlightCard(targetCardId);
+}
+
 // ───── Profile App ────────────────────────────────────────
 
 async function runProfileApp() {
@@ -161,10 +160,11 @@ async function runProfileApp() {
     const data = await res.json();
 
     const navItems = document.getElementById('nav-items');
-    const homePanel = document.getElementById('home-panel');
+    const homeHero = document.getElementById('home-hero');
     const navUserName = document.getElementById('nav-user-name');
     const navUserRole = document.getElementById('nav-user-role');
     const userName = document.getElementById('user-name');
+    const userRole = document.getElementById('user-role');
     const userLocation = document.getElementById('user-location');
     const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
@@ -183,47 +183,36 @@ async function runProfileApp() {
       }
     }
 
-    const name = data.name || 'Anonymous';
-    if (userName) userName.innerText = name;
-    if (navUserName) navUserName.innerText = name;
+    if (userName) userName.innerText = data.name || 'Anonymous';
+    if (navUserName) navUserName.innerText = data.name || 'Anonymous';
+    if (userRole) renderRoles('user-role', data.role || '');
 
-    const role = data.role || '';
-    if (navUserRole) {
-      if (typeof role === 'string' && role) {
-        navUserRole.innerText = role;
-      } else if (Array.isArray(role) && role.length > 0) {
-        renderRoles('user-role', role);
-      } else {
-        navUserRole.remove();
-      }
-    }
+    if (userLocation) {
+      const location = data.location;
+      const timezone = data.timezone;
 
-  if (userLocation) {
-    const location = data.location;
-    const timezone = data.timezone;
+      if (location) {
+        let timezoneUI = '';
 
-    if (location) {
-      let timezoneUI = '';
-
-      if (timezone) {
-        if (timezone.includes('/')) {
-          try {
-            const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' });
-            const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
-            timezoneUI = offsetPart ? offsetPart.value.replace('GMT', 'UTC') : '';
-          } catch (e) {
-            timezoneUI = '';
+        if (timezone) {
+          if (timezone.includes('/')) {
+            try {
+              const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' });
+              const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
+              timezoneUI = offsetPart ? offsetPart.value.replace('GMT', 'UTC') : '';
+            } catch (e) {
+              timezoneUI = '';
+            }
+          } else if (timezone.includes('+') || timezone.includes('-')) {
+            timezoneUI = timezone;
           }
-        } else if (timezone.includes('+') || timezone.includes('-')) {
-          timezoneUI = timezone;
         }
-      }
 
-      userLocation.innerHTML = `${location}` + (timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : '');
-    } else {
-      userLocation.remove();
+        userLocation.innerHTML = `${location}` + (timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : '');
+      } else {
+        userLocation.remove();
+      }
     }
-  }
 
     if (Array.isArray(data.socials) && socialIcons) {
       data.socials.forEach((group, groupIndex) => {
@@ -251,8 +240,8 @@ async function runProfileApp() {
       });
     }
 
-    const spyTargets = [{ id: 'home-panel', navIds: 'nav-home' }];
-    const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-panel', cardId: 'home-panel' }];
+    const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
+    const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
 
     const fileNavItems = [
       { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
@@ -263,7 +252,7 @@ async function runProfileApp() {
       baseNavItems.forEach(item => {
         const btn = document.createElement('a');
         btn.id = item.id;
-        btn.className = 'home-nav-home'; // Added line
+        btn.className = 'home-nav-home';
         btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
         btn.onclick = () => jumpToCard(item.target, item.cardId);
         navItems.appendChild(btn);
@@ -273,14 +262,15 @@ async function runProfileApp() {
     if (Array.isArray(data.sections) && sectionsContainer && navItems) {
       data.sections.forEach((row, rowIndex) => {
         const colCount = row.length;
+        const totalSize = row.reduce((sum, s) => sum + (s.size || 1), 0);
         const rowId = `row-${rowIndex}`;
-        const cardIds = row.map((_, colIndex) => makePanelId(rowIndex, colIndex));
+        const cardIds = row.map((section, colIndex) => makeCardId(rowIndex, colIndex, section.title));
         const rowNavIds = [];
 
         const wrapper = document.createElement('div');
         if (colCount > 1) {
-          wrapper.className = 'grid';
-          wrapper.style.setProperty('--col-count', colCount);
+          wrapper.className = 'row';
+          wrapper.style.setProperty('--col-count', totalSize);
         }
         wrapper.id = rowId;
 
@@ -289,13 +279,15 @@ async function runProfileApp() {
           const navId = `nav-${cardId}`;
           rowNavIds.push(navId);
 
-          wrapper.appendChild(buildCard(section, cardId));
+          const card = buildCard(section, cardId);
+          if (colCount > 1) card.style.gridColumn = `span ${section.size || 1}`;
+          wrapper.appendChild(card);
 
           if (section.key) {
             const sectionIcon = sectionMap[section.icon?.toLowerCase()] ?? sectionMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
-            navBtn.className = 'home-nav-file'; // Added line
+            navBtn.className = 'home-nav-file';
             navBtn.innerHTML = `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);
@@ -305,13 +297,15 @@ async function runProfileApp() {
         spyTargets.push({ id: rowId, navIds: rowNavIds });
         sectionsContainer.appendChild(wrapper);
       });
+    } else {
+      sectionsContainer.remove()
     }
 
     const allowedKeys = {
       education:  './log.html?page=education',
       experience: './log.html?page=experience',
       projects:   './projects.html',
-      skills:     './skills.html',
+      skills:     './log.html?page=skills',
       hub:        './hub.html',
     };
     const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
@@ -339,11 +333,12 @@ async function runProfileApp() {
 
     observeCards();
     runScrollSpy(spyTargets);
+    renderFooter()
 
     return true;
 
   } catch (error) {
-    console.error('Application Setup Validation Failure:', error);
+    console.error('SlateMP Application Setup Validation Failure:', error);
     return false;
   }
 }
@@ -364,11 +359,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (targetCard && targetCard.offsetHeight > 0) {
         clearInterval(scrollInterval);
         
-        const collapse = targetCard.querySelector('.card-collapse');
-        if (collapse && collapse.classList.contains('closed')) {
-          toggleCard(targetId);
-        }
-
         const headerOffset = 90; 
         const elementPosition = targetCard.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - headerOffset;

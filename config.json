@@ -55,19 +55,19 @@
 
   "sections": [
     [
-      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md" }
+      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "size": 2 }
     ],
     [
-      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md" },
-      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md" }
+      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "size": 2 },
+      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "size": 1 }
     ]
   ],
 
   "education": [
     {
       "title": "Faculty of Artificial Intelligence",
-      "company": "Menoufia University",
-      "company_url": "https://mu.menofia.edu.eg/ai/Home/en",
+      "entity": "Menoufia University",
+      "entity_url": "https://mu.menofia.edu.eg/ai/Home/en",
       "subtitle": "BSc in Artificial Intelligence - Cyber Security Department",
       "type": "120 Hours",
       "location": "Egypt",
@@ -90,8 +90,8 @@
   "experience": [
     {
       "title": "Technical Instructor",
-      "company": "Digital Egypt Cubs Initiative (DECI)",
-      "company_url": "https://mcit.gov.eg/en/Human_Capacity/MCIT/Digital_Egypt_Cubs_Initiative",
+      "entity": "Digital Egypt Cubs Initiative (DECI)",
+      "entity_url": "https://mcit.gov.eg/en/Human_Capacity/MCIT/Digital_Egypt_Cubs_Initiative",
       "subtitle": "Technical Instructor For <b>Computer Science</b> & <b>Digital Skills</b> • Powered by <b>Udacity</b> & <b>CLS</b>.",
       "type": "Part-Time",
       "location": "Egypt",
@@ -107,8 +107,6 @@
   ],
 
   "projects": {
-    "layout": 6,
-
     "latest": {
       "title": "Lynx DMS",
       "subtitle": "Intelligent Edge-Deployed Driver Monitoring System",
@@ -130,7 +128,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
           "star": true,
-          "span": 4
+          "size": 2
         },
         {
           "title": "DMD",
@@ -145,7 +143,7 @@
           "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
           "topics": [],
           "star": false,
-          "span": 2
+          "size": 1
         }
       ],
       [
@@ -155,7 +153,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Desktop", "Tools", "PyQt6", "yt-dlp", "APIs"],
           "star": false,
-          "span": 3
+          "size": 3
         },
         {
           "title": "Smart Note",
@@ -163,7 +161,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Desktop", "Tools", "PyQt6"],
           "star": false,
-          "span": 3
+          "size": 3
         }
       ],
       [
@@ -173,7 +171,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 3
+          "size": 3
         },
         {
           "title": "Face Recognizer",
@@ -181,7 +179,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 3
+          "size": 3
         }
       ],
       [
@@ -191,7 +189,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 2
+          "size": 2
         },
         {
           "title": "Glasses Detector",
@@ -199,7 +197,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 2
+          "size": 2
         },
         {
           "title": "Expression Classifier",
@@ -207,7 +205,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 2
+          "size": 2
         }
       ],
       [
@@ -217,7 +215,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 3
+          "size": 3
         },
         {
           "title": "Hand Gestures CNN",
@@ -225,7 +223,7 @@
           "url": "https://github.com/asem-sharif-ai",
           "topics": [],
           "star": false,
-          "span": 3
+          "size": 3
         }
       ]
     ]

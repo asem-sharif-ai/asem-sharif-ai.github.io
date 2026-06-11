@@ -7,6 +7,22 @@ let _filterMode = 'OR';
 
 // ───── State ────────────────────────────────────────
 
+function _buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+
+  if (_searchQuery) url.searchParams.set('search', _searchQuery);
+
+  if (_starredOnly) {
+    url.searchParams.set('filter', 'starred');
+  } else if (_activeTopics.size > 0) {
+    url.searchParams.set('filter', [..._activeTopics].join(','));
+    url.searchParams.set('mode', _filterMode === 'AND' ? 'and' : 'or');
+  }
+
+  return url.toString();
+}
+
 function _saveFilterState() {
   sessionStorage.setItem('proj-active-topics', JSON.stringify([..._activeTopics]));
   sessionStorage.setItem('proj-search-query', _searchQuery);
@@ -15,53 +31,51 @@ function _saveFilterState() {
 }
 
 function _loadFilterState() {
-  try {
-    const saved = sessionStorage.getItem('proj-active-topics');
-    if (saved) _activeTopics = new Set(JSON.parse(saved));
-  } catch (e) { _activeTopics = new Set(); }
-  _searchQuery = sessionStorage.getItem('proj-search-query') || '';
-  _starredOnly = sessionStorage.getItem('proj-starred-only') === 'true';
-  _filterMode = sessionStorage.getItem('proj-filter-mode') || 'OR';
+  const params = new URL(window.location.href).searchParams;
+  const hasUrlParams = params.has('search') || params.has('filter');
+
+  if (hasUrlParams) {
+    _searchQuery = params.get('search') || '';
+
+    const filter = params.get('filter') || '';
+    if (filter === 'starred') {
+      _starredOnly = true;
+      _activeTopics = new Set();
+    } else if (filter) {
+      _starredOnly = false;
+      _activeTopics = new Set(filter.split(',').map(t => t.trim()).filter(Boolean));
+      const mode = params.get('mode') || 'or';
+      _filterMode = mode === 'and' ? 'AND' : 'OR';
+    } else {
+      _starredOnly = false;
+      _activeTopics = new Set();
+    }
+  } else {
+    try {
+      const saved = sessionStorage.getItem('proj-active-topics');
+      if (saved) _activeTopics = new Set(JSON.parse(saved));
+    } catch (e) { _activeTopics = new Set(); }
+    _searchQuery = sessionStorage.getItem('proj-search-query') || '';
+    _starredOnly = sessionStorage.getItem('proj-starred-only') === 'true';
+    _filterMode = sessionStorage.getItem('proj-filter-mode') || 'OR';
+  }
 }
 
 // ───── Filter & Search ────────────────────────────────────────
 
-function initFilterToggle() {
-  const btn = document.getElementById('filter-btn');
-  const panel = document.getElementById('filter-panel');
-  if (!btn || !panel) return;
-  let isOpen  = false;
-
-  function positionPanel() {
-    const rect = btn.getBoundingClientRect();
-    panel.style.top = `${rect.bottom + 10}px`;
-    panel.style.left = `${rect.left}px`;
-  }
-
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isOpen = !isOpen;
-    if (isOpen) positionPanel();
-    panel.classList.toggle('open', isOpen);
-    btn.classList.toggle('active', isOpen);
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && e.target !== btn) {
-      isOpen = false;
-      panel.classList.remove('open');
-      btn.classList.remove('active');
-    }
-  });
-}
-
 function buildFilterDropdown(projectRows) {
   function collectTopics(projectRows) {
     const all = new Set();
-    projectRows.forEach(row => row.forEach(p => (p.topics || []).forEach(t => all.add(t))));
+    projectRows.forEach(row => {
+      row.forEach(p => {(
+        p.topics || []).forEach(t => {
+          const cleanTopic = t.replace(/^_+|_+$/g, '').trim();
+          if (cleanTopic) all.add(cleanTopic);
+        });
+      });
+    });
     return [...all].sort();
   }
-
   const topics = collectTopics(projectRows)
 
   const dropdown = document.getElementById('filter-dropdown');
@@ -175,6 +189,35 @@ function buildFilterDropdown(projectRows) {
   });
 }
 
+function initFilterToggle() {
+  const btn = document.getElementById('filter-btn');
+  const panel = document.getElementById('filter-panel');
+  if (!btn || !panel) return;
+  let isOpen  = false;
+
+  function positionPanel() {
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = `${rect.bottom + 10}px`;
+    panel.style.left = `${rect.left}px`;
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isOpen = !isOpen;
+    if (isOpen) positionPanel();
+    panel.classList.toggle('open', isOpen);
+    btn.classList.toggle('active', isOpen);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && e.target !== btn) {
+      isOpen = false;
+      panel.classList.remove('open');
+      btn.classList.remove('active');
+    }
+  });
+}
+
 function applyFilterAndRerender() {
   const filterBtn = document.getElementById('filter-btn');
   if (filterBtn) {
@@ -190,8 +233,14 @@ function applyFilterAndRerender() {
       }
     }
   }
-  updateHeroVisibility();
-  renderProjectsGrid(_allProjects, typeof _projectsConfigData.layout === 'number' ? _projectsConfigData.layout : 4);
+  updateLatestVisibility();
+  renderProjectsGrid(_allProjects);
+
+  const navProfile = document.getElementById('nav-profile');
+  if (navProfile) {
+    const detail = filterBtn?.querySelector('.filter-detail');
+    navProfile.style.display = (detail ? detail.innerText.length : 0) >= 50 ? 'none' : '';
+  }
 }
 
 function initSearchLogic() {
@@ -203,8 +252,8 @@ function initSearchLogic() {
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
       _saveFilterState();
-      updateHeroVisibility();
-      renderProjectsGrid(_allProjects, _projectsConfigData.layout || 4);
+      updateLatestVisibility();
+      renderProjectsGrid(_allProjects);
     }, 300);
   });
 }
@@ -221,6 +270,7 @@ function buildLatestHero(latest) {
   const latestKey = document.getElementById('latest-keywords-container');
   if (latest.topics?.length) {
     latestKey.innerHTML = latest.topics.map(t => `<span class='keyword'>${t}</span>`).join('');
+    latestKey.style.display = '';
   } else {
     latestKey.style.display = 'none';
   }
@@ -233,14 +283,59 @@ function buildLatestHero(latest) {
     newBtn.addEventListener('click', () => window.open(latest.url, '_blank', 'noopener noreferrer'));
   }
 
+  const starUI = document.getElementById('latest-star');
   if (latest.star) {
-    const starEl = document.getElementById('latest-star');
-    starEl.className = 'star-icon';
-    starEl.style.display = '';
+    starUI.className = 'star-icon';
+    starUI.style.display = '';
+    starUI.style.cursor = 'pointer';
+
+    const newStarEl = starUI.cloneNode(true);
+    starUI.parentNode.replaceChild(newStarEl, starUI);
+
+    newStarEl.addEventListener('click', (e) => {
+      const rect = newStarEl.getBoundingClientRect();
+      const starCenterX = rect.left + rect.width / 2;
+      const starCenterY = rect.top + rect.height / 2;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'star-celebration-overlay';
+      document.body.appendChild(overlay);
+
+      for (let i = 0; i < 50; i++) {
+        const star = document.createElement('div');
+        star.className = 'bursting-star';
+        star.textContent = '\uf005'; 
+
+        star.style.left = `${starCenterX}px`;
+        star.style.top = `${starCenterY}px`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 100 + Math.random() * 350;
+        
+        const tx = Math.cos(angle) * velocity + 'px';
+        const ty = Math.sin(angle) * velocity + 'px';
+        const finalScale = 0.5 + Math.random() * 3.5; 
+        const rotation = (Math.random() * 360) + 'deg';
+
+        star.style.setProperty('--tx', tx);
+        star.style.setProperty('--ty', ty);
+        star.style.setProperty('--final-scale', finalScale);
+        star.style.setProperty('--rot', rotation);
+        star.style.animationDelay = (Math.random() * 0.1) + 's';
+
+        overlay.appendChild(star);
+      }
+
+      setTimeout(() => {
+        overlay.remove();
+      }, 1600);
+    });
+  } else {
+    starUI.style.display = 'none';
   }
 }
 
-function updateHeroVisibility() {
+function updateLatestVisibility() {
   const hero = document.getElementById('latest-hero');
   if (!hero) return;
   const isFiltered = _activeTopics.size > 0 || _searchQuery.length > 0 || _starredOnly;
@@ -259,6 +354,7 @@ function buildProjectCard(project, cardId) {
   const contents = Array.isArray(project.content) ? project.content : [project.content].filter(Boolean);
   const isMultiContent = contents.length > 1;
   const hasUrl = !!project.url;
+  const cleanTopics = project.topics.map(topic => topic.replace(/^_+/, '').trim());
 
   card.innerHTML = `
       <div class='card-header project-card-header' id='header-${cardId}'>
@@ -279,15 +375,28 @@ function buildProjectCard(project, cardId) {
       <div class='card-collapse'>
         <div class='card-body'>
           <div class='scroll-area' id='${textId}'>Loading...</div>
-          ${project.topics?.length ? `<div class='project-card-footer'>${project.topics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>` : ''}
         </div>
       </div>
-    `;
+      ${project.topics?.length ? `
+        <div class='project-card-footer closed' id='footer-${cardId}'>
+          <div class='footer-inner'>
+            <div class='footer-topics'>${cleanTopics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>
+          </div>
+        </div>` : ''}
+  `;
 
   card.querySelector(`#toggle-btn-${cardId}`).addEventListener('click', (e) => {
     e.stopPropagation();
     toggleProjectCard(cardId);
   });
+
+  const footer = card.querySelector(`#footer-${cardId}`);
+  if (footer) {
+    footer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      footer.classList.toggle('closed');
+    });
+  }
 
   if (hasUrl) {
     card.querySelector(`#url-${cardId}`).addEventListener('click', (e) => {
@@ -397,13 +506,9 @@ function setContentSlider(container, contents, prevBtn, nextBtn, counter) {
 
 // ───── Render ────────────────────────────────────────
 
-function renderProjectsGrid(projectRows, columns) {
-  const grid = document.getElementById('projects-grid');
-  grid.innerHTML = '';
-  const totalCols = isMobile() ? 1 : (columns || 4);
-
-  grid.style.setProperty('--projects-cols', totalCols);
-  grid.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
+function renderProjectsGrid(projectRows) {
+  const container = document.getElementById('list-container');
+  container.innerHTML = '';
 
   const processedRows = [];
   projectRows.forEach(row => {
@@ -427,18 +532,26 @@ function renderProjectsGrid(projectRows, columns) {
 
   let globalIndex = 0;
   processedRows.forEach((row, rowIndex) => {
+    const colCount = row.length;
+    const totalSize = row.reduce((sum, p) => sum + (p.size || 1), 0);
+    const rowId = `proj-row-${rowIndex}`;
+
+    const wrapper = document.createElement('div');
+    if (colCount > 1) {
+      wrapper.className = 'row';
+      wrapper.style.setProperty('--col-count', totalSize);
+    }
+    wrapper.id = rowId;
+
     row.forEach(project => {
       const cardId = `proj-${globalIndex}`;
       const card = buildProjectCard(project, cardId);
-      const spanVal = typeof project.span === 'number' ? project.span : 1;
-
-      card.dataset.span = spanVal;
-      if (!isMobile()) card.style.gridRowStart = `${rowIndex + 1}`;
-      card.style.gridColumn = (!isMobile() && spanVal > 1) ? `span ${spanVal}` : 'span 1';
-
-      grid.appendChild(card);
+      if (colCount > 1) card.style.gridColumn = `span ${project.size || 1}`;
+      wrapper.appendChild(card);
       globalIndex++;
     });
+
+    container.appendChild(wrapper);
   });
 
   observeCards();
@@ -453,7 +566,6 @@ async function runProjectsApp() {
     const projectsData = configData.projects || { content: [], layout: 4 };
 
     _projectsConfigData = configData;
-    _projectsConfigData.layout = projectsData.layout || 4;
     _allProjects = projectsData.content || [];
 
     applyBaseSetup(configData, 'Projects');
@@ -469,7 +581,7 @@ async function runProjectsApp() {
     }
 
     _loadFilterState();
-    updateHeroVisibility();
+    updateLatestVisibility();
 
     buildFilterDropdown(_allProjects);
 
@@ -491,8 +603,9 @@ async function runProjectsApp() {
           }
         });
         const filterBtn = document.getElementById('filter-btn');
+        const connector = _filterMode === 'AND' ? ' & ' : ', ';
+        
         if (filterBtn && filterBtn.querySelector('.nav-label')) {
-          const connector = _filterMode === 'AND' ? ' & ' : ', ';
           filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail filter-detail'>(${[..._activeTopics].join(connector)})</span>`;
         }
       }
@@ -503,7 +616,19 @@ async function runProjectsApp() {
 
     initFilterToggle();
     initSearchLogic();
-    renderProjectsGrid(_allProjects, _projectsConfigData.layout);
+
+    const shareBtn = document.getElementById('nav-share-icon');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(_buildShareUrl()).then(() => {
+          const original = shareBtn.innerHTML;
+          shareBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
+          setTimeout(() => { shareBtn.innerHTML = original; }, 2000);
+        }).catch(err => console.error('Share copy failed: ', err));
+      });
+    }
+    renderProjectsGrid(_allProjects);
 
     let _resizeTimer;
     let _lastWidth = window.innerWidth;
@@ -512,11 +637,11 @@ async function runProjectsApp() {
       if (newWidth === _lastWidth) return;
       _lastWidth = newWidth;
       clearTimeout(_resizeTimer);
-      _resizeTimer = setTimeout(() => renderProjectsGrid(_allProjects, _projectsConfigData.layout), 120);
+      _resizeTimer = setTimeout(() => renderProjectsGrid(_allProjects), 120);
     });
 
     if (!projectsData || (!projectsData.latest?.title && !projectsData.content?.length)) {
-      renderNoData('Projects', 'projects-grid')
+      renderNoData('Projects', 'list-container')
 
       const filterBtn = document.getElementById('filter-btn');
       if (filterBtn) {
@@ -532,6 +657,8 @@ async function runProjectsApp() {
         searchBtn.classList.add('ui-disabled');
       }
     }
+
+    applyFilterAndRerender();
 
   } catch (e) {
     console.error('Projects App Setup Failure:', e);

@@ -1,8 +1,8 @@
 let _configData = {};
 
-// ───── Build ────────────────────────────────────────
+// ───── Group Level ────────────────────────────────────────
 
-function buildGroupCard(groupKey, groupData, groupIndex) {
+function buildGroup(groupKey, groupData, groupIndex) {
   const cardId = `skill-group-${groupIndex}`;
   const collapseId = `skill-group-collapse-${groupIndex}`;
 
@@ -18,7 +18,7 @@ function buildGroupCard(groupKey, groupData, groupIndex) {
       <button class='btn'><i class='fa-solid fa-chevron-up toggle-icon'></i></button>
     </div>
   `;
-  header.addEventListener('click', () => toggleGroupCard(cardId, collapseId));
+  header.addEventListener('click', () => toggleCard(cardId, collapseId));
 
   const collapse = document.createElement('div');
   collapse.className = 'card-collapse';
@@ -30,7 +30,7 @@ function buildGroupCard(groupKey, groupData, groupIndex) {
   const gridWrapper = document.createElement('div');
   gridWrapper.className = 'skill-group-grid';
 
-  renderGroupGrid(groupData.content, groupData.layout, gridWrapper);
+  renderGrid(groupData.content, groupData.layout, gridWrapper);
 
   body.appendChild(gridWrapper);
   collapse.appendChild(body);
@@ -40,21 +40,36 @@ function buildGroupCard(groupKey, groupData, groupIndex) {
   return card;
 }
 
-function toggleGroupCard(cardId, collapseId) {
-  const collapse = document.getElementById(collapseId);
-  const icon = document.getElementById(cardId).querySelector('.toggle-icon');
-  if (!collapse || !icon) return;
-
-  if (collapse.classList.contains('closed')) {
-    collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up toggle-icon';
-  } else {
-    collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down toggle-icon';
-  }
+function renderGrid(skills, columns, container) {
+  container.innerHTML = '';
+  const totalCols = isMobile() ? 1 : columns;
+  container.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
+  skills.forEach(skill => {
+    const card = buildCard(skill);
+    if (!isMobile() && skill.span) { card.style.gridColumn = `span ${Math.min(skill.span, totalCols)}`; }
+    container.appendChild(card);
+  });
 }
 
-function buildSkillCard(skill) {
+function renderSkillsList(skillsData) {
+  const container = document.getElementById('list-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const globalLayout = skillsData.layout  || 4;
+  const content = skillsData.content || {};
+
+  Object.entries(content).forEach(([groupKey, groupSkills], groupIndex) => {
+    if (!groupSkills || !Array.isArray(groupSkills)) return;
+    container.appendChild(buildGroup(groupKey, { content: groupSkills, layout: globalLayout }, groupIndex));
+  });
+
+  observeCards();
+}
+
+// ───── Card Level ────────────────────────────────────────
+
+function buildCard(skill) {
   const card = document.createElement('div');
   card.className = 'card skill-card visible';
 
@@ -109,34 +124,7 @@ function buildSkillCard(skill) {
   return card;
 }
 
-// ───── Render ────────────────────────────────────────
-
-function renderGroupGrid(skills, columns, container) {
-  container.innerHTML = '';
-  const totalCols = isMobile() ? 1 : columns;
-  container.style.gridTemplateColumns = isMobile() ? '1fr' : `repeat(${totalCols}, minmax(0, 1fr))`;
-  skills.forEach(skill => {
-    const card = buildSkillCard(skill);
-    if (!isMobile() && skill.span) { card.style.gridColumn = `span ${Math.min(skill.span, totalCols)}`; }
-    container.appendChild(card);
-  });
-}
-
-function renderGroups(skillsData) {
-  const container = document.getElementById('list-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const globalLayout = skillsData.layout  || 4;
-  const content = skillsData.content || {};
-
-  Object.entries(content).forEach(([groupKey, groupSkills], groupIndex) => {
-    if (!groupSkills || !Array.isArray(groupSkills)) return;
-    container.appendChild(buildGroupCard(groupKey, { content: groupSkills, layout: globalLayout }, groupIndex));
-  });
-
-  observeCards();
-}
+// ───── Setup ────────────────────────────────────────
 
 function updateIcons() {
   const isLightMode = document.body.classList.contains('light-mode');
@@ -148,8 +136,6 @@ function updateIcons() {
   });
 }
 
-// ───── Setup ────────────────────────────────────────
-
 let _resizeTimer;
 let _wasMobile = null;
 window.addEventListener('resize', () => {
@@ -158,9 +144,9 @@ window.addEventListener('resize', () => {
     const nowMobile = isMobile();
     if (nowMobile !== _wasMobile) {
       _wasMobile = nowMobile;
-      if (_configData.skills) renderGroups(_configData.skills);
+      if (_configData.skills) renderSkillsList(_configData.skills);
     }
-  }, 150);
+  }, 250);
 });
 
 const _themeObserver = new MutationObserver((mutations) => {
@@ -170,27 +156,24 @@ const _themeObserver = new MutationObserver((mutations) => {
 });
 _themeObserver.observe(document.body, { attributes: true });
 
-window.addEventListener('DOMContentLoaded', runSkillsApp);
+// ───── Skills Page (Module Entry) ────────────────────────────────────────
 
-// ───── Skills App ────────────────────────────────────────
-
-async function runSkillsApp() {
+export async function initSkillsPage(configData) {
   try {
-    const cfgRes = await fetch('config.json');
-    const configData = await cfgRes.json();
     _configData = configData;
 
     applyBaseSetup(configData, 'Skills');
-    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
-    renderRoles('nav-user-role', Array.isArray(configData.role) ? configData.role : (configData.role ? [configData.role] : []));
-
+    
+    const brandTitle = document.getElementById('nav-user-name');
+    if (brandTitle) brandTitle.innerText = configData.name || 'Anonymous';
+    
     if (configData.skills.content && typeof configData.skills.content === 'object' && Object.keys(configData.skills.content).length > 0) {
-      renderGroups(configData.skills);
+      renderSkillsList(configData.skills);
     } else {
-      renderNoData('Skills', 'list-container')
+      renderNoData('Skills', 'list-container');
     }
 
   } catch (e) {
-    console.error('Skills Setup Failure:', e);
+    console.error('Skills Page Initialization Failure:', e);
   }
 }
