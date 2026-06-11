@@ -852,7 +852,6 @@ body {
   max-width: calc(100% - 80px); 
   margin-left: auto;
   margin-right: auto;
-  text-align: center; 
 }
 
 .hero-card h2 {
@@ -972,6 +971,10 @@ body {
     padding-top: 0px;
     scroll-margin-top: 0px;
     box-sizing: border-box;
+  }
+
+  .hero-card {
+    padding-top: 0px;
   }
 
   #user-role {
