@@ -10,13 +10,11 @@ function buildCard(section, cardId) {
   const isVideo = isVideoPath(section.path);
   const isMedia = isImage || isVideo;
 
-  const actionIcon = `<i class='${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}'></i>`;
-
   card.innerHTML = `
     <div class='card-header' id='header-${cardId}'>
       <div class='card-title'>${section.title}</div>
       <div class='card-btns'>
-      <button class='btn' id='${copyId}'>${actionIcon}</button>
+      <button class='btn' id='${copyId}'><i class="${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}"></i></button>
       <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
         <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
@@ -29,18 +27,12 @@ function buildCard(section, cardId) {
   `;
 
   card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, `card-collapse-${cardId}`));
-  card.querySelector(`#${copyId}`).addEventListener('click', (e) => {
-    e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);
-  });
+  card.querySelector(`#${copyId}`).addEventListener('click', (e) => { e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);});
   card.querySelector(`#${shareId}`).addEventListener('click', (e) => {
     e.stopPropagation();
-    const url = `${window.location.origin}${window.location.pathname}#${cardId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = document.getElementById(`${shareId}`);
-      const original = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
-      setTimeout(() => { btn.innerHTML = original; }, 2000);
-    }).catch(err => console.error('Share copy failed: ', err));
+    navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
+      .then(() => { showSuccessFeedback(`${shareId}`); })
+      .catch(err => console.error('Share Copy Failed: ', err));
   });
 
   const container = card.querySelector(`#${textId}`);
@@ -84,12 +76,9 @@ function highlightCard(cardId) {
 function copyCardText(cardId) {
   const card = document.getElementById(cardId);
   const scrollArea = card.querySelector('.scroll-area');
-  navigator.clipboard.writeText(scrollArea.innerText).then(() => {
-    const btn = document.getElementById(`copy-${cardId}`);
-    const original = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
-    setTimeout(() => { btn.innerHTML = original; }, 2000);
-  }).catch(err => console.error('Copy failed: ', err));
+  navigator.clipboard.writeText(scrollArea.innerText)
+    .then(() => { showSuccessFeedback(`copy-${cardId}`) })
+    .catch(err => console.error('Copy failed: ', err));
 }
 
 function downloadCardMedia(cardId) {
@@ -112,10 +101,15 @@ function downloadCardMedia(cardId) {
   anchor.click();
   document.body.removeChild(anchor);
 
-  const btn = document.getElementById(`copy-${cardId}`);
-  const original = btn.innerHTML;
-  btn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
-  setTimeout(() => { btn.innerHTML = original; }, 2000);
+  showSuccessFeedback(`copy-${cardId}`)
+}
+
+function jumpToCard(targetId, targetCardId) {
+  const cardId = targetCardId || targetId;
+  const target = document.getElementById(cardId);
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth' });
+  if (targetCardId) highlightCard(targetCardId);
 }
 
 function makeCardId(rowIndex, colIndex, title) {
@@ -144,14 +138,6 @@ function runScrollSpy(spyTargets) {
   });
 }
 
-function jumpToCard(targetId, targetCardId) {
-  const cardId = targetCardId || targetId;
-  const target = document.getElementById(cardId);
-  if (!target) return;
-  target.scrollIntoView({ behavior: 'smooth' });
-  if (targetCardId) highlightCard(targetCardId);
-}
-
 // ───── Profile App ────────────────────────────────────────
 
 async function runProfileApp() {
@@ -161,8 +147,6 @@ async function runProfileApp() {
 
     const navItems = document.getElementById('nav-items');
     const homeHero = document.getElementById('home-hero');
-    const navUserName = document.getElementById('nav-user-name');
-    const navUserRole = document.getElementById('nav-user-role');
     const userName = document.getElementById('user-name');
     const userRole = document.getElementById('user-role');
     const userLocation = document.getElementById('user-location');
@@ -178,13 +162,12 @@ async function runProfileApp() {
         logoContainer.addEventListener('click', () => {
           const isLight = document.body.classList.toggle('light-mode');
           theme = isLight ? 'light' : 'dark';
-          localStorage.setItem('user-theme', theme);
+          localStorage.setItem(addresses.userTheme, theme);
         });
       }
     }
 
     if (userName) userName.innerText = data.name || 'Anonymous';
-    if (navUserName) navUserName.innerText = data.name || 'Anonymous';
     if (userRole) renderRoles('user-role', data.role || '');
 
     if (userLocation) {
@@ -345,32 +328,8 @@ async function runProfileApp() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await runProfileApp();
-
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);
-
-    let retries = 0;
-    const retryLimit = 10;
-
-    const scrollInterval = setInterval(() => {
-      const targetCard = document.getElementById(targetId);
-      retries++;
-
-      if (targetCard && targetCard.offsetHeight > 0) {
-        clearInterval(scrollInterval);
-        
-        const headerOffset = 90; 
-        const elementPosition = targetCard.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - headerOffset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-
-      } else if (retries >= retryLimit) {
-        clearInterval(scrollInterval);
-      }
-    }, 100);
+    setTimeout(() => { jumpToCard(targetId, targetId); }, 150);
   }
 });

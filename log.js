@@ -1,6 +1,4 @@
-let _configData = {};
-
-// ───── Helpers ────────────────────────────────────────
+// ───── Log (Education, Experience) ────────────────────────────────────────
 
 function _parseDate(dateStr) {
   if (!dateStr) return null;
@@ -40,13 +38,10 @@ function _calculateDuration(from, to) {
   return `${plural(yrs, 'Year')} – ${plural(mos, 'Month')}`;
 }
 
-// ───── Build ────────────────────────────────────────
-
 function buildLogCard(item, index) {
   const cardId = `log-card-${index}`;
   const collapseId = `log-collapse-${index}`;
-  const mdId = `log-md-${index}`;
-  const hasGallery = Array.isArray(item.gallery) && item.gallery.length > 0;
+  const markdownId = `log-md-${index}`;
 
   const card = document.createElement('div');
   card.className = 'card visible';
@@ -64,51 +59,46 @@ function buildLogCard(item, index) {
   const header = document.createElement('div');
   header.className = 'log-card-header';
   header.innerHTML = `
-    <div class="log-desktop-view">
-      <div class="log-flex-row">
-        <div class="log-flex-left">
-          <span class="card-title log-card-title">${item.title || 'Untitled'}</span>
-          ${entityUI ? `<span class="separator">·</span
-          ><span class="log-entity">${entityUI}</span>` : ''}
+    <div class='log-desktop-view'>
+      <div class='log-flex-row'>
+        <div class='log-flex-left'>
+          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
+          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
         </div>
-        <div class="log-flex-right">
-          <span class="log-subtitle log-date">${fromLabel} – ${toLabel}</span>
-          ${duration ? `<span class="keyword">${duration}</span>` : ''}
+        <div class='log-flex-right'>
+          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
+          ${duration ? `<span class='keyword'>${duration}</span>` : ''}
         </div>
       </div>
-      <div class="log-flex-row">
-        <div class="log-flex-left">
-          <span class="log-subtitle">${parseMarkdown(item.subtitle) || ''}</span>
+      <div class='log-flex-row'>
+        <div class='log-flex-left'>
+          <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
         </div>
-        <div class="log-flex-right">
-          ${item.type ? `<span class="log-subtitle log-type">${item.type}</span>` :
-          ''} ${item.type && item.location ? `<span class="separator">·</span>` :
-          ''} ${item.location ? `<span class="log-subtitle log-location"
-            >${item.location}</span
-          >` : ''}
-          <button class="btn log-toggle-btn"><i class="fa-solid fa-chevron-up card-toggle-btn"></i></button>
+        <div class='log-flex-right'>
+          ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''} 
+          ${item.type && item.location ? `<span class='separator'>·</span>` : ''} 
+          ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
+          <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>
     </div>
-    <div class="log-mobile-view">
-      <div class="log-flex-row">
-        <div class="log-flex-left">
-          <span class="card-title log-card-title">${item.title || 'Untitled'}</span>
-          ${entityUI ? `<span class="separator">·</span
-          ><span class="log-entity">${entityUI}</span>` : ''}
+    <div class='log-mobile-view'>
+      <div class='log-flex-row'>
+        <div class='log-flex-left'>
+          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
+          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
         </div>
-        <div class="log-flex-right"></div>
+        <div class='log-flex-right'></div>
       </div>
-      <div class="log-flex-row">
-        <div class="log-flex-left">
-          <span class="log-subtitle log-date">${fromLabel} – ${toLabel}</span>
+      <div class='log-flex-row'>
+        <div class='log-flex-left'>
+          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
         </div>
-        <div class="log-flex-right">
-          <button class="btn log-toggle-btn"> <i class="fa-solid fa-chevron-up card-toggle-btn"></i></button>
+        <div class='log-flex-right'>
+          <button class='btn log-toggle-btn'> <i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>
     </div>
-
   `;
 
   header.querySelectorAll('.log-toggle-btn').forEach(btn => {
@@ -126,18 +116,28 @@ function buildLogCard(item, index) {
   cardBody.className = 'card-body';
 
   const logBody = document.createElement('div');
-  logBody.className = `log-body${hasGallery ? ' has-gallery' : ''}`;
+  logBody.className = 'log-body';
 
   const mdPane = document.createElement('div');
   mdPane.className = 'log-md-pane';
 
   const mdContent = document.createElement('div');
   mdContent.className = 'log-md-content';
-  mdContent.id = mdId;
+  mdContent.id = markdownId;
+  
+  if (item.markdown) {
+    loadContent(item.markdown, markdownId);
+  }
+
   mdPane.appendChild(mdContent);
   logBody.appendChild(mdPane);
 
-  if (hasGallery) logBody.appendChild(buildGalleryPane(item.gallery));
+  resolveDirectory(item.gallery, true).then(galleryList => {
+    if (galleryList.length > 0) {
+      logBody.classList.add('has-gallery');
+      logBody.appendChild(buildGalleryPane(galleryList));
+    }
+  });
   
   cardBody.appendChild(logBody);
   collapse.appendChild(cardBody);
@@ -207,11 +207,7 @@ function buildGalleryPane(gallery) {
   prevBtn.addEventListener('click', () => goTo(current - 1));
   nextBtn.addEventListener('click', () => goTo(current + 1));
 
-  setupSwipeNavigation(
-    viewport,
-    () => goTo(current + 1),
-    () => goTo(current - 1)
-  );
+  setupSwipeNavigation(viewport, () => goTo(current + 1), () => goTo(current - 1));
 
   controls.appendChild(prevBtn);
   controls.appendChild(counter);
@@ -221,8 +217,6 @@ function buildGalleryPane(gallery) {
   return pane;
 }
 
-// ───── Render ────────────────────────────────────────
-
 function renderLogList(items) {
   const listContainer = document.getElementById('list-container');
   if (!listContainer) return;
@@ -231,20 +225,149 @@ function renderLogList(items) {
   items.forEach((item, index) => {
     const card = buildLogCard(item, index);
     listContainer.appendChild(card);
-
-    const mdId = `log-md-${index}`;
-    if (item.markdown) {
-      loadContent(item.markdown, mdId);
-    } else {
-      const markdown = document.getElementById(mdId);
-      if (markdown) markdown.innerHTML = '';
-    }
   });
 
   observeCards();
 }
 
-// ───── Log Rounter (Education, Experience, & Skills) ────────────────────────────────────────
+// ───── Skills ────────────────────────────────────────
+
+function buildSkillsGroup(groupKey, groupData, groupIndex) {
+  const cardId = `skill-group-${groupIndex}`;
+  const collapseId = `skill-group-collapse-${groupIndex}`;
+
+  const card = document.createElement('div');
+  card.className = 'card visible';
+  card.id = cardId;
+
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  header.innerHTML = `
+    <div class='card-title'>${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
+    <div class='card-btns'>
+      <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+    </div>
+  `;
+  header.addEventListener('click', () => toggleCard(cardId, collapseId));
+
+  const collapse = document.createElement('div');
+  collapse.className = 'card-collapse';
+  collapse.id = collapseId;
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  
+  const gridWrapper = document.createElement('div');
+  gridWrapper.className = 'skill-group-grid';
+
+  renderGroupGrid(groupData.content, groupData.layout, gridWrapper);
+
+  body.appendChild(gridWrapper);
+  collapse.appendChild(body);
+  card.appendChild(header);
+  card.appendChild(collapse);
+
+  return card;
+}
+
+function renderGroupGrid(skills, columns, container) {
+  container.innerHTML = '';
+  container.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
+  
+  skills.forEach(skill => {
+    const card = buildSkillCard(skill);
+    if (skill.span) { 
+      card.style.gridColumn = `span ${Math.min(skill.span, columns)}`; 
+    }
+    container.appendChild(card);
+  });
+}
+
+function buildSkillCard(skill) {
+  const card = document.createElement('div');
+  card.className = 'card skill-card visible';
+
+  const level = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
+  const progressPercentage = (level * 100).toFixed(1);
+
+  const isLight = document.body.classList.contains('light-mode');
+  let darkIconPath = '', lightIconPath = '', currentSrc = '';
+
+  if (Array.isArray(skill.icon)) {
+    darkIconPath = skill.icon[0] || '';
+    lightIconPath = skill.icon[1] || darkIconPath;
+    currentSrc = isLight ? lightIconPath : darkIconPath;
+  } else if (typeof skill.icon === 'string') {
+    darkIconPath = lightIconPath = currentSrc = skill.icon;
+  }
+
+  const hasValidSource = skill.source && (skill.source.startsWith('http') || skill.source.includes('.'));
+
+  card.innerHTML = `
+    <div class='skill-card-main-row'>
+      <div class='skill-card-title-group'>
+        ${currentSrc ? `
+          <img
+            class='skill-card-image thematic-icon'
+            src='${currentSrc}'
+            data-dark='${darkIconPath}'
+            data-light='${lightIconPath}'
+            alt='${skill.title || 'Skill'}'
+          />` : ''}
+        <div class='skill-card-text'>
+          <span class='item-card-title'>${skill.title || 'Skill'}</span>
+          ${skill.proof ? `<span class='post-detail'>${skill.proof}</span>` : ''}
+        </div>
+      </div>
+      
+      <div>
+        ${hasValidSource ? `
+          <a class='skill-url-btn' href='${skill.source}' target='_blank' rel='noopener noreferrer'>
+            <i class='fa-solid fa-arrow-up-right-from-square'></i>
+          </a>` : ''}
+      </div>
+    </div>
+
+    <div class='progress-bar'>
+      <div class='progress-bar-fill has-glow' style='width: ${progressPercentage}%;'></div>
+    </div>
+  `;
+
+  card.querySelector('.skill-url-btn')?.addEventListener('click', e => e.stopPropagation());
+
+  return card;
+}
+
+function renderSkillsList(configData) {
+  try {
+    if (configData.skills.content && typeof configData.skills.content === 'object' && Object.keys(configData.skills.content).length > 0) {
+
+      const skillsData = configData.skills;
+
+      const container = document.getElementById('list-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const globalLayout = skillsData.layout  || 4;
+      const content = skillsData.content || {};
+
+      Object.entries(content).forEach(([groupKey, groupSkills], groupIndex) => {
+        if (!groupSkills || !Array.isArray(groupSkills)) return;
+        container.appendChild(buildSkillsGroup(groupKey, { content: groupSkills, layout: globalLayout }, groupIndex));
+      });
+
+      observeCards();
+
+    } else {
+      renderNoData('Skills', 'list-container');
+    }
+
+  } catch (e) {
+    console.error('Skills Page Initialization Failure:', e);
+  }
+}
+
+// ───── Log Rounter ────────────────────────────────────────
 
 async function runLogRouter() {
   try {
@@ -260,17 +383,12 @@ async function runLogRouter() {
 
     const cfgRes = await fetch('config.json');
     const configData = await cfgRes.json();
-    _configData = configData;
 
-    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
-    renderRoles('nav-user-role', configData.role);
-    
     const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
     applyBaseSetup(configData, capitalize(page));
 
     if (page === 'skills') {
-      const skillsModule = await import('./skills.js');
-      skillsModule.initSkillsPage(configData);
+      renderSkillsList(configData);
     } else if (['education', 'experience'].includes(page)) {
       const data = configData[page];
       if (data && Array.isArray(data) && data.length) {

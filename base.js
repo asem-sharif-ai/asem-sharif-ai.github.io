@@ -72,6 +72,24 @@ const iconMap = {
   default:      'fa-solid fa-link',
 };
 
+function _address(key) {
+  const sanitize = (S) => (!S) ? '' : S.toLowerCase().trim().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  return `${sanitize(window.location.origin)}-minimal-portfolio-${key}`;
+}
+
+const addresses = {
+  userTheme:           _address('user-theme'),
+  chatHistory:         _address('chat-history'),
+  projectsActiveTopic: _address('projects-active-topics'),
+  projectsSearchQuery: _address('projects-search-query'),
+  projectsStarredOnly: _address('projects-starred-only'),
+  projectsFilterMode:  _address('projects-filter-mode'),
+  hubSearchQuery:      _address('hub-search-query'),
+  hubActiveTab:        _address('hub-active-tab'),
+  hubGuestbookToken:   _address('hub-guestbook-token'),
+};
+
+
 // ───── Viewport ────────────────────────────────────────
 
 function isMobile() {
@@ -157,6 +175,13 @@ function parseMarkdown(text) {
   return DOMPurify.sanitize(marked.parse(text));
 }
 
+function isDirectoryPath(path) {
+  if (typeof path !== 'string') return false;
+  const cleanPath = path.trim().split('?')[0].split('#')[0];
+  if (cleanPath.endsWith('/')) return true;
+  return !isImagePath(cleanPath) && !isVideoPath(cleanPath) && !isMarkdownPath(cleanPath);
+}
+
 function isMarkdownPath(path) {
   if (typeof path !== 'string') return false;
   return path.trim().split('?')[0].toLowerCase().endsWith('.md');
@@ -182,6 +207,68 @@ function getVideoMimeType(path) {
     m4v:  'video/mp4',
   };
   return types[ext] || 'video/mp4';
+}
+
+async function resolveDirectory(configInput, mediaOnly = false) {
+  if (!configInput) return [];
+
+  if (Array.isArray(configInput)) {
+    return configInput.filter(src => isImagePath(src) || isVideoPath(src) || (!mediaOnly && isMarkdownPath(src)));
+  }
+
+  if (typeof configInput === 'string') {
+    const path = configInput.trim();
+
+    if (isImagePath(path) || isVideoPath(path) || (!mediaOnly && isMarkdownPath(path))) {
+      return [path];
+    }
+
+    if (isDirectoryPath(path)) {
+      try {
+        const normalizedPath = path.endsWith('/') ? path : `${path}/`;
+        const baseUrl = new URL(normalizedPath, window.location.origin);
+
+        const response = await fetch(baseUrl.href);
+        if (!response.ok) return [];
+
+        const contentType = response.headers.get('content-type') || '';
+        const resolvedFiles = [];
+
+        if (contentType.includes('application/json')) {
+          const files = await response.json();
+          if (Array.isArray(files)) {
+            return files.filter(src => isImagePath(src) || isVideoPath(src) || (!mediaOnly && isMarkdownPath(src)));
+          }
+          return [];
+        }
+
+        const htmlText = await response.text();
+        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+        const links = doc.querySelectorAll('a');
+
+        links.forEach(link => {
+          const href = link.getAttribute('href');
+          if (!href || href === '#' || href.startsWith('?')) return;
+          if (href.startsWith('/') && normalizedPath.indexOf(href) === 0) return;
+
+          const cleanHref = href.split('?')[0].split('#')[0];
+
+          if (isImagePath(cleanHref) || isVideoPath(cleanHref) || (!mediaOnly && isMarkdownPath(cleanHref))) {
+            const absoluteFileUrl = new URL(cleanHref, baseUrl);
+            const relativePath = absoluteFileUrl.pathname.replace(/^\//, '');
+            resolvedFiles.push(relativePath);
+          }
+        });
+
+        return resolvedFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+      } catch (e) {
+        return [];
+      }
+    }
+  }
+
+  return [];
 }
 
 // ───── Content Render (Projects / Log) ────────────────────────────────────────
@@ -270,20 +357,7 @@ function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight) {
   });
 }
 
-// ───── Intersection Observer ────────────────────────────────────────
-
-function observeCards() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.08 });
-
-  document.querySelectorAll('.card').forEach(card => observer.observe(card));
-}
+// ───── Cards & Observer ────────────────────────────────────────
 
 function toggleCard(cardId, collapseId) {
   const collapse = document.getElementById(collapseId);
@@ -299,10 +373,35 @@ function toggleCard(cardId, collapseId) {
   }
 }
 
+function showSuccessFeedback(elementId, duration = 2000) {
+  const element = document.getElementById(elementId)
+  if (!element) return;
+  const originalHTML = element.innerHTML;
+  element.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
+  setTimeout(() => { element.innerHTML = originalHTML; }, duration);
+}
+
+function observeCards() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.card').forEach(card => observer.observe(card));
+}
+
 // ───── UI Utils ────────────────────────────────────────
 
 function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
-  if (data.name) document.title = data.name + (page !== '' ? ` - ${page}` : '');
+  const name = data.name || 'Anonymous';
+  document.title = data.name + (page !== '' ? ` - ${page}` : '');
+  const navName = document.getElementById('nav-user-name');
+  if (navName) navName.innerText = name;
+  renderRoles('nav-user-role', data.role);
 
   if (data.icon) {
     let link = document.querySelector('link[rel*="icon"]');
@@ -319,7 +418,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
 
   let appliedTheme = 'dark';
 
-  const stored = localStorage.getItem('user-theme');
+  const stored = localStorage.getItem(addresses.userTheme);
   if (stored !== null) {
     const isLight = stored === 'light';
     document.body.classList.toggle('light-mode', isLight);
@@ -337,6 +436,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
   }
 
   if (data.theme) {
+    // TODO: replace the basic overlay with theme builder
     // document.documentElement.style.setProperty('--theme-color', data.theme);
   }
 
@@ -396,15 +496,15 @@ function renderRoles(containerId, role) {
   }
 }
 
+function renderFooter() {
+  const footerUI = document.createElement('footer');
+  footerUI.className = 'site-footer';
+  footerUI.innerHTML = `<span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.2.10)</span></span>`;
+  document.body.appendChild(footerUI);
+}
+
 function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
   const c = document.getElementById(containerId);
   if (!c) return;
   c.innerHTML = `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
-}
-
-function renderFooter() {
-  const footerUI = document.createElement('footer');
-  footerUI.className = 'site-footer';
-  footerUI.innerHTML = `<span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> (V.2.8)</span>`;
-  document.body.appendChild(footerUI);
 }

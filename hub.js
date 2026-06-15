@@ -1,48 +1,40 @@
 let _configData = {};
 let _currentTab = 'faq';
-let _isSwitching = false;
 let _searchQuery = '';
+let _isSwitching = false;
+
+let _faqHasResults = true;
+let _gbHasResults = true;
+
 let _allFaq = [];
-let _allGuestbook = [];
-let _guestbookSession = {};
+let _allGuestbook = null;
 
-// ───── State ────────────────────────────────────────
+let _gbToken = null;
+let _gbEntries = [];
+let _gbEndpoint = '';
+let _gbIdentity = null;
+let _gbHasEntry = false;
+let _gbOwnEntry = null;
+let _gbEditMode = false;
 
-function _buildShareUrl() {
-  const url = new URL(window.location.href);
-  url.search = '';
-  url.searchParams.set('tab', _currentTab);
-  if (_searchQuery) url.searchParams.set('search', _searchQuery);
-  return url.toString();
-}
+// ───── State & Tab ────────────────────────────────────────
 
 function _saveHubState() {
-  sessionStorage.setItem('hub-search-query', _searchQuery);
-  sessionStorage.setItem('hub-active-tab', _currentTab);
+  sessionStorage.setItem(addresses.hubSearchQuery, _searchQuery);
+  sessionStorage.setItem(addresses.hubActiveTab, _currentTab);
 }
 
-function _loadHubState() {
+function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
-  const tabParam = urlParams.get('tab');
-  const searchParam = urlParams.get('search');
-
-  if (tabParam || searchParam) {
-    if (tabParam) {
-      const normalizedPage = tabParam.toLowerCase().trim();
-      _currentTab = normalizedPage === 'guestbook' ? 'guestbook' : 'faq';
-    } else {
-      _currentTab = 'faq';
-    }
-
-    _searchQuery = searchParam ? searchParam.trim() : '';
-
-    window.history.replaceState({}, document.title, window.location.pathname);
-    return;
-  }
-
-  _searchQuery = sessionStorage.getItem('hub-search-query') || '';
-  const savedTab  = sessionStorage.getItem('hub-active-tab');
-  if (savedTab === 'guestbook') _currentTab = 'guestbook';
+  const urlSearch = urlParams.get('search');
+  _searchQuery =
+    urlSearch !== null
+      ? urlSearch
+      : sessionStorage.getItem(addresses.hubSearchQuery) || '';
+  const savedTab =
+    urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
+  if (savedTab === 'guestbook' || savedTab === 'faq') _currentTab = savedTab;
+  _gbToken = localStorage.getItem(addresses.hubGuestbookToken);
 }
 
 function switchHubTab(targetTab) {
@@ -56,172 +48,291 @@ function switchHubTab(targetTab) {
   const panelOut = document.getElementById(`hub-panel-${_currentTab}`);
   const panelIn = document.getElementById(`hub-panel-${targetTab}`);
 
-  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hub-tab').forEach((t) => t.classList.remove('active'));
   document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
 
+  _currentTab = targetTab;
+  _saveHubState();
+
+  updateShareIconState();
+
+  if (!goingRight) syncFooter();
+
   panelOut.classList.add(outClass);
-  panelOut.addEventListener('animationend', () => {
-    panelOut.classList.remove(outClass);
-    panelOut.classList.add('hub-panel-hidden');
-    panelIn.classList.remove('hub-panel-hidden');
-    panelIn.classList.add(inClass);
-    panelIn.addEventListener('animationend', () => {
-      panelIn.classList.remove(inClass);
-      _currentTab = targetTab;
-      _isSwitching = false;
-      _saveHubState();
-
-      if (_searchQuery) {
-        if (_currentTab === 'faq') renderFAQ(_allFaq);
-        else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') gbApplySearch(_searchQuery);
-      }
-    }, { once: true });
-  }, { once: true });
+  panelOut.addEventListener(
+    'animationend',
+    () => {
+      panelOut.classList.remove(outClass);
+      panelOut.classList.add('hub-panel-hidden');
+      panelIn.classList.remove('hub-panel-hidden');
+      panelIn.classList.add(inClass);
+      panelIn.addEventListener(
+        'animationend',
+        () => {
+          panelIn.classList.remove(inClass);
+          _isSwitching = false;
+          if (goingRight) syncFooter();
+        },
+        { once: true },
+      );
+    },
+    { once: true },
+  );
 }
 
-// ───── Search ────────────────────────────────────────
-
-function initHubSearch() {
-  const searchInput = document.getElementById('hub-search-input');
-  if (!searchInput) return;
-  if (_searchQuery) searchInput.value = _searchQuery;
-
-  let _debounceTimer;
-  searchInput.addEventListener('input', (e) => {
-    _searchQuery = e.target.value.trim();
-    clearTimeout(_debounceTimer);
-    _debounceTimer = setTimeout(() => {
-      _saveHubState();
-      if (_currentTab === 'faq') {
-        renderFAQ(_allFaq);
-      } else if (_currentTab === 'guestbook' && typeof gbApplySearch === 'function') {
-        gbApplySearch(_searchQuery);
-      }
-    }, 300);
-  });
-}
-
-function highlightText(text, query) {
-  if (!query) return text;
-  const words = query.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return text;
-  const patternStr = `(${words.map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`;
-  const regex = new RegExp(`<[^>]*>|${patternStr}`, 'gi');
-  return text.replace(regex, (match, capture) => {
-    if (!capture) return match;
-    return `<mark class='faq-highlight'>${capture}</mark>`;
-  });
-}
-
-// ───── FAQ ────────────────────────────────────────
-
-async function getFAQ(configData) {
-  const faqPath = configData?.hub?.faq;
-  if (faqPath) {
-    const faqRes = await fetch(faqPath);
-    _allFaq = await faqRes.json();
-  } else {
-    _allFaq = [];
-  }
-}
-
-function renderFAQ(faqList) {
-  const container = document.getElementById('list-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  if (!Array.isArray(faqList) || faqList.length === 0) { renderNoData('FAQ', 'list-container'); return; }
-
-  const raw = _searchQuery;
-  const indexTokens = [...raw.matchAll(/#(\d+)/g)].map(m => parseInt(m[1], 10));
-
-  let filtered;
-  if (indexTokens.length > 0) {
-    const seen = new Set();
-    filtered = indexTokens
-      .filter(n => n >= 1 && n <= faqList.length && !seen.has(n) && seen.add(n))
-      .map(n => ({ item: faqList[n - 1], originalIndex: n - 1 }));
-  } else {
-    const words = raw.toLowerCase().split(/\s+/).filter(Boolean);
-    filtered = (words.length > 0
-      ? faqList.filter(item => {
-          const a = Array.isArray(item.a) ? item.a.join(' ') : (item.a || '');
-          const haystack = `${item.q || ''} ${a}`.toLowerCase();
-          return words.every(w => haystack.includes(w));
-        })
-      : faqList
-    ).map((item, i) => ({ item, originalIndex: i }));
-  }
-
-  if (filtered.length === 0) { renderNoData('No FAQ Matched The Search Text', 'list-container', false); return; }
-  filtered.forEach(({ item, originalIndex }) => {
-    if (item.q && item.a) container.appendChild(buildFaqCard(item, originalIndex));
-  });
-  observeCards();
-}
-
-function buildFaqCard(item, index) {
-  const cardId = `faq-card-${index}`;
-  const collapseId = `faq-collapse-${index}`;
-  const q = _searchQuery;
-
-  const aText = Array.isArray(item.a) ? item.a.join('\n') : (item.a || '');
-
+function buildGuestCard(entry, isAdmin = false) {
   const card = document.createElement('div');
-  card.className = 'card faq-card visible';
-  card.id = cardId;
+  card.className = 'gb-card card visible';
+  card.id = `gb-card-${CSS.escape(entry.id)}`;
 
-  const header = document.createElement('div');
-  header.className = 'card-header faq-card-header';
-  header.innerHTML = `
-    <div class='faq-question'>${highlightText(parseMarkdown(item.q), q)}</div>
-    <div class='card-btns'>
-      <span class='faq-index'>#${index + 1}</span>
-      <button class='btn'><i class='fa-solid fa-chevron-down faq-card-toggle-btn'></i></button>
+  const gmailSub = isAdmin ? `<span class='gb-gmail'>${entry.id}</span>` : '';
+  const duration = formatDuration(entry.date);
+  const dateLabel = entry.date ? `${entry.date}${duration ? ` · ${duration}` : ''}` : '';
+
+  const avatarUI = entry.image ? `<img class='gb-card-avatar' src='${entry.image}' alt='avatar' referrerpolicy='no-referrer' />` : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+
+  let statusBadge = '';
+  if (isAdmin) {
+    const badgeClass = {
+      approved:       'keyword gb-badge gb-badge-approved',
+      pending:        'keyword gb-badge gb-badge-pending',
+      deletedByGuest: 'keyword gb-badge gb-badge-banned',
+      deletedByAdmin: 'keyword gb-badge gb-badge-banned',
+      banned:         'keyword gb-badge gb-badge-banned',
+    } [entry.status] || 'gb-badge-pending';
+    statusBadge = `<span class='${badgeClass}'>${entry.status.replace('deletedBy', 'Deleted By ').toUpperCase()}</span>`;
+  }
+
+  const highlightQuery = _searchQuery || '';
+  const messageText = highlightText(entry.msg || entry.message || '', highlightQuery);
+  const displayName = highlightText(entry.name || entry.id.split('@')[0], highlightQuery);
+
+  card.innerHTML = `
+    <div class='gb-card-header'>
+      <div class='gb-identity'>
+        ${avatarUI}
+        <div class='gb-identity-info'>
+          <span class='gb-name${entry.status === 'banned' ?  ' gb-name-banned' : ''}'>${displayName} ${gmailSub}</span>
+          <span class='gb-date'>${dateLabel}</span>
+        </div>
+      </div>
+      <div class='gb-card-icons'>
+        ${statusBadge}
+        ${
+          isAdmin 
+            ? `
+          <button class='btn gb-btn gb-btn-approve ${entry.status === 'approved' ? 'gb-btn-active' : ''}'>
+            <i class='fa-solid fa-check'></i>
+          </button>
+          <button class='btn gb-btn gb-btn-heart ${entry.like ? 'gb-btn-active' : ''}'>
+            <i class='${entry.like ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
+          </button>
+          <button class='btn gb-btn gb-btn-pin ${entry.pin ? 'gb-btn-active' : ''}'>
+            <i class='${entry.pin ? 'fa-solid' : 'fa-regular'} fa-bookmark'></i>
+          </button>
+          <button class='btn gb-btn gb-btn-delete'>
+            <i class='fa-solid fa-eraser'></i>
+          </button>
+          <button class='btn gb-btn gb-btn-remove'>
+            <i class='fa-solid fa-trash'></i>
+          </button>
+          <button class='btn gb-btn gb-btn-ban'>
+            <i class='fa-solid fa-ban'></i>
+          </button>
+        `
+            : `
+          ${entry.like ? `<i class='fa-solid fa-heart heart-icon'></i>` : ''}
+          ${entry.pin ? `<i class='fa-solid fa-bookmark pin-icon'></i>` : ''}
+        `
+        }
+      </div>
     </div>
+    <p class='gb-msg'>${messageText}</p>
   `;
-  header.addEventListener('click', () => toggleFaqCard(cardId, collapseId));
 
-  const collapse = document.createElement('div');
-  collapse.className = 'card-collapse closed';
-  collapse.id = collapseId;
+  if (isAdmin) {
+    card.querySelector('.gb-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card),);
+    card.querySelector('.gb-btn-heart').addEventListener('click', () =>    gbAdminAction('like',       entry.id, card));
+    card.querySelector('.gb-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',        entry.id, card));
+    card.querySelector('.gb-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card),);
+    card.querySelector('.gb-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',     entry.id, card));
+    card.querySelector('.gb-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',        entry.id, card));
+  }
 
-  const body = document.createElement('div');
-  body.className = 'card-body faq-card-body';
-  body.innerHTML = `<div class='faq-answer'>${highlightText(parseMarkdown(aText), q)}</div>`;
-
-  collapse.appendChild(body);
-  card.appendChild(header);
-  card.appendChild(collapse);
   return card;
 }
 
-function toggleFaqCard(cardId, collapseId) {
-  const collapse = document.getElementById(collapseId);
-  const icon     = document.getElementById(cardId).querySelector('.faq-card-toggle-btn');
-  if (!collapse || !icon) return;
-  if (collapse.classList.contains('closed')) {
-    collapse.classList.remove('closed');
-    icon.className = 'fa-solid fa-chevron-up faq-card-toggle-btn';
-  } else {
-    collapse.classList.add('closed');
-    icon.className = 'fa-solid fa-chevron-down faq-card-toggle-btn';
+async function gbAdminAction(action, id, cardUI) {
+  try {
+    const data = await fetchGuestbook(action, { token: _gbToken, id });
+
+    if (action === 'remove') {
+      if (_allGuestbook)
+        _allGuestbook = _allGuestbook.filter((e) => e.id !== id);
+      cardUI.remove();
+      return;
+    }
+
+    if (action === 'ban') {
+      if (_allGuestbook) {
+        const entry = _allGuestbook.find((e) => e.id === id);
+        if (entry) entry.status = 'banned';
+      }
+      const bannedCard = buildBannedCard({ id });
+      cardUI.replaceWith(bannedCard);
+      return;
+    }
+
+    if (action === 'unban') {
+      if (_allGuestbook)
+        _allGuestbook = _allGuestbook.filter((e) => e.id !== id);
+      cardUI.remove();
+      return;
+    }
+
+    if (action === 'delete_msg') {
+      if (_allGuestbook) {
+        const entry = _allGuestbook.find((e) => e.id === id);
+        if (entry) {
+          entry.msg = '';
+          entry.status = 'deletedByAdmin';
+        }
+      }
+      const msgUI = cardUI.querySelector('.gb-msg');
+      if (msgUI) msgUI.textContent = '';
+      const badge = cardUI.querySelector('.gb-badge');
+      if (badge) {
+        badge.textContent = 'DELETED BY ADMIN';
+        badge.className = 'keyword gb-badge gb-badge-banned';
+      }
+      return;
+    }
+
+    if (action === 'approve') {
+      if (_allGuestbook) {
+        const entry = _allGuestbook.find((e) => e.id === id);
+        if (entry) entry.status = data.status;
+      }
+      const btn = cardUI.querySelector('.gb-btn-approve');
+      btn.classList.toggle('gb-btn-active', data.status === 'approved');
+      const badge = cardUI.querySelector('.gb-badge');
+      if (badge) {
+        badge.textContent = data.status === 'approved' ? 'Approved' : 'Pending';
+        badge.className =
+          data.status === 'approved' ? 'keyword gb-badge gb-badge-approved' : 'keyword gb-badge gb-badge-pending';
+      }
+    }
+
+    if (action === 'like') {
+      if (_allGuestbook) {
+        const entry = _allGuestbook.find((e) => e.id === id);
+        if (entry) entry.like = data.like;
+      }
+      const btn = cardUI.querySelector('.gb-btn-heart');
+      btn.className = `btn gb-btn gb-btn-heart ${data.like ? 'gb-btn-active' : ''}`;
+      const icon = btn.querySelector('i');
+      icon.className = `fa-${data.like ? 'solid' : 'regular'} fa-heart`;
+    }
+
+    if (action === 'pin') {
+      if (_allGuestbook) {
+        const entry = _allGuestbook.find((e) => e.id === id);
+        if (entry) entry.pin = data.pin;
+      }
+      const btn = cardUI.querySelector('.gb-btn-pin');
+      btn.className = `btn gb-btn gb-btn-pin ${data.pin ? 'gb-btn-active' : ''}`;
+      const icon = btn.querySelector('i');
+      icon.className = `fa-${data.pin ? 'solid' : 'regular'} fa-bookmark`;
+    }
+  } catch (e) {
+    setFooterStatus(e.message, true);
   }
 }
 
-// ───── Guestbook ────────────────────────────────────────
+function gbFooterHandlers(state) {
+  if (state === 'login') {
+    document.getElementById('gb-verify-btn')?.addEventListener('click', async () => {
+        setFooterPage('loading');
+        const currentPagePath =
+          window.location.origin + window.location.pathname;
+        try {
+          const response = await fetch(
+            `${_gbEndpoint}?action=login_url&context=${encodeURIComponent(currentPagePath)}`,
+          );
+          const data = await response.json();
+          if (data.url) {
+            window.location.href = data.url;
+          } else {
+            setFooterPage('login');
+            setFooterStatus(data.error || 'Failed To Get Login URL', true);
+          }
+        } catch {
+          setFooterPage('login');
+          setFooterStatus('Authentication Backend Unreachable', true);
+        }
+      });
+    return;
+  }
 
-async function getGuestbook() {
+  document.getElementById('gb-unlink-btn')?.addEventListener('click', () => {
+    _gbToken = null;
+    _gbIdentity = null;
+    _gbHasEntry = false;
+    _gbOwnEntry = null;
+    _gbEditMode = false;
+    _allGuestbook = null;
+    localStorage.removeItem(addresses.hubGuestbookToken);
+    setFooterPage('login');
+    loadGuestbook();
+  });
+
+  if (state === 'admin') return;
+
+  document.getElementById('gb-submit-btn')?.addEventListener('click', async () => {
+    const msg = document.getElementById('gb-textarea')?.value.trim();
+    if (!msg) {
+      setFooterStatus('Write Something First', true);
+      return;
+    }
+    setFooterStatus('Saving');
+    try {
+      const action = _gbHasEntry ? 'edit' : 'submit';
+      const data = await fetchGuestbook(action, { token: _gbToken, message: msg });
+      if (data.ok) {
+        _gbOwnEntry = {
+          msg,
+          date: data.date || _gbOwnEntry?.date,
+          status: data.status,
+          like: false,
+          pin: false,
+        };
+        _gbHasEntry = true;
+        setFooterPage('has-entry');
+        setFooterStatus('Saved - Pending Approval');
+        loadGuestbook();
+      }
+    } catch (e) {
+      setFooterStatus(e.message, true);
+    }
+  });
+
+  document.getElementById('gb-edit-btn')?.addEventListener('click', () => { setFooterPage('edit'); });
+  document.getElementById('gb-cancel-btn')?.addEventListener('click', () => { setFooterPage('has-entry'); });
+
+  document.getElementById('gb-delete-btn')?.addEventListener('click', async () => {
+    setFooterStatus('Deleting');
+    try {
+      await fetchGuestbook('delete', { token: _gbToken });
+      _gbHasEntry = false;
+      _gbOwnEntry = null;
+      setFooterPage('no-entry');
+      setFooterStatus('');
+      loadGuestbook();
+    } catch (e) {
+      setFooterStatus(e.message, true);
+    }
+  });
 }
-
-function renderGuestbook() {
-  // const container = document.getElementById('gb-list');
-  // if (!container) return;
-  // container.innerHTML = '';
-  // renderNoData('Guestbook', 'gb-list');
-}
-
-// ───── Hub App ────────────────────────────────────────
 
 async function runHubApp() {
   try {
@@ -230,10 +341,8 @@ async function runHubApp() {
     _configData = configData;
 
     applyBaseSetup(configData, 'Hub');
-    document.getElementById('nav-user-name').innerText = configData.name || 'Anonymous';
-    renderRoles('nav-user-role', configData.role);
-
-    _loadHubState();
+    loadHubState();
+    updateShareIconState();
 
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
     document.getElementById('hub-tab-guestbook').addEventListener('click', () => switchHubTab('guestbook'));
@@ -241,46 +350,60 @@ async function runHubApp() {
     const shareBtn = document.getElementById('nav-share-icon');
     if (shareBtn) {
       shareBtn.addEventListener('click', (e) => {
+        if (shareBtn.classList.contains('ui-disabled')) return;
         e.stopPropagation();
-        navigator.clipboard.writeText(_buildShareUrl()).then(() => {
-          const original = shareBtn.innerHTML;
-          shareBtn.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
-          setTimeout(() => { shareBtn.innerHTML = original; }, 2000);
-        }).catch(err => console.error('Share copy failed: ', err));
+        navigator.clipboard
+          .writeText(buildShareUrl())
+          .then(() => {
+            showSuccessFeedback('nav-share-icon');
+          })
+          .catch((err) => console.error('Share Copy Failed: ', err));
       });
     }
 
     if (_currentTab === 'guestbook') {
-      document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
-      const activeTab = document.getElementById('hub-tab-guestbook');
-      if (activeTab) activeTab.classList.add('active');
-      const faqPanel = document.getElementById('hub-panel-faq');
-      const gbPanel = document.getElementById('hub-panel-guestbook');
-      if (faqPanel) faqPanel.classList.add('hub-panel-hidden');
-      if (gbPanel) gbPanel.classList.remove('hub-panel-hidden');
+      document
+        .querySelectorAll('.hub-tab')
+        .forEach((t) => t.classList.remove('active'));
+      document.getElementById('hub-tab-guestbook').classList.add('active');
+      document
+        .getElementById('hub-panel-faq')
+        .classList.add('hub-panel-hidden');
+      document
+        .getElementById('hub-panel-guestbook')
+        .classList.remove('hub-panel-hidden');
     }
 
     initHubSearch();
 
-    renderNoData('Loading FAQ', 'list-container', false);
-    renderNoData('Loading Guestbook', 'gb-list', false);
-
-    try {
-      await getFAQ(configData);
-    } catch {
-      _allFaq = [];
+    if (configData?.hub?.faq) {
+      try {
+        const faqRes = await fetch(configData.hub.faq);
+        _allFaq = await faqRes.json();
+        renderFAQ(_allFaq);
+      } catch {
+        if (_currentTab === 'faq')
+          renderNoData(
+            'Undefined Error Occurred While Loading FAQ',
+            'list-container',
+            false,
+          );
+      }
+    } else {
+      if (_currentTab === 'faq')
+        renderNoData('FAQ Not Set Yet', 'list-container', false);
     }
-    renderFAQ(_allFaq);
-    
-    try {
-      await getGuestbook();
-    } catch {
-      _allGuestbook = [];
-    }
-    renderGuestbook();
 
-  } catch (err) {
-    console.error('Hub Setup Failure:', err);
+    _gbEndpoint = configData?.hub?.guestbook || '';
+    if (_gbEndpoint) {
+      syncFooter();
+      buildFooter();
+      if (!new URLSearchParams(window.location.search).get('code')) {
+        loadGuestbook();
+      }
+    }
+  } catch (e) {
+    console.error('Hub Setup Failure:', e);
   }
 }
 

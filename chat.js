@@ -3,74 +3,6 @@ const REQUEST_TIMEOUT_MS = 10000;
 
 let assistantConfig = null;
 let globalProfileData = null;
-let chatStorageKey = 'minimal-portfolio-chat-history';
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  W  — Worker / Request Layer
-//    W001  Method not allowed (non-POST sent to worker)
-//    W002  CF-Connecting-IP header absent (edge misconfiguration)
-//    W003  Request body is not valid JSON
-//    W004  Message field absent, empty, or over length cap
-//    W005  Config payload absent or not an object
-//
-//  K  — KV Store Layer
-//    K001  KV read failure during IP state check
-//    K002  KV write failure during IP state update
-//    K003  KV read/write failure in handleInternalCommand
-//
-//  G  — Groq API Layer
-//    G001  Primary Groq key missing from ENV
-//    G002  Groq non-OK on primary key (both keys exhausted with no fallback)
-//    G003  Groq non-OK on fallback key (both keys exhausted)
-//    G004  Groq HTTP 401 — invalid or expired API key
-//    G005  Groq HTTP 429 — upstream rate limit / quota exceeded
-//    G006  Groq HTTP 503/504 — Groq service temporarily unavailable
-//    G007  Groq response body failed JSON parse
-//    G008  Groq response parsed but choices array empty or malformed
-//
-//  S  — Server / Runtime Layer
-//    S001  Unhandled exception in main fetch handler
-//    S002  buildSystemPrompt threw unexpectedly
-//    S003  buildMessages threw unexpectedly
-//
-//  C  — Client Layer (generated here, never sent by worker)
-//    C001  Network failure — fetch() itself threw (offline / DNS / CORS)
-//    C002  Request timed out on the client side
-//    C003  Worker response body failed JSON parse
-//    C004  Worker returned non-OK with no errorCode field
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ERROR_CODE_LABELS = {
-  W001: '[W001] Worker received a non-POST request — check fetch() method.',
-  W002: '[W002] CF-Connecting-IP header missing — likely a local/dev request bypassing Cloudflare.',
-  W003: '[W003] Request body JSON is malformed — check JSON.stringify() in getModelResponse.',
-  W004: '[W004] Message rejected by worker — empty, missing, or over the sanitizer cap.',
-  W005: '[W005] Config payload missing or invalid — globalProfileData may be null/wrong type.',
-  K001: '[K001] KV read error — BAN_STORE may be unbound or KV is down.',
-  K002: '[K002] KV write error — BAN_STORE quota or connectivity issue.',
-  K003: '[K003] KV error inside command handler — record may be corrupt.',
-  G001: '[G001] GROQ_API_KEY env var missing — check Cloudflare Worker settings.',
-  G002: '[G002] Groq API error on primary key — inspect Groq status or key validity.',
-  G003: '[G003] Groq API error on both keys — both primary and fallback exhausted.',
-  G004: '[G004] Groq 401 Unauthorized — API key is invalid or revoked.',
-  G005: '[G005] Groq 429 Rate Limited — free-tier quota hit or too many concurrent requests.',
-  G006: '[G006] Groq 503/504 — Groq service is down or timing out.',
-  G007: '[G007] Groq response is not valid JSON — unexpected upstream format change.',
-  G008: '[G008] Groq returned empty choices — model may have refused or token limit hit.',
-  S001: '[S001] Unhandled exception in worker fetch handler — check worker logs.',
-  S002: '[S002] buildSystemPrompt crashed — config shape may be invalid.',
-  S003: '[S003] buildMessages crashed — history or message format invalid.',
-  C001: '[C001] Network error — fetch() threw before a response was received (offline / CORS / DNS).',
-  C002: '[C002] Client-side timeout — worker did not respond within the timeout window.',
-  C003: '[C003] Worker response body could not be parsed as JSON — unexpected worker output.',
-  C004: '[C004] Worker returned a non-OK status with no errorCode — unclassified server error.',
-};
-
-function resolveErrorLabel(code) {
-  return code && ERROR_CODE_LABELS[code]
-    ? ERROR_CODE_LABELS[code]
-    : `[${code ?? '????'}] Unrecognised error code.`;
-}
 
 // ───── Core API Functions ──────────────────────────────────────────────────────
 
@@ -138,7 +70,7 @@ async function handleUserMessageSubmit() {
   showTypingIndicator();
 
   let conversationHistory = [];
-  const stored = localStorage.getItem(chatStorageKey);
+  const stored = localStorage.getItem(addresses.chatHistory);
   if (stored) {
     try {
       conversationHistory = JSON.parse(stored);
@@ -181,9 +113,6 @@ async function handleUserMessageSubmit() {
   } catch (e) {
     removeTypingIndicator();
 
-    const code = e.errorCode || null;
-    console.error(`[CHAT-ERROR] ${resolveErrorLabel(code)}`, ...(e.httpStatus != null ? [`| HTTP ${e.httpStatus}`] : []), e );
-
     let userMessage = 'Communication Error Occurred.';
     if (code === 'C002') {
       userMessage = 'Request Timed Out. Try Again Later.';
@@ -210,7 +139,7 @@ async function handleUserMessageSubmit() {
 function initChatAssistant(configData) {
   assistantConfig = configData.assistant;
   globalProfileData = configData;
-  chatStorageKey = 'minimal-portfolio-chat-history:' + btoa(assistantConfig.url).replace(/=/g, '');
+  addresses.chatHistory = 'minimal-portfolio-chat-history:' + btoa(assistantConfig.url).replace(/=/g, '');
 
   const triggerBtn = document.createElement('button');
   triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
@@ -409,12 +338,12 @@ function appendChatMessage(sender, text, timestampString = null) {
 
 function saveChatHistory(sender, text, timestamp) {
   let history = [];
-  const stored = localStorage.getItem(chatStorageKey);
+  const stored = localStorage.getItem(addresses.chatHistory);
   if (stored) {
     try { history = JSON.parse(stored); } catch (e) { history = []; }
   }
   history.push({ sender, text, timestamp });
-  localStorage.setItem(chatStorageKey, JSON.stringify(history));
+  localStorage.setItem(addresses.chatHistory, JSON.stringify(history));
 }
 
 function loadChatHistory() {
@@ -422,7 +351,7 @@ function loadChatHistory() {
   if (!container) return;
   container.innerHTML = '';
 
-  const stored = localStorage.getItem(chatStorageKey);
+  const stored = localStorage.getItem(addresses.chatHistory);
   if (stored) {
     try {
       const history = JSON.parse(stored);
@@ -431,7 +360,7 @@ function loadChatHistory() {
         return;
       }
     } catch (e) {
-      // corrupt storage - fall through to initial message
+      // fall through to initial message
     }
   }
 
@@ -446,7 +375,7 @@ function loadChatHistory() {
 }
 
 function handleChatLogPurge() {
-  localStorage.removeItem(chatStorageKey);
+  localStorage.removeItem(addresses.chatHistory);
   loadChatHistory();
   const input = document.getElementById('chat-user-input');
   if (input && !input.disabled) input.focus();

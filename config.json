@@ -10,6 +10,7 @@
   "resume_path": "",
   "cv_path": "./Data/Files/[CV]-Asem-Sharif.pdf",
   "cv_date": "04/2026",
+  "unique_id": "",
 
   "qr_code": {
     "title": "Asem E. Sharif - Portfolio",
@@ -249,9 +250,9 @@
           "title": "Python",
           "proof": "Proof",
           "source": "https://x.com",
-          "icon": "./Data/Icons/python.png",
+          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
           "level": 0.95,
-          "span": 1
+          "span": 3
         },
         {
           "title": "C++",
@@ -529,5 +530,4 @@
     "faq":       "./faq.json",
     "guestbook": "https://minimal-portfolio-guestbook.asem-sharif-ai.workers.dev"
   }
-
 }
