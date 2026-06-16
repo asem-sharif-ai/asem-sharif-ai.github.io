@@ -7,10 +7,11 @@
   "role": ["AI & Computer Vision Engineer", "Qt Developer"],
   "location": "Cairo, Egypt.",
   "timezone": "Africa/Cairo",
-  "resume_path": "",
-  "cv_path": "./Data/Files/[CV]-Asem-Sharif.pdf",
-  "cv_date": "04/2026",
-  "unique_id": "",
+
+  "documents": [
+    { "title": "Résumé", "date": "",        "icon": "resume", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    { "title": "CV",     "date": "04/2026", "icon": "paper",  "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
+  ],
 
   "qr_code": {
     "title": "Asem E. Sharif - Portfolio",

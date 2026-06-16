@@ -1,7 +1,7 @@
 const MAX_MESSAGE_LENGTH = 100;
 const REQUEST_TIMEOUT_MS = 10000;
 
-let assistantConfig = null;
+let chatConfigData = null;
 let globalProfileData = null;
 
 // ───── Core API Functions ──────────────────────────────────────────────────────
@@ -136,129 +136,6 @@ async function handleUserMessageSubmit() {
 
 // ───── UI Init ─────────────────────────────────────────────────────────────────
 
-function initChatAssistant(configData) {
-  assistantConfig = configData.assistant;
-  globalProfileData = configData;
-  addresses.chatHistory = 'minimal-portfolio-chat-history:' + btoa(assistantConfig.url).replace(/=/g, '');
-
-  const triggerBtn = document.createElement('button');
-  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
-  triggerBtn.id = 'chat-assistant-trigger';
-
-  updateTriggerIcon(triggerBtn);
-
-  const chatWindow = document.createElement('div');
-  chatWindow.className = 'chat-window';
-  chatWindow.id = 'chat-assistant-window';
-
-  chatWindow.innerHTML = `
-    <div class='chat-header'>
-      <div class='chat-bot-info'>
-        <div id='chat-bot-avatar-container'></div>
-        <div class='chat-bot-brand'>
-          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
-          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
-        </div>
-      </div>
-      <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
-      <button class='chat-clear-btn' id='chat-clear-window'><i class='fa-solid fa-xmark'></i></button>
-    </div>
-    <div class='chat-messages' id='chat-messages-container'></div>
-    <div class='chat-footer'>
-      <div class='chat-input-wrapper'>
-        <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${MAX_MESSAGE_LENGTH}' />
-      </div>
-      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
-    </div>
-  `;
-
-  document.body.appendChild(triggerBtn);
-  document.body.appendChild(chatWindow);
-
-  updateAvatarLayout();
-  loadChatHistory();
-
-  const systemLogo = document.querySelector('.hero-logo');
-  if (systemLogo) {
-    systemLogo.addEventListener('click', () => {
-      setTimeout(() => {
-        updateTriggerIcon(document.getElementById('chat-assistant-trigger'));
-        updateAvatarLayout();
-      }, 50);
-    });
-  }
-
-  triggerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleChatWindow();
-  });
-
-  document.getElementById('chat-close-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleChatWindow();
-  });
-
-  document.getElementById('chat-clear-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleChatLogPurge();
-    const win = document.getElementById('chat-assistant-window');
-    if (win) win.classList.remove('open');
-  });
-
-  document.addEventListener('click', (e) => {
-    const win = document.getElementById('chat-assistant-window');
-    if (win && win.classList.contains('open')) {
-      if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
-        win.classList.remove('open');
-      }
-    }
-  });
-
-  chatWindow.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-
-  const inputField = document.getElementById('chat-user-input');
-  inputField.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleUserMessageSubmit();
-  });
-  document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
-}
-
-function updateTriggerIcon(btnEl) {
-  if (!btnEl || !assistantConfig) return;
-  const isLight = document.body.classList.contains('light-mode');
-  const icons = assistantConfig.icon || [];
-
-  if (icons.length > 0 && (icons[0] || icons[1])) {
-    const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
-    if (activeIcon) {
-      btnEl.innerHTML = `<img src='${activeIcon}' alt='Chat' />`;
-      return;
-    }
-  }
-  btnEl.innerHTML = '<i class="fa-regular fa-message"></i>';
-}
-
-function updateAvatarLayout() {
-  const container = document.getElementById('chat-bot-avatar-container');
-  if (!container || !assistantConfig) return;
-
-  const isLight = document.body.classList.contains('light-mode');
-  const icons = assistantConfig.icon || [];
-
-  if (icons.length > 0 && (icons[0] || icons[1])) {
-    const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
-    if (activeIcon) {
-      container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
-      container.style.display = 'block';
-      return;
-    }
-  }
-  container.innerHTML = '';
-  container.style.display = 'none';
-}
-
 function toggleChatWindow() {
   const win = document.getElementById('chat-assistant-window');
   if (win) {
@@ -364,7 +241,7 @@ function loadChatHistory() {
     }
   }
 
-  const initialMsg = assistantConfig.initial || 'Hello there! I\'m your assistant. How can I help you today?';
+  const initialMsg = chatConfigData.initial || 'Hello there! I\'m your assistant. How can I help you today?';
   if (initialMsg) {
     const formattedMsg = Array.isArray(initialMsg)
       ? initialMsg.map(line => line.trim()).join('\n')

@@ -152,7 +152,8 @@ async function runProfileApp() {
     const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
 
-    let theme = applyBaseSetup(data, '', true, false);
+    createDocsPanel(data.documents)
+    let theme = applyBaseSetup(data, '', ['assistant', 'qr_code']);
 
     if (data.symbol) {
       const logoContainer = document.querySelector('.hero-logo');
@@ -225,10 +226,10 @@ async function runProfileApp() {
     const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
     const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
 
-    const fileNavItems = [
-      { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
-      { id: 'nav-cv', label: `CV<span class='post-detail cv-date'> (${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
-    ];
+    // const fileNavItems = [
+    //   { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
+    //   { id: 'nav-cv', label: `CV<span class='post-detail cv-date'> (${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
+    // ];
 
     if (navItems) {
       baseNavItems.forEach(item => {
@@ -302,15 +303,15 @@ async function runProfileApp() {
         navItems.appendChild(btn);
       });
 
-      fileNavItems.forEach(item => {
-        if (!item.target) return;
-        const btn = document.createElement('a');
-        btn.id = item.id;
-        btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
-        btn.href = item.target;
-        btn.target = '_blank';
-        navItems.appendChild(btn);
-      });
+      // fileNavItems.forEach(item => {
+      //   if (!item.target) return;
+      //   const btn = document.createElement('a');
+      //   btn.id = item.id;
+      //   btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
+      //   btn.href = item.target;
+      //   btn.target = '_blank';
+      //   navItems.appendChild(btn);
+      // });
     }
 
     observeCards();

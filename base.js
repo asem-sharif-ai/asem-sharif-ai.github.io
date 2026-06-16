@@ -63,8 +63,9 @@ const iconMap = {
   bitbucket:    'fa-solid fa-bucket',
 
   researchgate: 'fa-brands fa-researchgate',
-  papers:       'fa-solid fa-file-lines',
+  paper:        'fa-solid fa-file-lines',
   scholar:      'fa-solid fa-graduation-cap',
+  resume:       'fa-solid fa-address-card',
 
   demo:         'fa-solid fa-laptop-code',
   info:         'fa-solid fa-info',
@@ -94,46 +95,6 @@ const addresses = {
 
 function isMobile() {
   return window.innerWidth <= 840;
-}
-
-// ───── QR Code Modal ────────────────────────────────────────
-
-function createQRCodeModal(qrData) {
-  const qrBtn = document.createElement('button');
-  qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
-  qrBtn.id = 'qr-trigger';
-  qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;
-  document.body.appendChild(qrBtn);
-
-  const modalOverlay = document.createElement('div');
-  modalOverlay.classList.add('qr-modal-overlay');
-
-  const modalContent = document.createElement('div');
-  modalContent.classList.add('qr-modal-content');
-  modalContent.innerHTML = `
-    <div class='qr-modal-header'>
-      <span class='item-card-title'>${qrData.title || 'Scan QR Code'}</span>
-      <i class='fa-solid fa-xmark close-qr-modal'></i>
-    </div>
-    <div class='qr-image-wrapper'></div>
-  `;
-  modalOverlay.appendChild(modalContent);
-  document.body.appendChild(modalOverlay);
-
-  const encodedUrl = encodeURIComponent(qrData.url);
-  const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
-  
-  qrWrapper.innerHTML = `
-    <img id='qr-light' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=000000&bgcolor=f5f5f7' alt='QR Code Light' class='qr-code-img' />
-    <img id='qr-dark' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=ffffff&bgcolor=111113' alt='QR Code Dark' class='qr-code-img' />
-  `;
-
-  const openModal = () => { modalOverlay.classList.add('open'); };
-  const closeModal = () => { modalOverlay.classList.remove('open'); };
-
-  qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
-  modalOverlay.querySelector('.close-qr-modal').addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 }
 
 // ───── Content Helpers ────────────────────────────────────────
@@ -394,9 +355,198 @@ function observeCards() {
   document.querySelectorAll('.card').forEach(card => observer.observe(card));
 }
 
+// ───── Triggers ────────────────────────────────────────
+
+function initChatAssistant(assistantConfig) {
+  chatConfigData = assistantConfig;
+
+  function updateTriggerIcon(btnUI) {
+    if (!btnUI || !assistantConfig) return;
+    const isLight = document.body.classList.contains('light-mode');
+    const icons = assistantConfig.icon || [];
+
+    if (icons.length > 0 && (icons[0] || icons[1])) {
+      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
+      if (activeIcon) {
+        btnUI.innerHTML = `<img src='${activeIcon}' alt='Chat' />`;
+        return;
+      }
+    }
+    btnUI.innerHTML = '<i class="fa-regular fa-message"></i>';
+  }
+
+  function updateAvatarLayout() {
+    const container = document.getElementById('chat-bot-avatar-container');
+    if (!container || !assistantConfig) return;
+
+    const isLight = document.body.classList.contains('light-mode');
+    const icons = assistantConfig.icon || [];
+
+    if (icons.length > 0 && (icons[0] || icons[1])) {
+      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
+      if (activeIcon) {
+        container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
+        container.style.display = 'block';
+        return;
+      }
+    }
+    container.innerHTML = '';
+    container.style.display = 'none';
+  }
+
+  const triggerBtn = document.createElement('button');
+  triggerBtn.title = 'Chat With AI Assistant';
+  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
+  triggerBtn.id = 'chat-assistant-trigger';
+
+  updateTriggerIcon(triggerBtn);
+
+  const chatWindow = document.createElement('div');
+  chatWindow.className = 'chat-window';
+  chatWindow.id = 'chat-assistant-window';
+
+  chatWindow.innerHTML = `
+    <div class='chat-header'>
+      <div class='chat-bot-info'>
+        <div id='chat-bot-avatar-container'></div>
+        <div class='chat-bot-brand'>
+          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
+          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
+        </div>
+      </div>
+      <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
+      <button class='chat-clear-btn' id='chat-clear-window'><i class='fa-solid fa-xmark'></i></button>
+    </div>
+    <div class='chat-messages' id='chat-messages-container'></div>
+    <div class='chat-footer'>
+      <div class='chat-input-wrapper'>
+        <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${MAX_MESSAGE_LENGTH}' />
+      </div>
+      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
+    </div>
+  `;
+
+  document.body.appendChild(triggerBtn);
+  document.body.appendChild(chatWindow);
+
+  updateAvatarLayout();
+  loadChatHistory();
+
+  const systemLogo = document.querySelector('.hero-logo');
+  if (systemLogo) {
+    systemLogo.addEventListener('click', () => {
+      setTimeout(() => {
+        updateTriggerIcon(document.getElementById('chat-assistant-trigger'));
+        updateAvatarLayout();
+      }, 50);
+    });
+  }
+
+  triggerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleChatWindow();
+  });
+
+  document.getElementById('chat-close-window').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleChatWindow();
+  });
+
+  document.getElementById('chat-clear-window').addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleChatLogPurge();
+    const win = document.getElementById('chat-assistant-window');
+    if (win) win.classList.remove('open');
+  });
+
+  document.addEventListener('click', (e) => {
+    const win = document.getElementById('chat-assistant-window');
+    if (win && win.classList.contains('open')) {
+      if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
+        win.classList.remove('open');
+      }
+    }
+  });
+
+  chatWindow.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  const inputField = document.getElementById('chat-user-input');
+  inputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleUserMessageSubmit();
+  });
+  document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
+}
+
+function createQRCodeModal(qrData) {
+  const qrBtn = document.createElement('button');
+  qrBtn.title = `${qrData.title} - QRCode`
+  qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
+  qrBtn.id = 'qr-trigger';
+  qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;
+  document.body.appendChild(qrBtn);
+
+  const modalOverlay = document.createElement('div');
+  modalOverlay.classList.add('qr-modal-overlay');
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('qr-modal-content');
+  modalContent.innerHTML = `
+    <div class='qr-modal-header'>
+      <span class='item-card-title'>${qrData.title || 'Scan QR Code'}</span>
+      <i class='fa-solid fa-xmark close-qr-modal'></i>
+    </div>
+    <div class='qr-image-wrapper'></div>
+  `;
+  modalOverlay.appendChild(modalContent);
+  document.body.appendChild(modalOverlay);
+
+  const encodedUrl = encodeURIComponent(qrData.url);
+  const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
+  
+  qrWrapper.innerHTML = `
+    <img id='qr-light' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=000000&bgcolor=f5f5f7' alt='QR Code Light' class='qr-code-img' />
+    <img id='qr-dark' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=ffffff&bgcolor=111113' alt='QR Code Dark' class='qr-code-img' />
+  `;
+
+  const openModal = () => { modalOverlay.classList.add('open'); };
+  const closeModal = () => { modalOverlay.classList.remove('open'); };
+
+  qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+  modalOverlay.querySelector('.close-qr-modal').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+}
+
+function createDocsPanel(documents) {
+  if (!documents || documents.length === 0) return;
+
+  const panel = document.createElement('div');
+  panel.id = 'doc-panel';
+
+  documents.forEach((doc, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'doc-trigger has-fast-glow';
+    
+    const secureKey = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+    btn.id = `doc-trigger-${secureKey}`;
+    
+    btn.dataset.index = i;
+    btn.dataset.total = documents.length;
+
+    btn.innerHTML = `<i class='${iconMap[doc.icon]} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+    
+    btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
+
+    panel.appendChild(btn);
+  });
+
+  document.body.appendChild(panel);
+}
+
 // ───── UI Utils ────────────────────────────────────────
 
-async function applyDynamicTheme(theme) {
+async function applyCustomTheme(theme) {
   if (!theme) return;
 
   let themeObj = null;
@@ -433,7 +583,7 @@ async function applyDynamicTheme(theme) {
   }
 }
 
-function applyBaseSetup(data = {}, page = 'SlateMP', chat = true, qr = false) {
+function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
   const name = data.name || 'Anonymous';
   document.title = data.name + (page !== '' ? ` - ${page}` : '');
   const navName = document.getElementById('nav-user-name');
@@ -473,28 +623,26 @@ function applyBaseSetup(data = {}, page = 'SlateMP', chat = true, qr = false) {
   }
 
   if (data.theme) {
-    applyDynamicTheme(data.theme);
+    applyCustomTheme(data.theme);
   }
 
-  if (qr && data.qr_code?.url) {
+  if (triggers.includes('qr_code') && data.qr_code?.url) {
     createQRCodeModal(data.qr_code);
   }
 
-  if (data.assistant && data.assistant.endpoint && chat) {
-    initChatAssistant(data);
+  if (triggers.includes('assistant') && data.assistant?.endpoint) {
+    initChatAssistant(data.assistant);
     
-    if (qr) {
-      const chatWin = document.getElementById('chat-assistant-window');
-      const targetQrBtn = document.getElementById('qr-trigger');
-      if (chatWin && targetQrBtn) {
-        const syncObserver = new MutationObserver(() => {
-          const isOpen = chatWin.classList.contains('open');
-          targetQrBtn.style.opacity = isOpen ? '0' : '1';
-          targetQrBtn.style.pointerEvents = isOpen ? 'none' : 'auto';
-          targetQrBtn.style.transform = isOpen ? 'translateY(10px) scale(0.98)' : 'translateY(0) scale(1)';
-        });
-        syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
-      }
+    const chatWin = document.getElementById('chat-assistant-window');
+    const targetQrBtn = document.getElementById('qr-trigger');
+    if (chatWin && targetQrBtn) {
+      const syncObserver = new MutationObserver(() => {
+        const isOpen = chatWin.classList.contains('open');
+        targetQrBtn.style.opacity = isOpen ? '0' : '1';
+        targetQrBtn.style.pointerEvents = isOpen ? 'none' : 'auto';
+        targetQrBtn.style.transform = isOpen ? 'translateY(10px) scale(0.98)' : 'translateY(0) scale(1)';
+      });
+      syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
     }
   }
 
