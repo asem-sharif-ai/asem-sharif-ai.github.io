@@ -1,11 +1,12 @@
-// ───── Card Setup ────────────────────────────────────────
+// ───── Cards Setup ────────────────────────────────────────
 
 function buildCard(section, cardId) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId});
 
   const textId = `text-${cardId}`;
   const copyId = `copy-${cardId}`;
-  const shareId = `share-${cardId}`
+  const shareId = `share-${cardId}`;
+  const collapseId = `card-collapse-${cardId}`;
   const isImage = isImagePath(section.path);
   const isVideo = isVideoPath(section.path);
   const isMedia = isImage || isVideo;
@@ -14,25 +15,25 @@ function buildCard(section, cardId) {
     <div class='card-header' id='header-${cardId}'>
       <div class='card-title'>${section.title}</div>
       <div class='card-btns'>
-      <button class='btn' id='${copyId}'><i class="${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}"></i></button>
-      <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
+        <button class='btn' id='${copyId}'><i class="${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}"></i></button>
+        <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
         <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
     </div>
-    <div class='card-collapse' id='card-collapse-${cardId}'>
+    <div class='card-collapse' id='${collapseId}'>
       <div class='card-body'>
         <div class='scroll-area' id='${textId}'>Loading...</div>
       </div>
     </div>
   `;
 
-  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, `card-collapse-${cardId}`));
+  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, collapseId));
   card.querySelector(`#${copyId}`).addEventListener('click', (e) => { e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);});
   card.querySelector(`#${shareId}`).addEventListener('click', (e) => {
     e.stopPropagation();
     navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
       .then(() => { showSuccessFeedback(`${shareId}`); })
-      .catch(err => console.error('Share Copy Failed: ', err));
+      .catch(err => console.error('Share Failed: ', err));
   });
 
   const container = card.querySelector(`#${textId}`);
@@ -76,9 +77,7 @@ function highlightCard(cardId) {
 function copyCardText(cardId) {
   const card = document.getElementById(cardId);
   const scrollArea = card.querySelector('.scroll-area');
-  navigator.clipboard.writeText(scrollArea.innerText)
-    .then(() => { showSuccessFeedback(`copy-${cardId}`) })
-    .catch(err => console.error('Copy failed: ', err));
+  navigator.clipboard.writeText(scrollArea.innerText).then(() => { showSuccessFeedback(`copy-${cardId}`) }).catch(err => console.error('Copy Failed: ', err));
 }
 
 function downloadCardMedia(cardId) {
@@ -88,7 +87,7 @@ function downloadCardMedia(cardId) {
   const video = scrollArea.querySelector('video source, video');
   
   let url = null;
-  if (image)      url = image.src;
+  if (image) url = image.src;
   else if (video) url = video.src || video.querySelector('source')?.src;
   if (!url) return;
 

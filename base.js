@@ -396,6 +396,43 @@ function observeCards() {
 
 // ───── UI Utils ────────────────────────────────────────
 
+async function applyDynamicTheme(theme) {
+  if (!theme) return;
+
+  let themeObj = null;
+
+  if (typeof theme === 'string' && theme.endsWith('.json')) {
+    try {
+      const res = await fetch(theme);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      themeObj = await res.json();
+    } catch (e) {
+      return;
+    }
+  } 
+
+  if (themeObj) {
+    let styleUI = document.getElementById('slate-dynamic-theme');
+    if (!styleUI) {
+      styleUI = document.createElement('style');
+      styleUI.id = 'slate-dynamic-theme';
+      document.head.appendChild(styleUI);
+    }
+
+    const mapVars = (vars) => vars ? Object.entries(vars).map(([k, v]) => `${k}: ${v};`).join(' ') : '';
+
+    styleUI.innerHTML = `
+      :root {
+        ${mapVars(themeObj.root)}
+        ${mapVars(themeObj.dark)}
+      }
+      body.light-mode {
+        ${mapVars(themeObj.light)}
+      }
+    `;
+  }
+}
+
 function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
   const name = data.name || 'Anonymous';
   document.title = data.name + (page !== '' ? ` - ${page}` : '');
@@ -436,12 +473,11 @@ function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
   }
 
   if (data.theme) {
-    // TODO: replace the basic overlay with theme builder
-    // document.documentElement.style.setProperty('--theme-color', data.theme);
+    applyDynamicTheme(data.theme);
   }
 
   if (qr && data.qr_code?.url) {
-      createQRCodeModal(data.qr_code);
+    createQRCodeModal(data.qr_code);
   }
 
   if (data.assistant && data.assistant.endpoint) {

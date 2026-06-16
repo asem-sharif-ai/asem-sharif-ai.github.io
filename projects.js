@@ -1,10 +1,10 @@
-let _projectsConfigData = {};
+let _configData  = {};
 let _allProjects = [];
 let _searchQuery = '';
 let _activeTopic = new Set();
 let _starredOnly = false;
-let _filterMode = 'OR';
-let _hasMatches = true;
+let _filterMode  = 'OR';
+let _hasMatches  = true;
 
 // ───── State ────────────────────────────────────────
 
@@ -614,7 +614,7 @@ async function runProjectsApp() {
     const configData = await cfgRes.json();
     const projectsData = configData.projects || { content: [], layout: 4 };
 
-    _projectsConfigData = configData;
+    _configData = configData;
     _allProjects = projectsData.content || [];
 
     applyBaseSetup(configData, 'Projects');

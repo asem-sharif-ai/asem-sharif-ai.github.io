@@ -338,11 +338,9 @@ function buildSkillCard(skill) {
   return card;
 }
 
-function renderSkillsList(configData) {
+function renderSkillsList(skillsData) {
   try {
-    if (configData.skills.content && typeof configData.skills.content === 'object' && Object.keys(configData.skills.content).length > 0) {
-
-      const skillsData = configData.skills;
+    if (skillsData.content && typeof skillsData.content === 'object' && Object.keys(skillsData.content).length > 0) {
 
       const container = document.getElementById('list-container');
       if (!container) return;
@@ -383,12 +381,13 @@ async function runLogRouter() {
 
     const cfgRes = await fetch('config.json');
     const configData = await cfgRes.json();
+    const data = configData[page];
 
     const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
     applyBaseSetup(configData, capitalize(page));
 
     if (page === 'skills') {
-      renderSkillsList(configData);
+      renderSkillsList(data);
     } else if (['education', 'experience'].includes(page)) {
       const data = configData[page];
       if (data && Array.isArray(data) && data.length) {

@@ -12,7 +12,6 @@
     <link rel='stylesheet' href='style.css' />
   </head>
   <body>
-
     <nav class='navbar has-glow'>
       <div class='nav-profile'>
         <div class='nav-name' id='nav-user-name'>Loading...</div>
@@ -29,7 +28,7 @@
         </a>
         <a class='hub-tab' id='hub-tab-guestbook'>
           <i class='fa-solid fa-book'></i>
-          <span class='nav-label'>Guestbook</span>
+          <span class='nav-label'>Guests</span>
         </a>
         <div class='search-wrapper'>
           <i class='fa-solid fa-magnifying-glass search-icon'></i>
@@ -40,25 +39,21 @@
     </nav>
     <main class='hub-viewport'>
       <div class='hub-slider' id='hub-slider'>
-
         <div class='hub-panel' id='hub-panel-faq'>
           <div class='container'>
             <div id='list-container'></div>
           </div>
         </div>
-
         <div class='hub-panel hub-panel-gb' id='hub-panel-guestbook'>
           <div class='gb-scroll-area'>
             <div class='container'>
               <div id='gb-list'></div>
             </div>
           </div>
-
           <div class='gb-footer gb-hidden' id='gb-footer'>
             <div id='gb-footer-inner'></div>
           </div>
         </div>
-
       </div>
     </main>
     <script src='https://cdn.jsdelivr.net/npm/marked/marked.min.js'></script>
