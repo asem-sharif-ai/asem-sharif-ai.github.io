@@ -1087,6 +1087,7 @@ body {
   #doc-panel {
     top: 76px;
     right: 16px;
+    flex-direction: column !important;
   }
 }
 
