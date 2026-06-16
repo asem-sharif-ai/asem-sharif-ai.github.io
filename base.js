@@ -526,17 +526,11 @@ function createDocsPanel(documents) {
   documents.forEach((doc, i) => {
     const btn = document.createElement('button');
     btn.className = 'doc-trigger has-fast-glow';
-    
-    const secureKey = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '');
-    btn.id = `doc-trigger-${secureKey}`;
-    
+    btn.id = `doc-trigger-${doc.title.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
     btn.dataset.index = i;
     btn.dataset.total = documents.length;
-
     btn.innerHTML = `<i class='${iconMap[doc.icon]} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
-    
     btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
-
     panel.appendChild(btn);
   });
 }
