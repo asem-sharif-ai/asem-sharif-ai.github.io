@@ -1243,10 +1243,6 @@ body {
   margin-top: 50px;
 }
 
-#gb-list {
-  margin-bottom: 60px;
-}
-
 .row {
   align-items: start;
   display: grid;
@@ -1267,6 +1263,10 @@ body {
   #list-container,
   #gb-list {
     margin-top: 50px;
+  }
+
+  #gb-list {
+    padding-bottom: 80px;
   }
 }
 
@@ -2412,19 +2412,25 @@ body {
 }
 
 /* ---------- ---------- [GUESTBOOK] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
+
 .hub-panel-gb {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 60px);
   overflow: hidden;
+  position: relative;
 }
 
 .gb-scroll-area {
   flex: 1;
   min-height: 0;
+  padding: 20px;
+  margin-top: -20px;
+  padding-bottom: 80px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-color: var(--scrollbar-thumb) var(--bg-primary);
-  scrollbar-width: thin;
 }
 
 .gb-footer {
@@ -2461,23 +2467,14 @@ body {
   width: 100%;
 }
 
-.gb-scroll-area .container {
-  padding-bottom: 24px;
-}
-
 @media (max-width: 1024px) {
   .gb-footer {
     bottom: 86px;
-  }
-  .hub-panel-gb {
-    height: calc(100vh - 0px);
-  }
-}
-
-@media (max-width: 840px) {
-  .gb-footer {
-    padding: 12px;
     width: 90%;
+  }
+  
+  .gb-scroll-area {
+    padding-bottom: 25px;
   }
 }
 

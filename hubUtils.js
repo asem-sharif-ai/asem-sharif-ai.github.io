@@ -69,7 +69,7 @@ function updateShareIconState() {
     return;
   }
 
-  const hasMatches = _currentTab === 'faq' ? _faqHasResults : _gbHasResults;
+  const hasMatches = _currentTab === 'faq' ? _faqHasMatches : _gbHasMatches;
   
   if (hasMatches) {
     searchIcon.classList.remove('ui-disabled');
@@ -106,7 +106,7 @@ function renderFAQ(faqList) {
   container.innerHTML = '';
 
   if (!Array.isArray(faqList) || faqList.length === 0) {
-    _faqHasResults = false;
+    _faqHasMatches = false;
     renderNoData('FAQ', 'list-container');
     return;
   }
@@ -117,9 +117,7 @@ function renderFAQ(faqList) {
   let filtered;
   if (indexTokens.length > 0) {
     const seen = new Set();
-    filtered = indexTokens
-      .filter(n => n >= 1 && n <= faqList.length && !seen.has(n) && seen.add(n))
-      .map(n => ({ item: faqList[n - 1], originalIndex: n - 1 }));
+    filtered = indexTokens.filter(n => n >= 1 && n <= faqList.length && !seen.has(n) && seen.add(n)).map(n => ({ item: faqList[n - 1], originalIndex: n - 1 }));
   } else {
     const words = raw.toLowerCase().split(/\s+/).filter(Boolean);
     filtered = (words.length > 0
@@ -132,12 +130,12 @@ function renderFAQ(faqList) {
   }
 
   if (filtered.length === 0) {
-    _faqHasResults = false;
+    _faqHasMatches = false;
     renderNoData('No FAQ Matched The Search Key', 'list-container', false);
     return;
   }
 
-  _faqHasResults = true;
+  _faqHasMatches = true;
   filtered.forEach(({ item, originalIndex }) => {
     if (item.q && item.a) container.appendChild(buildFaqCard(item, originalIndex));
   });
@@ -316,12 +314,12 @@ function renderGuestbook() {
   const hasBanned = finalBanned.length > 0;
 
   if (!hasEntries && !hasBanned) {
-    _gbHasResults = false;
+    _gbHasMatches = false;
     renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'gb-list', false);
     return;
   }
 
-  _gbHasResults = true;
+  _gbHasMatches = true;
 
   if (isAdmin) {
     const statusOrder = { approved: 1, pending: 2, deletedByGuest: 3, deletedByAdmin: 4, banned: 5 };

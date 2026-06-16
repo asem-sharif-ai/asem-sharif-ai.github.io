@@ -26,10 +26,13 @@ function _saveHubState() {
 
 function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
-  const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
-  if (savedTab === 'guestbook' || savedTab === 'faq') _currentTab = savedTab;
+  
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
+  
+  const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
+  if (savedTab === 'guestbook' || savedTab === 'faq') _currentTab = savedTab;
+
   _gbToken = localStorage.getItem(addresses.hubGuestbookToken);
 }
 
