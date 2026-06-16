@@ -433,7 +433,7 @@ async function applyDynamicTheme(theme) {
   }
 }
 
-function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
+function applyBaseSetup(data = {}, page = 'SlateMP', chat = true, qr = false) {
   const name = data.name || 'Anonymous';
   document.title = data.name + (page !== '' ? ` - ${page}` : '');
   const navName = document.getElementById('nav-user-name');
@@ -480,22 +480,20 @@ function applyBaseSetup(data = {}, page = 'SlateMP', qr = false) {
     createQRCodeModal(data.qr_code);
   }
 
-  if (data.assistant && data.assistant.endpoint) {
-    if (typeof initChatAssistant === 'function') {
-      initChatAssistant(data);
-      
-      if (qr) {
-        const chatWin = document.getElementById('chat-assistant-window');
-        const targetQrBtn = document.getElementById('qr-trigger');
-        if (chatWin && targetQrBtn) {
-          const syncObserver = new MutationObserver(() => {
-            const isOpen = chatWin.classList.contains('open');
-            targetQrBtn.style.opacity = isOpen ? '0' : '1';
-            targetQrBtn.style.pointerEvents = isOpen ? 'none' : 'auto';
-            targetQrBtn.style.transform = isOpen ? 'translateY(10px) scale(0.98)' : 'translateY(0) scale(1)';
-          });
-          syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
-        }
+  if (data.assistant && data.assistant.endpoint && chat) {
+    initChatAssistant(data);
+    
+    if (qr) {
+      const chatWin = document.getElementById('chat-assistant-window');
+      const targetQrBtn = document.getElementById('qr-trigger');
+      if (chatWin && targetQrBtn) {
+        const syncObserver = new MutationObserver(() => {
+          const isOpen = chatWin.classList.contains('open');
+          targetQrBtn.style.opacity = isOpen ? '0' : '1';
+          targetQrBtn.style.pointerEvents = isOpen ? 'none' : 'auto';
+          targetQrBtn.style.transform = isOpen ? 'translateY(10px) scale(0.98)' : 'translateY(0) scale(1)';
+        });
+        syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
       }
     }
   }

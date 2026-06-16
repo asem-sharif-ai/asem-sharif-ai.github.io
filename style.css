@@ -2469,7 +2469,6 @@ body {
 
 @media (max-width: 1024px) {
   .gb-footer {
-    bottom: 86px;
     width: 90%;
   }
   

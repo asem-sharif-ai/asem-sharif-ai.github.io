@@ -85,7 +85,7 @@ async function runHubApp() {
     const configData = await cfgRes.json();
     _configData = configData;
 
-    applyBaseSetup(configData, 'Hub');
+    applyBaseSetup(configData, 'Hub', false);
     loadHubState();
     updateShareIconState();
 

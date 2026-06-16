@@ -152,7 +152,7 @@ async function runProfileApp() {
     const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
 
-    let theme = applyBaseSetup(data, '', true);
+    let theme = applyBaseSetup(data, '', true, false);
 
     if (data.symbol) {
       const logoContainer = document.querySelector('.hero-logo');
