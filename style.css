@@ -1274,6 +1274,11 @@ body {
 
   .hero-card {
     padding-top: 0px;
+    margin-top: -30px;
+  }
+
+  #latest-hero-card {
+    margin-top: -30px;
   }
 
   #user-role {
