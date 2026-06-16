@@ -1037,7 +1037,7 @@ body {
   justify-content: center;
   padding: 0px 20px;
   overflow: hidden;
-  transition:  transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -1088,7 +1088,14 @@ body {
     top: 76px;
     right: auto;
     left: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: max-content;
     justify-content: center;
+  }
+
+  .doc-trigger {
+    min-width: 0;
   }
 }
 
