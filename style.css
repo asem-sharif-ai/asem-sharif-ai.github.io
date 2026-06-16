@@ -1243,6 +1243,10 @@ body {
   margin-top: 50px;
 }
 
+#gb-list {
+  margin-bottom: 60px;
+}
+
 .row {
   align-items: start;
   display: grid;
@@ -2795,7 +2799,6 @@ body {
   cursor: default;
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
   padding: 0;
   transition: border-color 0.3s ease, background-color 0.3s ease;
 }
