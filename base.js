@@ -357,8 +357,11 @@ function observeCards() {
 
 // ───── Triggers ────────────────────────────────────────
 
-function initChatAssistant(assistantConfig) {
-  chatConfigData = assistantConfig;
+function initChatAssistant(configData) {
+  globalProfileData = configData;
+  chatConfigData = configData.assistant;
+  
+  const assistantConfig = configData.assistant;
 
   function updateTriggerIcon(btnUI) {
     if (!btnUI || !assistantConfig) return;
@@ -622,7 +625,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
   }
 
   if (triggers.includes('assistant') && data.assistant?.endpoint) {
-    initChatAssistant(data.assistant);
+    initChatAssistant(data);
     
     const chatWin = document.getElementById('chat-assistant-window');
     const targetQrBtn = document.getElementById('qr-trigger');
