@@ -595,7 +595,7 @@ body {
 @media (max-width: 840px) {
   .navbar {
     padding: 12px 16px;
-    /* position: relative; */
+    position: relative;
   }
 
   .nav-profile,
@@ -1085,9 +1085,10 @@ body {
   }
 
   #doc-panel {
-    top: 76px;
+    top: 16px;
     right: auto;
     left: auto;
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: max-content;

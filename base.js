@@ -521,8 +521,7 @@ function createQRCodeModal(qrData) {
 function createDocsPanel(documents) {
   if (!documents || documents.length === 0) return;
 
-  const panel = document.createElement('div');
-  panel.id = 'doc-panel';
+  let panel = document.getElementById('doc-panel');
 
   documents.forEach((doc, i) => {
     const btn = document.createElement('button');
@@ -540,8 +539,6 @@ function createDocsPanel(documents) {
 
     panel.appendChild(btn);
   });
-
-  document.body.appendChild(panel);
 }
 
 // ───── UI Utils ────────────────────────────────────────
