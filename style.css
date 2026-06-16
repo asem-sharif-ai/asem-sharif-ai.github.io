@@ -1088,6 +1088,7 @@ body {
     top: 16px;
     right: auto;
     left: auto;
+    margin-bottom: -76px;
     position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
