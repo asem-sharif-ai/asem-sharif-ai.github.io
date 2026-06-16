@@ -113,6 +113,8 @@ async function handleUserMessageSubmit() {
   } catch (e) {
     removeTypingIndicator();
 
+    const code = e.errorCode;
+
     let userMessage = 'Communication Error Occurred.';
     if (code === 'C002') {
       userMessage = 'Request Timed Out. Try Again Later.';
