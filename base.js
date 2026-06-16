@@ -542,9 +542,9 @@ function createDocsPanel(documents) {
 
 async function applyCustomTheme(theme) {
   if (!theme) return;
-
+  
   let themeObj = null;
-
+  
   if (typeof theme === 'string' && theme.endsWith('.json')) {
     try {
       const res = await fetch(theme);
@@ -554,7 +554,7 @@ async function applyCustomTheme(theme) {
       return;
     }
   } 
-
+  
   if (themeObj) {
     let styleUI = document.getElementById('slate-dynamic-theme');
     if (!styleUI) {
@@ -562,9 +562,9 @@ async function applyCustomTheme(theme) {
       styleUI.id = 'slate-dynamic-theme';
       document.head.appendChild(styleUI);
     }
-
-    const mapVars = (vars) => vars ? Object.entries(vars).map(([k, v]) => `${k}: ${v};`).join(' ') : '';
-
+    
+    const mapVars = (vars) => vars ? Object.entries(vars).map(([k, v]) => `--${k}: ${v};`).join('\n        ') : '';
+    
     styleUI.innerHTML = `
       :root {
         ${mapVars(themeObj.root)}

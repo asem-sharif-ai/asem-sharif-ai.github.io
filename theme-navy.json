@@ -1,0 +1,43 @@
+{
+  "root": {
+    "approved-color": "#3de8aa",
+    "pending-color": "#ffc34d",
+    "heart-color": "#ff4040",
+    "heart-color-sub": "#b02020",
+    "highlight-color": "rgba(255, 25, 25)",
+    "pin-color": "#d4d9e2",
+    "pin-color-sub": "#9aa0aa",
+    "star-color": "#f5c842",
+    "star-color-sub": "#d4a020"
+  },
+  "dark": {
+    "bg-primary": "#090e1e",
+    "bg-card": "#0d1326",
+    "card-header": "#101628",
+    "border-color": "#1d2645",
+    "text-body": "#a8b4d8",
+    "text-bright": "#e8ecf8",
+    "text-muted": "#6a7a9e",
+    "text-deep-muted": "#3d4d6a",
+    "navbar-bg": "rgba(9, 14, 30, 0.88)",
+    "focus-shadow": "rgba(60, 80, 160, 0.3)",
+    "deep-shadow": "rgba(0, 0, 0, 0.35)",
+    "scrollbar-thumb": "#1d2645",
+    "scrollbar-thumb-hover": "#2b3a78"
+  },
+  "light": {
+    "bg-primary": "#eef1fb",
+    "bg-card": "#ffffff",
+    "card-header": "#f4f6fd",
+    "border-color": "#c4cfef",
+    "text-body": "#1e2a52",
+    "text-bright": "#080d1e",
+    "text-muted": "#4a5a82",
+    "text-deep-muted": "#8090b8",
+    "navbar-bg": "rgba(238, 241, 251, 0)",
+    "focus-shadow": "rgba(60, 80, 160, 0.18)",
+    "deep-shadow": "rgba(200, 210, 240, 0.4)",
+    "scrollbar-thumb": "#c4cfef",
+    "scrollbar-thumb-hover": "#a4b4e8"
+  }
+}
