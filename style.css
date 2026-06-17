@@ -2880,6 +2880,11 @@ body {
   word-break: break-word;
 }
 
+.gb-msg-rtl {
+  direction: rtl;
+  text-align: right;
+}
+
 .gb-btn {
   background: none;
   border: none;

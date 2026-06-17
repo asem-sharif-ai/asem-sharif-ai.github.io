@@ -33,6 +33,10 @@ function highlightText(text, query) {
   });
 }
 
+function getTextDirection(text) {
+  return /[\u0600-\u06FF]/.test(text) ? 'rtl' : 'ltr';
+}
+
 function formatDuration(dateStr) {
   if (!dateStr) return '';
   const parts = dateStr.split('/');
@@ -404,7 +408,7 @@ function buildGuestCard(entry, isAdmin = false) {
         }
       </div>
     </div>
-    <p class='gb-msg'>${messageText}</p>
+    <p class='gb-msg ${getTextDirection(messageText) === 'rtl' ? 'gb-msg-rtl' : ''}'>${messageText}</p>
   `;
 
   if (isAdmin) {
