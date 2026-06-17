@@ -1,7 +1,6 @@
 let _configData    = {};
 let _currentTab    = 'faq';
 let _searchQuery   = '';
-let _isSwitching   = false;
 
 let _allFaq        = [];
 let _allGuestbook  = [];
@@ -26,10 +25,10 @@ function _saveHubState() {
 
 function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
-  
+
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
-  
+
   const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
   if (savedTab === 'guestbook' || savedTab === 'faq') _currentTab = savedTab;
 
@@ -37,46 +36,27 @@ function loadHubState() {
 }
 
 function switchHubTab(targetTab) {
-  if (targetTab === _currentTab || _isSwitching) return;
-  _isSwitching = true;
-
-  const goingRight = targetTab === 'guestbook';
-  const outClass = goingRight ? 'slide-out-left' : 'slide-out-right';
-  const inClass = goingRight ? 'slide-in-left' : 'slide-in-right';
-
-  const panelOut = document.getElementById(`hub-panel-${_currentTab}`);
-  const panelIn = document.getElementById(`hub-panel-${targetTab}`);
-
-  document.querySelectorAll('.hub-tab').forEach((t) => t.classList.remove('active'));
-  document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
+  if (targetTab === _currentTab) return;
 
   _currentTab = targetTab;
   _saveHubState();
 
+  document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
+
+  const faqPanel = document.getElementById('hub-panel-faq');
+  const gbPanel  = document.getElementById('hub-panel-guestbook');
+
+  if (targetTab === 'guestbook') {
+    faqPanel.classList.add('hub-hidden');
+    gbPanel.classList.remove('hub-hidden');
+  } else {
+    gbPanel.classList.add('hub-hidden');
+    faqPanel.classList.remove('hub-hidden');
+  }
+
+  syncFooter();
   updateShareIconState();
-
-  if (!goingRight) syncFooter();
-
-  panelOut.classList.add(outClass);
-  panelOut.addEventListener(
-    'animationend',
-    () => {
-      panelOut.classList.remove(outClass);
-      panelOut.classList.add('hub-panel-hidden');
-      panelIn.classList.remove('hub-panel-hidden');
-      panelIn.classList.add(inClass);
-      panelIn.addEventListener(
-        'animationend',
-        () => {
-          panelIn.classList.remove(inClass);
-          _isSwitching = false;
-          if (goingRight) syncFooter();
-        },
-        { once: true },
-      );
-    },
-    { once: true },
-  );
 }
 
 async function runHubApp() {
@@ -87,6 +67,15 @@ async function runHubApp() {
 
     applyBaseSetup(configData, 'Hub', []);
     loadHubState();
+
+    // Apply initial tab state
+    if (_currentTab === 'guestbook') {
+      document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('hub-tab-guestbook').classList.add('active');
+      document.getElementById('hub-panel-faq').classList.add('hub-hidden');
+      document.getElementById('hub-panel-guestbook').classList.remove('hub-hidden');
+    }
+
     updateShareIconState();
 
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
@@ -99,18 +88,9 @@ async function runHubApp() {
         e.stopPropagation();
         navigator.clipboard
           .writeText(buildShareUrl())
-          .then(() => {
-            showSuccessFeedback('nav-share-icon');
-          })
-          .catch((err) => console.error('Share Copy Failed: ', err));
+          .then(() => showSuccessFeedback('nav-share-icon'))
+          .catch(err => console.error('Share Copy Failed: ', err));
       });
-    }
-
-    if (_currentTab === 'guestbook') {
-      document.querySelectorAll('.hub-tab').forEach((t) => t.classList.remove('active'));
-      document.getElementById('hub-tab-guestbook').classList.add('active');
-      document.getElementById('hub-panel-faq').classList.add('hub-panel-hidden');
-      document.getElementById('hub-panel-guestbook').classList.remove('hub-panel-hidden');
     }
 
     initHubSearch();

@@ -37,23 +37,11 @@
         <button class='btn' id='nav-share-icon'><i class='fa-solid fa-link share-icon'></i></button>
       </div>
     </nav>
-    <main class='hub-viewport'>
-      <div class='hub-slider' id='hub-slider'>
-        <div class='hub-panel' id='hub-panel-faq'>
-          <div class='container'>
-            <div id='list-container'></div>
-          </div>
-        </div>
-        <div class='hub-panel hub-panel-gb' id='hub-panel-guestbook'>
-          <div class='gb-scroll-area'>
-            <div class='container'>
-              <div id='gb-list'></div>
-            </div>
-          </div>
-          <div class='gb-footer gb-hidden' id='gb-footer'>
-            <div id='gb-footer-inner'></div>
-          </div>
-        </div>
+    <main class='hub-main'>
+      <div class='container' id='hub-panel-faq'> <div id='list-container'></div> </div>
+      <div class='hub-hidden' id='hub-panel-guestbook'>
+        <div class='container'> <div id='gb-list'></div> </div>
+        <div class='gb-footer gb-hidden' id='gb-footer'> <div id='gb-footer-inner'></div> </div>
       </div>
     </main>
     <script src='https://cdn.jsdelivr.net/npm/marked/marked.min.js'></script>

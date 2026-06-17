@@ -49,7 +49,7 @@ const iconMap = {
   twitter:      'fa-brands fa-x-twitter',
   youtube:      'fa-brands fa-youtube',
 
-  whatsapp:     'fa-brands fa-whatsapp',
+  whatsapp:     'iconify:iconoir:whatsapp-solid',
   telegram:     'fa-brands fa-telegram',
   discord:      'fa-brands fa-discord',
   mailto:       'fa-solid fa-envelope',
@@ -58,13 +58,13 @@ const iconMap = {
   medium:       'fa-brands fa-medium',
 
   github:       'fa-brands fa-github',
-  huggingface:  'fa-solid fa-face-smile',
+  huggingface:  'iconify:simple-icons:huggingface', 
   kaggle:       'fa-brands fa-kaggle',
   bitbucket:    'fa-solid fa-bucket',
-
+  
   researchgate: 'fa-brands fa-researchgate',
   paper:        'fa-solid fa-file-lines',
-  scholar:      'fa-solid fa-graduation-cap',
+  scholar:      'iconify:academicons:google-scholar',
   resume:       'fa-solid fa-address-card',
 
   demo:         'fa-solid fa-laptop-code',
@@ -522,17 +522,18 @@ function createQRCodeModal(qrData) {
 }
 
 function createDocsPanel(documents) {
-  if (!documents || documents.length === 0) return;
+  if (!documents || Object.keys(documents).length === 0) return;
 
   let panel = document.getElementById('doc-panel');
+  const entries = Object.entries(documents);
 
-  documents.forEach((doc, i) => {
+  entries.forEach(([key, doc], i) => {
     const btn = document.createElement('button');
     btn.className = 'doc-trigger has-fast-glow';
-    btn.id = `doc-trigger-${doc.title.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    btn.id = `doc-trigger-${key}`;
     btn.dataset.index = i;
-    btn.dataset.total = documents.length;
-    btn.innerHTML = `<i class='${iconMap[doc.icon]} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+    btn.dataset.total = entries.length;
+    btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
     btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
     panel.appendChild(btn);
   });
@@ -640,6 +641,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
     }
   }
 
+
   return appliedTheme;
 }
 
@@ -670,13 +672,6 @@ function renderRoles(containerId, role) {
   } else {
     container.remove();
   }
-}
-
-function renderFooter() {
-  const footerUI = document.createElement('footer');
-  footerUI.className = 'site-footer';
-  footerUI.innerHTML = `<span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.2.10)</span></span>`;
-  document.body.appendChild(footerUI);
 }
 
 function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {

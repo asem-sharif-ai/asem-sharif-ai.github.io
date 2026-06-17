@@ -408,10 +408,10 @@ function buildGuestCard(entry, isAdmin = false) {
   `;
 
   if (isAdmin) {
-    card.querySelector('.gb-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card),);
+    card.querySelector('.gb-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card));
     card.querySelector('.gb-btn-heart').addEventListener('click', () =>    gbAdminAction('like',       entry.id, card));
     card.querySelector('.gb-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',        entry.id, card));
-    card.querySelector('.gb-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card),);
+    card.querySelector('.gb-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card));
     card.querySelector('.gb-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',     entry.id, card));
     card.querySelector('.gb-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',        entry.id, card));
   }
@@ -533,7 +533,7 @@ function setFooterPage(state) {
   if (state === 'login') {
     innerFooter.innerHTML = `
       <div id='gb-state-login'>
-        <button class='action-btn' id='gb-verify-btn'> <i class='fa-brands fa-google'></i> Sign In To Leave A Message </button>
+        <button class='action-btn' id='gb-verify-btn'> <i class='fa-brands fa-google'></i> Leave A Message </button>
       </div>
       <div id='gb-footer-status' class='subtitle gb-hidden'></div>
       `;

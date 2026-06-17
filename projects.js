@@ -463,28 +463,33 @@ function toggleProjectCard(cardId, forceState) {
   if (!card) return;
 
   const collapse = card.querySelector('.card-collapse');
-  const icon = card.querySelector('.card-toggle-btn');
+  if (!collapse) return;
+
+  if (forceState === 'open') {
+    collapse.classList.add('closed');
+  } else if (forceState === 'close') {
+    collapse.classList.remove('closed');
+  }
+
+  const collapseId = collapse.id || `collapse-${cardId}`;
+  if (!collapse.id) collapse.id = collapseId; 
+  
+  toggleCard(cardId, collapseId);
+  
+  const isOpen = !collapse.classList.contains('closed');
   const prevBtn = card.querySelector('.prev-btn');
   const nextBtn = card.querySelector('.next-btn');
   const urlBtn = card.querySelector('.url-action-btn');
 
-  const applyVisibility = (show) => {
-    const display = show ? 'inline-block' : 'none';
-    if (prevBtn) prevBtn.style.display = display;
-    if (nextBtn) nextBtn.style.display = display;
-    if (urlBtn)  urlBtn.style.display  = display;
-  };
+  const display = isOpen ? 'inline-block' : 'none';
+  if (prevBtn) prevBtn.style.display = display;
+  if (nextBtn) nextBtn.style.display = display;
+  if (urlBtn) urlBtn.style.display  = display;
 
-  if (forceState === 'open' || (forceState === undefined && collapse.classList.contains('closed'))) {
-    collapse.classList.remove('closed');
-    if (icon) icon.className = 'fa-solid fa-chevron-up card-toggle-btn';
-    applyVisibility(true);
-    const leftBtn = card.querySelector('.prev-btn');
-    if (leftBtn && leftBtn.style.opacity === '0.35') leftBtn.style.pointerEvents = 'none';
-  } else if (forceState === 'close' || (forceState === undefined && !collapse.classList.contains('closed'))) {
-    collapse.classList.add('closed');
-    if (icon) icon.className = 'fa-solid fa-chevron-down card-toggle-btn';
-    applyVisibility(false);
+  if (isOpen && prevBtn && prevBtn.style.opacity === '0.35') {
+    prevBtn.style.pointerEvents = 'none';
+  } else if (prevBtn) {
+    prevBtn.style.pointerEvents = '';
   }
 }
 
@@ -674,16 +679,6 @@ async function runProjectsApp() {
     }
     renderProjectsGrid(_allProjects);
 
-    let _resizeTimer;
-    let _lastWidth = window.innerWidth;
-    window.addEventListener('resize', () => {
-      const newWidth = window.innerWidth;
-      if (newWidth === _lastWidth) return;
-      _lastWidth = newWidth;
-      clearTimeout(_resizeTimer);
-      _resizeTimer = setTimeout(() => renderProjectsGrid(_allProjects), 120);
-    });
-
     if (!projectsData || (!projectsData.latest?.title && !projectsData.content?.length)) {
       renderNoData('Projects', 'list-container')
 
@@ -700,6 +695,8 @@ async function runProjectsApp() {
         searchBtn.style.pointerEvents = 'none';
         searchBtn.classList.add('ui-disabled');
       }
+
+      return;
     }
 
     filterAndRerender();

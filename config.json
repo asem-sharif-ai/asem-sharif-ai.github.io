@@ -8,10 +8,10 @@
   "location": "Cairo, Egypt.",
   "timezone": "Africa/Cairo",
 
-  "documents": [
-    { "title": "Résumé", "date": "",        "icon": "resume", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    { "title": "CV",     "date": "04/2026", "icon": "paper",  "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
-  ],
+  "documents": {
+    "resume": {"title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf"},
+    "cv":     {"title": "CV",     "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf"}
+  },
 
   "qr_code": {
     "title": "Asem E. Sharif - Portfolio",
@@ -36,17 +36,19 @@
   "socials": [
     [
       { "site": "facebook",  "url": "https://www.facebook.com/notasem.fb" },
-      { "site": "instagram", "url": "https://www.instagram.com/_notasem_"},
-      { "site": "twitter",   "url": "https://x.com/_notasem_"},
-      { "site": "linkedin",  "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "medium",    "url": "https://medium.com/@asem-sharif-ai" },
+      { "site": "instagram", "url": "https://www.instagram.com/_notasem_" },
+      { "site": "twitter",   "url": "https://x.com/_notasem_" },
       { "site": "youtube",   "_url": "https://www.youtube.com/@AsemSharif-AI" }
     ],
     [
       { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" },
       { "site": "whatsapp", "url": "https://wa.me/+201010057162" },
       { "site": "telegram", "url": "https://t.me/notasem" },
-      { "site": "discord",  "url": "https://discord.com/users/asem.sharif.ai" }
+      { "site": "discord",  "_url": "https://discord.com/users/asem.sharif.ai" }
+    ],
+    [
+      { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
+      { "site": "medium",   "url": "https://medium.com/@asem-sharif-ai" }
     ],
     [
       { "site": "github",      "url": "https://github.com/asem-sharif-ai" },

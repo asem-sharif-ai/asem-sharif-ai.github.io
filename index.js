@@ -204,14 +204,22 @@ async function runProfileApp() {
           if (!link.url || !link.site) return;
 
           const anchor = document.createElement('a');
-          const icon = document.createElement('i');
-
           anchor.href = link.url;
           if (link.url.startsWith('http')) {
             anchor.target = '_blank';
             anchor.rel = 'noopener noreferrer';
           }
-          icon.className = iconMap[link.site] || iconMap.default;
+
+          const iconValue = iconMap[link.site] || iconMap.default;
+
+          let icon;
+          if (iconValue.startsWith('iconify:')) {
+            icon = document.createElement('iconify-icon');
+            icon.setAttribute('icon', iconValue.replace('iconify:', ''));
+          } else {
+            icon = document.createElement('i');
+            icon.className = iconValue;
+          }
 
           anchor.appendChild(icon);
           socialIcons.appendChild(anchor);
@@ -225,11 +233,6 @@ async function runProfileApp() {
 
     const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
     const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
-
-    // const fileNavItems = [
-    //   { id: 'nav-resume', label: 'Resume', icon: 'fa-solid fa-file-pdf', target: data.resume_path },
-    //   { id: 'nav-cv', label: `CV<span class='post-detail cv-date'> (${data.cv_date || ''})</span>`, icon: 'fa-solid fa-file-pdf', target: data.cv_path }
-    // ];
 
     if (navItems) {
       baseNavItems.forEach(item => {
@@ -302,21 +305,10 @@ async function runProfileApp() {
         btn.href = allowedKeys[key];
         navItems.appendChild(btn);
       });
-
-      // fileNavItems.forEach(item => {
-      //   if (!item.target) return;
-      //   const btn = document.createElement('a');
-      //   btn.id = item.id;
-      //   btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
-      //   btn.href = item.target;
-      //   btn.target = '_blank';
-      //   navItems.appendChild(btn);
-      // });
     }
 
     observeCards();
     runScrollSpy(spyTargets);
-    renderFooter()
 
     return true;
 
