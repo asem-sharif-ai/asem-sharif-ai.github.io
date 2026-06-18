@@ -247,282 +247,345 @@
 
   "skills": {
     "layout": 4,
+    
     "content": {
       "Programming": [
         {
           "title": "Python",
-          "proof": "Proof",
-          "source": "https://x.com",
-          "icon": ["./Data/Icons/python_dark.png", "./Data/Icons/python_light.png"],
+          "proof": "Primary language for all engineering work",
+          "source": "",
+          "icon": ["", ""],
           "level": 0.95,
-          "span": 3
+          "span": 2
         },
         {
           "title": "C++",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Performance-critical and systems programming",
+          "source": "",
           "icon": ["", ""],
           "level": 0.55,
           "span": 1
+        },
+        {
+          "title": "Bash / Shell",
+          "proof": "Scripting, automation, Linux environments",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.65,
+          "span": 1
+        },
+        {
+          "title": "SQL",
+          "proof": "Structured data querying and storage",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.7,
+          "span": 1
+        },
+        {
+          "title": "JavaScript",
+          "proof": "Client-side logic and interactivity",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.5,
+          "span": 1
+        },
+        {
+          "title": "HTML & CSS",
+          "proof": "Web structure and visual styling",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.5,
+          "span": 2
         }
       ],
       "Artificial Intelligence": [
         {
-          "title": "Machine Learning",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.85,
-          "span": 1
-        },
-        {
           "title": "Deep Learning",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Designing and training neural network models",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.88,
+          "span": 2
+        },
+        {
+          "title": "Machine Learning",
+          "proof": "Classical algorithms and statistical modeling",
+          "source": "",
           "icon": ["", ""],
           "level": 0.85,
+          "span": 2
+        },
+        {
+          "title": "Convolutional Networks",
+          "proof": "Image classification and feature extraction",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.9,
           "span": 1
         },
         {
-          "title": "Neural Networks",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Metric Learning",
+          "proof": "Similarity-based identity and embedding models",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.85,
+          "level": 0.82,
           "span": 1
         },
         {
-          "title": "Transformers",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Transformers & ViTs",
+          "proof": "Attention-based vision and sequence models",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
+          "level": 0.75,
+          "span": 1
+        },
+        {
+          "title": "Generative Models",
+          "proof": "GANs and diffusion model fundamentals",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.68,
           "span": 1
         }
       ],
       "Computer Vision": [
         {
-          "title": "Image Processing",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Face Detection & Analysis",
+          "proof": "Real-time multi-face localization and geometry",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.95,
+          "span": 2
+        },
+        {
+          "title": "Face Recognition",
+          "proof": "Identity verification using learned embeddings",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.9,
+          "span": 2
+        },
+        {
+          "title": "Anti-Spoofing (PAD)",
+          "proof": "Detecting presentation attacks and liveness",
+          "source": "",
           "icon": ["", ""],
           "level": 0.85,
+          "span": 2
+        },
+        {
+          "title": "Pose Estimation",
+          "proof": "Head orientation and body keypoint tracking",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.88,
+          "span": 2
+        },
+        {
+          "title": "Object Detection",
+          "proof": "Real-time localization and classification",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.88,
           "span": 1
         },
         {
-          "title": "Preprocessing & Augmentation",
-          "proof": "Proof",
+          "title": "Object Tracking",
+          "proof": "Temporal consistency across video frames",
           "source": "",
           "icon": ["", ""],
           "level": 0.85,
           "span": 1
         },
         {
-          "title": "CNNs",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Emotion Recognition",
+          "proof": "Facial expression classification from images",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.85,
+          "level": 0.82,
           "span": 1
         },
         {
-          "title": "ViTs",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Image Processing",
+          "proof": "Filtering, morphology, and spatial transforms",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.75,
+          "level": 0.9,
           "span": 1
         },
         {
-          "title": "Person Detection",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Data Augmentation",
+          "proof": "Building robust and generalized training sets",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.95,
-          "span": 1
+          "level": 0.88,
+          "span": 2
         },
         {
-          "title": "Object Tracking",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Segmentation",
+          "proof": "Semantic and instance-level pixel labeling",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.95,
-          "span": 1
-        },
-        {
-          "title": "Tracking & Segmentation",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.85,
-          "span": 1
+          "level": 0.78,
+          "span": 2
         }
       ],
-      "Frameworks": [
-        {
-          "title": "PyTorch",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.85,
-          "span": 1
-        },
-        {
-          "title": "TensorFlow",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.75,
-          "span": 1
-        },
-        {
-          "title": "Keras",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.75,
-          "span": 1
-        },
+      "Frameworks & Libraries": [
         {
           "title": "OpenCV",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Core toolkit for vision pipeline development",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.85,
-          "span": 1
+          "level": 0.92,
+          "span": 2
+        },
+        {
+          "title": "PyTorch",
+          "proof": "Model design, training, and experimentation",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.88,
+          "span": 2
         },
         {
           "title": "MediaPipe",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "On-device landmark and gesture solutions",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
+          "level": 0.9,
           "span": 1
         },
         {
-          "title": "YOLO",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "InsightFace",
+          "proof": "Production-grade face recognition models",
+          "source": "",
           "icon": ["", ""],
           "level": 0.85,
+          "span": 1
+        },
+        {
+          "title": "NumPy / SciPy",
+          "proof": "Numerical computing and signal processing",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.92,
           "span": 1
         },
         {
           "title": "Scikit-Learn",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Classical models and evaluation workflows",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
-        },
-        {
-          "title": "Scikit-Image",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.75,
+          "level": 0.82,
           "span": 1
         },
         {
           "title": "PyQt6",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Full-featured native desktop application development",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
+          "level": 0.9,
+          "span": 2
+        },
+        {
+          "title": "TensorFlow / Keras",
+          "proof": "High-level model building and export",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.72,
+          "span": 2
         }
       ],
-      "Edge Deployment": [
+      "Edge AI & Deployment": [
         {
           "title": "Raspberry Pi 5",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Embedded Linux deployment and integration",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
+          "level": 0.85,
+          "span": 2
         },
         {
           "title": "Hailo-8L NPU",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Hardware-accelerated neural network inference",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
+          "level": 0.82,
+          "span": 2
         },
         {
           "title": "ONNX Runtime",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Cross-platform and cross-framework inference",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
+          "level": 0.82,
+          "span": 2
+        },
+        {
+          "title": "Model Quantization",
+          "proof": "Reducing model size for edge deployment",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.78,
           "span": 1
         },
         {
-          "title": "Quantization",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Model Pruning",
+          "proof": "Removing redundant weights for efficiency",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
+          "level": 0.72,
           "span": 1
         },
         {
-          "title": "Pruning",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Hardware Prototyping",
+          "proof": "Physical enclosures and embedded peripheral setup",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.75,
-          "span": 1
-        },
-        {
-          "title": "Prototyping",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
+          "level": 0.72,
+          "span": 2
         }
       ],
-      "Application Development": [
+      "Tools & Environment": [
         {
-          "title": "Desktop GUI",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Git & GitHub",
+          "proof": "Version control and collaborative development",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
-          "span": 1
-        },
-        {
-          "title": "SQLite",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.75,
-          "span": 1
-        }
-      ],
-      "Tools": [
-        {
-          "title": "Git",
-          "proof": "Proof",
-          "source": "Source",
-          "icon": ["", ""],
-          "level": 0.85,
-          "span": 1
+          "level": 0.88,
+          "span": 2
         },
         {
           "title": "Linux",
-          "proof": "Proof",
-          "source": "Source",
+          "proof": "Primary development and deployment environment",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.8,
+          "level": 0.82,
+          "span": 2
+        },
+        {
+          "title": "Google Colab",
+          "proof": "Cloud GPU training and experimentation",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.88,
+          "span": 2
+        },
+        {
+          "title": "SQLite",
+          "proof": "Lightweight embedded relational database",
+          "source": "",
+          "icon": ["", ""],
+          "level": 0.75,
           "span": 1
         },
         {
-          "title": "Colab",
-          "proof": "Proof",
-          "source": "Source",
+          "title": "Docker",
+          "proof": "Containerized and reproducible environments",
+          "source": "",
           "icon": ["", ""],
-          "level": 0.85,
+          "level": 0.6,
           "span": 1
         }
       ]
