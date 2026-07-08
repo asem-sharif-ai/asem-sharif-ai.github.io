@@ -9,14 +9,11 @@
   "timezone": "Africa/Cairo",
 
   "documents": {
-    "resume": {"title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf"},
-    "cv":     {"title": "CV",     "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf"}
+    "resume": { "title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "cv":     { "title": "CV",     "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
   },
 
-  "qr_code": {
-    "title": "Asem E. Sharif - Portfolio",
-    "url": "https://asem-sharif-ai.github.io"
-  },
+  "qr_code": { "title": "Asem E. Sharif - Portfolio", "url": "https://asem-sharif-ai.github.io" },
 
   "assistant": {
     "name":"Twin",
@@ -24,9 +21,8 @@
     "icon": ["./Data/Icons/chat_dark.png", "./Data/Icons/chat_light.png"],
     "endpoint": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
     "initial": [
-      "Hello there! I'm Twin, Asem's digital assistant, and here to give you an inside look at his portfolio",
-      "Ask me anything about his specialized deep-tech projects, core skillsets, or system architectural approach.",
-      "What can I uncover for you today?"
+      "Hello there! I'm Twin, Asem's digital assistant, and here to give you an inside look at his portfolio.",
+      "Ask me anything about his projects, skillsets, or system architectural approach. What can I uncover for you today?"
     ],
     "motivation": [
       "Use the frist name only, 'Asem' when referring to me (the admin), arabic is 'عاصم'"
@@ -35,35 +31,27 @@
 
   "socials": [
     [
-      { "site": "facebook",  "url": "https://www.facebook.com/notasem.fb" },
-      { "site": "instagram", "url": "https://www.instagram.com/_notasem_" },
-      { "site": "twitter",   "url": "https://x.com/_notasem_" },
-      { "site": "youtube",   "_url": "https://www.youtube.com/@AsemSharif-AI" }
-    ],
-    [
-      { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" },
-      { "site": "whatsapp", "url": "https://wa.me/+201010057162" },
-      { "site": "telegram", "url": "https://t.me/notasem" },
-      { "site": "discord",  "_url": "https://discord.com/users/asem.sharif.ai" }
-    ],
-    [
       { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "medium",   "url": "https://medium.com/@asem-sharif-ai" }
+      { "site": "medium",  "url": "https://medium.com/@asem-sharif-ai" }
     ],
     [
       { "site": "github",      "url": "https://github.com/asem-sharif-ai" },
       { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" },
       { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" }
+    ],
+    [
+      { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" },
+      { "site": "telegram", "url": "https://t.me/notasem" }
     ]
   ],
 
   "sections": [
     [
-      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "summary": "", "size": 2 }
+      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "summary": "" }
     ],
     [
-      { "key": "", "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "summary": "", "size": 2 },
-      { "key": "", "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "summary": "", "size": 1 }
+      { "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "summary": "", "size": 2 },
+      { "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "summary": "", "size": 1 }
     ]
   ],
 
@@ -105,7 +93,7 @@
       "gallery": [],
       "summary": [
         "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
-        "Designed small applied exercises to successfully bridge theory and practice."
+        "Designed applied exercises to successfully bridge theory and practice."
       ]
     }
   ],
@@ -590,6 +578,21 @@
         }
       ]
     }
+  },
+
+  "form": {
+    "key": "Connect",
+    "icon": "connect",
+    "title": "Let's Connect",
+    "headers": [
+      "Hiring / Job Proposal",
+      "Open Source Collaboration",
+      "Bug Report / Issue",
+      "General Questions",
+      "Just Saying Hi!"
+    ],
+    "others": [ { "icon": "mailto", "title": "asem.sharif.ai@gmail.com"} ],
+    "endpoint": "https://minimal-portfolio-mail.asem-sharif-ai.workers.dev"
   },
 
   "hub": {

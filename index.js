@@ -62,6 +62,253 @@ function buildCard(section, cardId) {
   return card;
 }
 
+function buildForm(section, cardId) {
+  const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId });
+
+  const formId = `mail-form-${cardId}`;
+  const collapseId = `card-collapse-${cardId}`;
+  const submitId = `submit-${cardId}`;
+  const clearId = `clear-${cardId}`;
+  const nameId = `name-${cardId}`;
+  const roleId = `role-${cardId}`;
+  const contactId = `contact-${cardId}`;
+  const headerId = `header-input-${cardId}`;
+  const suggestionsId = `suggestions-${cardId}`;
+  const messageId = `message-${cardId}`;
+  const contactDetailId = `contact-detail-${cardId}`;
+
+  const allowedHeaders = Array.isArray(section.headers) ? section.headers : ['General Inquiry', 'Feedback'];
+
+  const othersHTML = Array.isArray(section.others) ? section.others.map(item => {
+    const iconValue = iconMap[item.icon] || iconMap.default || 'fa-solid fa-link';
+    const iconHTML = iconValue.startsWith('iconify:') 
+      ? `<iconify-icon icon="${iconValue.replace('iconify:', '')}"></iconify-icon>` 
+      : `<i class="${iconValue}"></i>`;
+    return `<span class="form-label form-other-raw">${iconHTML} ${item.title}</span>`;
+  }).join('') : '';
+
+  card.innerHTML = `
+    <div class='card-header' id='header-${cardId}'>
+      <div class='card-title'>${section.title || 'Get In Touch'}</div>
+      <div class='card-btns'>
+        <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+      </div>
+    </div>
+    <div class='card-collapse' id='${collapseId}'>
+      <div class='card-body'>
+        <form class='mail-form' id='${formId}' novalidate>
+          <div class='form-row-top'>
+            <div class='form-group'>
+              <label class='form-label' for='${nameId}'>Name</label>
+              <input class='form-input' type='text' id='${nameId}' name='name' autocomplete='name' required />
+            </div>
+            <div class='form-group'>
+              <label class='form-label' for='${roleId}'>Role <span class='post-detail'>optional</span></label>
+              <input class='form-input' type='text' id='${roleId}' name='role' />
+            </div>
+            <div class='form-group'>
+              <label class='form-label' for='${contactId}'>Reach Back At <span class='post-detail' id='${contactDetailId}'></span></label>
+              <input class='form-input' type='text' id='${contactId}' name='contact' autocomplete='off' required />
+            </div>
+          </div>
+          <div class='form-row-full'>
+            <div class='form-group autocomplete-wrapper'>
+              <label class='form-label' for='${headerId}'>Header</label>
+              <input class='form-input' type='text' id='${headerId}' name='header' autocomplete='off' required />
+              <div class='autocomplete-suggestions' id='${suggestionsId}'></div>
+            </div>
+          </div>
+          <div class='form-group'>
+            <label class='form-label' for='${messageId}'>Message</label>
+            <textarea class='form-input form-textarea' id='${messageId}' name='message' rows='4' required></textarea>
+          </div>
+          <div class='form-footer'>
+            <div class='form-others-container'>${othersHTML}</div>
+            <div class='form-actions-wrapper'>
+              <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-trash' style='margin: 0; padding-top: 2px;'></i></button>
+              <button class='action-btn' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, collapseId));
+
+  const form = card.querySelector(`#${formId}`);
+  const submitBtn = form.querySelector(`#${submitId}`);
+  const clearBtn = form.querySelector(`#${clearId}`);
+  const nameInput = form.querySelector(`#${nameId}`);
+  const roleInput = form.querySelector(`#${roleId}`);
+  const contactInput = form.querySelector(`#${contactId}`);
+  const contactDetail = form.querySelector(`#${contactDetailId}`);
+  const headerInput = form.querySelector(`#${headerId}`);
+  const suggestionsBox = form.querySelector(`#${suggestionsId}`);
+  const messageInput = form.querySelector(`#${messageId}`);
+
+  form.addEventListener('click', (e) => e.stopPropagation());
+
+  const inputs = [nameInput, roleInput, contactInput, headerInput, messageInput];
+
+  const triggerContactDetailDetection = (value) => {
+    if (!value) { contactDetail.textContent = ''; return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^(\+?\d{1,4}[\s-]?)?(\(?\d{2,4}\)?[\s-]?)?[\d\s-]{5,15}$/;
+    const urlRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+
+    if (emailRegex.test(value)) contactDetail.textContent = '(email)';
+    else if (phoneRegex.test(value)) contactDetail.textContent = '(phone)';
+    else if (urlRegex.test(value)) contactDetail.textContent = '(url)';
+    else contactDetail.textContent = '(other)';
+  };
+
+  const saveFormState = () => {
+    const state = {
+      name: nameInput.value,
+      role: roleInput.value,
+      contact: contactInput.value,
+      header: headerInput.value,
+      message: messageInput.value
+    };
+    localStorage.setItem(addresses.mailFormData, JSON.stringify(state));
+  };
+
+  const loadFormState = () => {
+    try {
+      const savedState = localStorage.getItem(addresses.mailFormData);
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        if (state.name !== undefined) nameInput.value = state.name;
+        if (state.role !== undefined) roleInput.value = state.role;
+        if (state.contact !== undefined) {
+          contactInput.value = state.contact;
+          triggerContactDetailDetection(state.contact.trim());
+        }
+        if (state.header !== undefined) headerInput.value = state.header;
+        if (state.message !== undefined) messageInput.value = state.message;
+      }
+    } catch (err) {
+      console.error('Failed to load form state from memory:', err);
+    }
+  };
+
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      input.classList.remove('error-glow');
+      saveFormState();
+    });
+  });
+
+  loadFormState();
+  clearBtn.addEventListener('click', () => {
+    form.reset();
+    localStorage.removeItem(addresses.mailFormData);
+    contactDetail.textContent = '';
+    suggestionsBox.classList.remove('show');
+    inputs.forEach(input => input.classList.remove('error-glow'));
+  });
+
+  headerInput.addEventListener('input', (e) => {
+    const value = e.target.value.trim().toLowerCase();
+    suggestionsBox.innerHTML = ''; 
+
+    if (!value) {
+      suggestionsBox.classList.remove('show');
+      return;
+    }
+
+    const matches = allowedHeaders.filter(header => header.toLowerCase().includes(value));
+
+    if (matches.length === 0) {
+      suggestionsBox.classList.remove('show');
+      return;
+    }
+
+    matches.forEach(match => {
+      const item = document.createElement('div');
+      item.className = 'suggestion-item';
+      item.textContent = match;
+      
+      item.addEventListener('click', () => {
+        headerInput.value = match;
+        headerInput.classList.remove('error-glow');
+        suggestionsBox.classList.remove('show');
+        saveFormState();
+      });
+
+      suggestionsBox.appendChild(item);
+    });
+
+    suggestionsBox.classList.add('show');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!headerInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+      suggestionsBox.classList.remove('show');
+    }
+  });
+
+  contactInput.addEventListener('input', (e) => {
+    triggerContactDetailDetection(e.target.value.trim());
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const detectedMethod = contactDetail.textContent.replace(/[()]/g, '') || 'other';
+
+    submitBtn.classList.remove('btn-success-glow', 'btn-fail-glow');
+    inputs.forEach(input => input.classList.remove('error-glow'));
+
+    let hasError = false;
+    if (!nameInput.value.trim()) { nameInput.classList.add('error-glow'); hasError = true; }
+    if (!contactInput.value.trim()) { contactInput.classList.add('error-glow'); hasError = true; }
+    if (!headerInput.value.trim()) { headerInput.classList.add('error-glow'); hasError = true; }
+    if (!messageInput.value.trim()) { messageInput.classList.add('error-glow'); hasError = true; }
+
+    if (hasError) {
+      submitBtn.classList.add('btn-fail-glow');
+      setTimeout(() => submitBtn.classList.remove('btn-fail-glow'), 3000);
+      return;
+    }
+
+    const payload = {
+      name: nameInput.value.trim(),
+      role: roleInput.value.trim(),
+      method: detectedMethod,
+      contact: contactInput.value.trim(),
+      header: headerInput.value.trim(),
+      message: messageInput.value.trim(),
+      section: section.title || 'Contact',
+    };
+
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(section.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
+      submitBtn.classList.add('btn-success-glow');
+      form.reset();
+      localStorage.removeItem(addresses.mailFormData);
+      contactDetail.textContent = '';
+      suggestionsBox.classList.remove('show');
+    } catch (err) {
+      submitBtn.classList.add('btn-fail-glow');
+    } finally {
+      submitBtn.disabled = false;
+      setTimeout(() => submitBtn.classList.remove('btn-success-glow', 'btn-fail-glow'), 3000);
+    }
+  });
+
+  return card;
+}
+
 function highlightCard(cardId) {
   document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
   if (cardId !== 'home-hero') {
@@ -152,7 +399,7 @@ async function runProfileApp() {
     const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
 
-    createDocsPanel(data.documents)
+    createDocsPanel(data.documents);
     let theme = applyBaseSetup(data, '', ['assistant', 'qr_code']);
 
     if (data.symbol) {
@@ -283,8 +530,32 @@ async function runProfileApp() {
         spyTargets.push({ id: rowId, navIds: rowNavIds });
         sectionsContainer.appendChild(wrapper);
       });
-    } else {
-      sectionsContainer.remove()
+    }
+
+    if (data.form && sectionsContainer) {
+      const formCardId = data.form.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
+      const formRowId = `row-${formCardId}`;
+
+      const formRow = document.createElement('div');
+      formRow.id = formRowId;
+      formRow.appendChild(buildForm(data.form, formCardId));
+      sectionsContainer.appendChild(formRow);
+
+      spyTargets.push({ id: formRowId, navIds: [`nav-${formCardId}`] });
+
+      if (data.form.key && navItems) {
+        const formIcon = sectionMap[data.form.icon?.toLowerCase()] ?? sectionMap['default'];
+        const navBtn = document.createElement('a');
+        navBtn.id = `nav-${formCardId}`;
+        navBtn.className = 'home-nav-file';
+        navBtn.innerHTML = `<i class='${formIcon}'></i><span class='nav-label'> ${data.form.key}</span>`;
+        navBtn.onclick = () => jumpToCard(formRowId, formCardId);
+        navItems.appendChild(navBtn);
+      }
+    }
+
+    if (!Array.isArray(data.sections) && !data.form && sectionsContainer) {
+      sectionsContainer.remove();
     }
 
     const allowedKeys = {
@@ -305,6 +576,35 @@ async function runProfileApp() {
         btn.href = allowedKeys[key];
         navItems.appendChild(btn);
       });
+    }
+
+    if (navItems) {
+      const fileOrder = Object.keys(data);
+      const formCardId = data.form?.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
+
+      const getOrderIndex = (element) => {
+        const id = element.id;
+        if (id === 'nav-home') return -1;
+        
+        if (id === `nav-${formCardId}`) {
+          return fileOrder.indexOf('form');
+        }
+        
+        if (element.className === 'home-nav-file') {
+          return fileOrder.indexOf('sections');
+        }
+        
+        const cleanKey = id.replace('nav-', '');
+        if (fileOrder.includes(cleanKey)) {
+          return fileOrder.indexOf(cleanKey);
+        }
+        
+        return 999;
+      };
+
+      const sortedButtons = Array.from(navItems.children);
+      sortedButtons.sort((a, b) => getOrderIndex(a) - getOrderIndex(b));
+      sortedButtons.forEach(btn => navItems.appendChild(btn));
     }
 
     observeCards();

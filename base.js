@@ -16,6 +16,7 @@ const sectionMap = {
   about:        'fa-solid fa-address-card',
   resume:       'fa-solid fa-file-pdf',
   contact:      'fa-solid fa-envelope',
+  connect:      'fa-solid fa-circle-nodes',
 
   experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
@@ -81,6 +82,7 @@ function _address(key) {
 const addresses = {
   userTheme:           _address('user-theme'),
   chatHistory:         _address('chat-history'),
+  mailFormData:        _address('mail-form-data'),
   projectsActiveTopic: _address('projects-active-topics'),
   projectsSearchQuery: _address('projects-search-query'),
   projectsStarredOnly: _address('projects-starred-only'),

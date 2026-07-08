@@ -297,11 +297,24 @@ function buildLatestHero(latest) {
   }
 
   if (latest.url) {
-    const btn = document.getElementById('visit-latest-btn');
-    btn.style.display = '';
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.addEventListener('click', () => window.open(latest.url, '_blank', 'noopener noreferrer'));
+      const btn = document.getElementById('visit-latest-btn');
+      btn.style.display = '';
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', () => {
+        const searchInput = document.getElementById('project-search-input');
+        if (searchInput && latest.title) {
+          const cleanTitle = latest.title.trim();
+          _searchQuery = cleanTitle;
+          searchInput.value = cleanTitle;
+          
+          _saveFilterState();
+          updateLatestVisibility();
+          renderProjectsGrid(_allProjects);
+        }
+      }
+    );
   }
 
   const starUI = document.getElementById('latest-star');
@@ -534,13 +547,21 @@ function setContentSlider(container, contents, prevBtn, nextBtn, counter) {
   if (prevBtn) {
     prevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (currentIndex > 0) { currentIndex--; updateSlider('prev'); }
+      if (_animating) return; 
+      if (currentIndex > 0) { 
+        currentIndex--; 
+        updateSlider('prev'); 
+      }
     });
   }
   if (nextBtn) {
     nextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (currentIndex < contents.length - 1) { currentIndex++; updateSlider('next'); }
+      if (_animating) return; 
+      if (currentIndex < contents.length - 1) { 
+        currentIndex++; 
+        updateSlider('next'); 
+      }
     });
   }
 
