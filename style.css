@@ -1157,6 +1157,7 @@ body {
   line-height: 1.2;
   max-width: 480px;
   margin: 12px 0px;
+  line-height: 1.35;
 }
 
 .socials {
@@ -1175,11 +1176,12 @@ body {
   justify-content: center;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.3s ease;
 }
 
 .socials a:hover, .socials .socials-more:hover { color: var(--text-bright); }
-.socials a i, .socials a iconify-icon { font-size: 1.65rem; display: inline-block; line-height: 1; }
+.socials a i, .socials a iconify-icon { font-size: 1.55rem; display: inline-block; line-height: 1; }
+#socials-list { font-size: 1.4rem; }
 
 .socials-more { position: relative; }
 .socials-more-panel {
@@ -1210,12 +1212,11 @@ body {
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-#socials-list,
 .socials-more-panel a,
 .socials-more-panel a i,
 .socials-more-panel a iconify-icon {
   cursor: pointer !important;
-  font-size: 1.4rem !important;
+  font-size: 1.45rem !important;
 }
 
 .separator {
