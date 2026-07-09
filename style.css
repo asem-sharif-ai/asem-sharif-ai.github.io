@@ -1276,13 +1276,7 @@ body {
   border: 1px solid var(--border-color);
 }
 
-#latest-hero {
-  margin-bottom: -90px !important;
-}
-
-#latest-hero-card {
-  margin-top: 60px;
-}
+#latest-hero-card { margin-top: 60px; }
 
 .latest-meta {
   align-items: center;
@@ -1317,17 +1311,16 @@ body {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  .hero-left {
-    align-items: center;
-  }
+
+  .hero-left { align-items: center; }
+
   .hero-left .socials {
     justify-content: center;
     margin-left: 20px;
     margin-right: 20px;
   }
-  .hero-right {
-    display: none;
-  }
+
+  .hero-right { display: none; }
 
   #user-role {
     align-items: center;
@@ -1340,6 +1333,8 @@ body {
   .separator {
     display: none;
   }
+  
+  #latest-hero-card { margin-top: 0px !important; }
 }
 
 /* ---------- ---------- [CONTAINERS] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
