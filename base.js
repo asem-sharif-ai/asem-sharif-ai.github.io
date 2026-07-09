@@ -487,7 +487,7 @@ function initChatAssistant(configData) {
 
 function createQRCodeModal(qrData) {
   const qrBtn = document.createElement('button');
-  qrBtn.title = `${qrData.title} - QRCode`
+  qrBtn.title = `Scan QRCode`
   qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
   qrBtn.id = 'qr-trigger';
   qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;

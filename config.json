@@ -5,10 +5,23 @@
 
   "symbol": ">_",
   "name": "Asem E. Sharif",
-  "picture": "./Data/Me.jpg",
-  "role": ["AI & Computer Vision Engineer", "Qt Developer"],
+  "role": ["AI & Computer Vision Engineer", "PyQt Developer"],
+  "bio": "Building AI-powered vision systems and polished desktop tools — where computer vision meets clean engineering.",
   "location": "Cairo, Egypt.",
   "timezone": "Africa/Cairo",
+  "status": {
+    "daily": [
+      { "from": "06:00", "to": "12:00", "label": "Open For Business" },
+      { "from": "12:00", "to": "18:00", "label": "Currently Working", "busy": true },
+      { "from": "18:00", "to": "22:00", "label": "Available Now" },
+      { "from": "22:00", "to": "01:00", "label": "It's Late Night", "away": true },
+      { "from": "01:00", "to": "06:00", "label": "Back By Morning", "away": true }
+    ],
+    "except": {
+      "friday": "Weekend"
+    }
+  },
+  "picture": ["./Data/Me.jpg", "./Data/Me-Light.jpg"],
 
   "documents": {
     "resume": { "title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
@@ -31,21 +44,27 @@
     ]
   },
 
-  "socials": [
-    [
-      { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
-      { "site": "medium",  "url": "https://medium.com/@asem-sharif-ai" }
+  "socials": {
+    "main": [
+      [
+        { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
+        { "site": "github", "url": "https://github.com/asem-sharif-ai" },
+        { "site": "medium",  "url": "https://medium.com/@asem-sharif-ai" },
+        { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" },
+        { "site": "telegram", "url": "https://t.me/notasem" }
+      ]
     ],
-    [
-      { "site": "github",      "url": "https://github.com/asem-sharif-ai" },
+    "more": [
+      { "site": "facebook",    "url": "https://www.facebook.com/notasem.fb" },
+      { "site": "instagram",   "url": "https://www.instagram.com/_notasem_" },
+      { "site": "twitter",     "url": "https://x.com/_notasem_" },
+      { "site": "youtube",     "url": "https://www.youtube.com/@AsemSharif-AI" },
+      { "site": "whatsapp",    "url": "https://wa.me/+201010057162" },
+      { "site": "discord",     "url": "https://discord.com/users/asem.sharif.ai" },
       { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" },
       { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" }
-    ],
-    [
-      { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" },
-      { "site": "telegram", "url": "https://t.me/notasem" }
     ]
-  ],
+  },
 
   "sections": [
     [

@@ -15,7 +15,7 @@ function buildCard(section, cardId) {
     <div class='card-header' id='header-${cardId}'>
       <div class='card-title'>${section.title}</div>
       <div class='card-btns'>
-        <button class='btn' id='${copyId}'><i class="${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}"></i></button>
+        <button class='btn' id='${copyId}'><i class='${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}'></i></button>
         <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
         <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
@@ -62,6 +62,61 @@ function buildCard(section, cardId) {
   return card;
 }
 
+function highlightCard(cardId) {
+  document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
+  if (cardId !== 'home-hero') {
+    const target = document.getElementById(cardId);
+    if (target) {
+      target.classList.add('focus');
+      const collapse = target.querySelector('.card-collapse');
+      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
+    }
+  }
+}
+
+function copyCardText(cardId) {
+  const card = document.getElementById(cardId);
+  const scrollArea = card.querySelector('.scroll-area');
+  navigator.clipboard.writeText(scrollArea.innerText).then(() => { showSuccessFeedback(`copy-${cardId}`) }).catch(err => console.error('Copy Failed: ', err));
+}
+
+function downloadCardMedia(cardId) {
+  const card = document.getElementById(cardId);
+  const scrollArea = card.querySelector('.scroll-area');
+  const image = scrollArea.querySelector('img');
+  const video = scrollArea.querySelector('video source, video');
+  
+  let url = null;
+  if (image) url = image.src;
+  else if (video) url = video.src || video.querySelector('source')?.src;
+  if (!url) return;
+
+  const filename = url.split('/').pop().split('?')[0] || 'download';
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.target = '_blank';
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+
+  showSuccessFeedback(`copy-${cardId}`)
+}
+
+function jumpToCard(targetId, targetCardId) {
+  const cardId = targetCardId || targetId;
+  const target = document.getElementById(cardId);
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth' });
+  if (targetCardId) highlightCard(targetCardId);
+}
+
+function makeCardId(rowIndex, colIndex, title) {
+  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
+}
+
+// ───── Form Setup ────────────────────────────────────────
+
 function buildForm(section, cardId) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId });
 
@@ -82,9 +137,9 @@ function buildForm(section, cardId) {
   const othersHTML = Array.isArray(section.others) ? section.others.map(item => {
     const iconValue = iconMap[item.icon] || iconMap.default || 'fa-solid fa-link';
     const iconHTML = iconValue.startsWith('iconify:') 
-      ? `<iconify-icon icon="${iconValue.replace('iconify:', '')}"></iconify-icon>` 
-      : `<i class="${iconValue}"></i>`;
-    return `<span class="form-label form-other-raw">${iconHTML} ${item.title}</span>`;
+      ? `<iconify-icon icon='${iconValue.replace('iconify:', '')}'></iconify-icon>` 
+      : `<i class='${iconValue}'></i>`;
+    return `<span class='form-label form-other-raw'>${iconHTML} ${item.title}</span>`;
   }).join('') : '';
 
   card.innerHTML = `
@@ -309,59 +364,260 @@ function buildForm(section, cardId) {
   return card;
 }
 
-function highlightCard(cardId) {
-  document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
-  if (cardId !== 'home-hero') {
-    const target = document.getElementById(cardId);
-    if (target) {
-      target.classList.add('focus');
-      const collapse = target.querySelector('.card-collapse');
-      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
+// ───── Hero Setup ────────────────────────────────────────
+
+function buildHero(data, getTheme, setTheme) {
+  const currentTheme = getTheme();
+
+  if (data.symbol) {
+    const logoContainer = document.querySelector('.hero-logo');
+    if (logoContainer) {
+      logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
+      logoContainer.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-mode');
+        const theme = isLight ? 'light' : 'dark';
+        setTheme(theme);
+        localStorage.setItem(addresses.userTheme, theme);
+        
+        const heroPicture = document.querySelector('.hero-picture');
+        if (heroPicture && data.picture) {
+          let resolvedPic = '';
+          if (Array.isArray(data.picture)) {
+            const [dark, light] = data.picture;
+            resolvedPic = (theme === 'light' ? light : dark) || dark || light || '';
+          } else if (data.picture && typeof data.picture === 'object') {
+            resolvedPic = (theme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
+          } else {
+            resolvedPic = data.picture || '';
+          }
+          heroPicture.src = resolvedPic;
+        }
+      });
+    }
+  }
+
+  const userName = document.getElementById('user-name');
+  if (userName) userName.innerText = data.name || 'Anonymous';
+  if (document.getElementById('user-role')) renderRoles('user-role', data.role || '');
+
+  const userLocation = document.getElementById('user-location');
+  if (userLocation) {
+    if (!data.location) {
+      userLocation.remove();
+    } else {
+      let timezoneUI = '';
+      if (data.timezone) {
+        if (data.timezone.includes('/')) {
+          try {
+            const formatter = new Intl.DateTimeFormat('en-US', { timeZone: data.timezone, timeZoneName: 'shortOffset' });
+            const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
+            if (offsetPart) timezoneUI = offsetPart.value.replace('GMT', 'UTC');
+          } catch (e) {}
+        } else if (data.timezone.includes('+') || data.timezone.includes('-')) {
+          timezoneUI = data.timezone;
+        }
+      }
+
+      const timeToMinutes = (str) => { const [h, m] = str.split(':').map(Number); return h * 60 + m; };
+
+      const getLocalMinutes = (timezone) => {
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        const parts = formatter.formatToParts(new Date());
+        const h = Number(parts.find(p => p.type === 'hour').value);
+        const m = Number(parts.find(p => p.type === 'minute').value);
+        return (h % 24) * 60 + m;
+      };
+
+      const getCurrentStatus = (status, timezone) => {
+        if (!status || !timezone) return { label: '', cls: '' };
+
+        let dayName;
+        try { dayName = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'long' }).format(new Date()).toLowerCase(); } catch (e) { dayName = ''; }
+        if (status.except && dayName && status.except[dayName]) {
+          return { label: status.except[dayName], cls: 'is-away' };
+        }
+
+        if (!status.daily) return { label: '', cls: '' };
+        let nowMin;
+        try { nowMin = getLocalMinutes(timezone); } catch (e) { return { label: '', cls: '' }; }
+        for (const entry of status.daily) {
+          const start = timeToMinutes(entry.from);
+          const end = timeToMinutes(entry.to);
+          const inRange = start <= end ? (nowMin >= start && nowMin < end) : (nowMin >= start || nowMin < end);
+          if (inRange) return { label: entry.label, cls: entry.busy ? 'is-busy' : entry.away ? 'is-away' : '' };
+        }
+        return { label: '', cls: '' };
+      };
+
+      const getCurrentClock = () => {
+        try {
+          return new Intl.DateTimeFormat('en-US', { timeZone: data.timezone, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date());
+        } catch (e) {
+          return '';
+        }
+      };
+
+      userLocation.innerHTML = `${data.location}
+        ${timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : ''}
+        ${data.timezone ? `<span class='post-detail' id='clock'></span>` : ''}
+        ${data.status && data.timezone ? `<span class='post-detail' id='status'></span>` : ''}
+      `;
+
+      if (data.timezone) {
+        const tick = () => {
+          const clockEl = document.getElementById('clock');
+          clockEl.innerText = getCurrentClock();
+          clockEl.classList.toggle('is-day', (() => { try { const m = getLocalMinutes(data.timezone); return (m >= 360 && m < 1080); } catch (e) { return false; } })());
+
+          const statusEl = document.getElementById('status');
+          if (statusEl) {
+            const { label, cls } = getCurrentStatus(data.status, data.timezone);
+            statusEl.innerText = label;
+            statusEl.className = 'post-detail' + (cls ? ' ' + cls : '');
+          }
+        };
+
+        tick();
+        setInterval(tick, 1000 * 30);
+      }
+    }
+  }
+
+  const userBio = document.getElementById('user-bio');
+  if (userBio && data.bio) userBio.innerHTML = data.bio
+  else if (userBio) userBio.remove()
+
+  const socialIcons = document.getElementById('social-icons');
+  if (data.socials && socialIcons) {
+    const mainGroups = Array.isArray(data.socials.main) ? data.socials.main : [];
+    const more = Array.isArray(data.socials.more) ? data.socials.more : [];
+
+    const makeIcon = (site) => {
+      const iconValue = iconMap[site] || iconMap.default;
+      if (iconValue.startsWith('iconify:')) {
+        const icon = document.createElement('iconify-icon');
+        icon.setAttribute('icon', iconValue.replace('iconify:', ''));
+        return icon;
+      }
+      const icon = document.createElement('i');
+      icon.className = iconValue;
+      return icon;
+    };
+
+    const makeAnchor = (link) => {
+      const anchor = document.createElement('a');
+      anchor.href = link.url;
+      if (link.url.startsWith('http')) {
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+      }
+      anchor.appendChild(makeIcon(link.site));
+      return anchor;
+    };
+
+    mainGroups.forEach((group, groupIndex) => {
+      if (!Array.isArray(group)) return;
+      group.forEach(link => {
+        if (!link.url || !link.site) return;
+        socialIcons.appendChild(makeAnchor(link));
+      });
+
+      if (groupIndex < mainGroups.length - 1 || more.length) {
+        socialIcons.appendChild(makeSeparator());
+      }
+    });
+
+    if (more.length) {
+      const toggle = document.createElement('span');
+      toggle.className = 'socials-more';
+      toggle.setAttribute('role', 'button');
+      toggle.setAttribute('tabindex', '0');
+
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid fa-list';
+      icon.id = 'socials-list';
+      toggle.appendChild(icon);
+
+      const panel = document.createElement('div');
+      panel.className = 'socials-more-panel';
+      more.forEach(link => {
+        if (!link.url || !link.site) return;
+        panel.appendChild(makeAnchor(link));
+      });
+      toggle.appendChild(panel);
+
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggle.classList.toggle('is-open');
+      });
+
+      toggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle.classList.toggle('is-open');
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!toggle.contains(e.target)) toggle.classList.remove('is-open');
+      });
+
+      socialIcons.appendChild(toggle);
+    }
+  }
+
+  if (data.documents && Object.keys(data.documents).length > 0) {
+    let panel = document.getElementById('doc-panel');
+    if (panel) {
+      const entries = Object.entries(data.documents);
+      entries.forEach(([key, doc], i) => {
+        const btn = document.createElement('button');
+        btn.className = 'doc-trigger has-fast-glow';
+        btn.id = `doc-trigger-${key}`;
+        btn.dataset.index = i;
+        btn.dataset.total = entries.length;
+        btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+        btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
+        panel.appendChild(btn);
+      });
+    }
+  }
+
+  if (data.picture) {
+    const heroCard = document.querySelector('.hero-card');
+    if (heroCard) {
+      heroCard.classList.add('hero-split');
+
+      const heroLeft = document.createElement('div');
+      heroLeft.className = 'hero-left';
+      while (heroCard.firstChild) {
+        heroLeft.appendChild(heroCard.firstChild);
+      }
+
+      let initialPic = '';
+      if (Array.isArray(data.picture)) {
+        const [dark, light] = data.picture;
+        initialPic = (currentTheme === 'light' ? light : dark) || dark || light || '';
+      } else if (data.picture && typeof data.picture === 'object') {
+        initialPic = (currentTheme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
+      } else {
+        initialPic = data.picture || '';
+      }
+
+      const heroRight = document.createElement('div');
+      heroRight.className = 'hero-right';
+      heroRight.innerHTML = `<div class="hero-picture-wrapper"><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false /></div>`;
+
+      heroCard.appendChild(heroLeft);
+      heroCard.appendChild(heroRight);
     }
   }
 }
-
-function copyCardText(cardId) {
-  const card = document.getElementById(cardId);
-  const scrollArea = card.querySelector('.scroll-area');
-  navigator.clipboard.writeText(scrollArea.innerText).then(() => { showSuccessFeedback(`copy-${cardId}`) }).catch(err => console.error('Copy Failed: ', err));
-}
-
-function downloadCardMedia(cardId) {
-  const card = document.getElementById(cardId);
-  const scrollArea = card.querySelector('.scroll-area');
-  const image = scrollArea.querySelector('img');
-  const video = scrollArea.querySelector('video source, video');
-  
-  let url = null;
-  if (image) url = image.src;
-  else if (video) url = video.src || video.querySelector('source')?.src;
-  if (!url) return;
-
-  const filename = url.split('/').pop().split('?')[0] || 'download';
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.target = '_blank';
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-
-  showSuccessFeedback(`copy-${cardId}`)
-}
-
-function jumpToCard(targetId, targetCardId) {
-  const cardId = targetCardId || targetId;
-  const target = document.getElementById(cardId);
-  if (!target) return;
-  target.scrollIntoView({ behavior: 'smooth' });
-  if (targetCardId) highlightCard(targetCardId);
-}
-
-function makeCardId(rowIndex, colIndex, title) {
-  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
-}
-
 // ───── Scroll Spy ────────────────────────────────────────
 
 function runScrollSpy(spyTargets) {
@@ -388,24 +644,6 @@ function runScrollSpy(spyTargets) {
   }, { passive: true });
 }
 
-function createDocsPanel(documents) {
-  if (!documents || Object.keys(documents).length === 0) return;
-
-  let panel = document.getElementById('doc-panel');
-  const entries = Object.entries(documents);
-
-  entries.forEach(([key, doc], i) => {
-    const btn = document.createElement('button');
-    btn.className = 'doc-trigger has-fast-glow';
-    btn.id = `doc-trigger-${key}`;
-    btn.dataset.index = i;
-    btn.dataset.total = entries.length;
-    btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
-    btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
-    panel.appendChild(btn);
-  });
-}
-
 // ───── Profile App ────────────────────────────────────────
 
 async function runProfileApp() {
@@ -415,109 +653,10 @@ async function runProfileApp() {
 
     const navItems = document.getElementById('nav-items');
     const homeHero = document.getElementById('home-hero');
-    const userName = document.getElementById('user-name');
-    const userRole = document.getElementById('user-role');
-    const userLocation = document.getElementById('user-location');
-    const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
 
     let theme = applyBaseSetup(data, '', ['assistant', 'qr_code']);
-
-    if (data.symbol) {
-      const logoContainer = document.querySelector('.hero-logo');
-      if (logoContainer) {
-        logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
-        logoContainer.addEventListener('click', () => {
-          const isLight = document.body.classList.toggle('light-mode');
-          theme = isLight ? 'light' : 'dark';
-          localStorage.setItem(addresses.userTheme, theme);
-        });
-      }
-    }
-
-    if (userName) userName.innerText = data.name || 'Anonymous';
-    if (userRole) renderRoles('user-role', data.role || '');
-
-    if (userLocation) {
-      const location = data.location;
-      const timezone = data.timezone;
-
-      if (location) {
-        let timezoneUI = '';
-
-        if (timezone) {
-          if (timezone.includes('/')) {
-            try {
-              const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' });
-              const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
-              timezoneUI = offsetPart ? offsetPart.value.replace('GMT', 'UTC') : '';
-            } catch (e) {
-              timezoneUI = '';
-            }
-          } else if (timezone.includes('+') || timezone.includes('-')) {
-            timezoneUI = timezone;
-          }
-        }
-
-        userLocation.innerHTML = `${location}` + (timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : '');
-      } else {
-        userLocation.remove();
-      }
-    }
-
-    if (Array.isArray(data.socials) && socialIcons) {
-      data.socials.forEach((group, groupIndex) => {
-        if (!Array.isArray(group)) return;
-        group.forEach(link => {
-          if (!link.url || !link.site) return;
-
-          const anchor = document.createElement('a');
-          anchor.href = link.url;
-          if (link.url.startsWith('http')) {
-            anchor.target = '_blank';
-            anchor.rel = 'noopener noreferrer';
-          }
-
-          const iconValue = iconMap[link.site] || iconMap.default;
-
-          let icon;
-          if (iconValue.startsWith('iconify:')) {
-            icon = document.createElement('iconify-icon');
-            icon.setAttribute('icon', iconValue.replace('iconify:', ''));
-          } else {
-            icon = document.createElement('i');
-            icon.className = iconValue;
-          }
-
-          anchor.appendChild(icon);
-          socialIcons.appendChild(anchor);
-        });
-
-        if (groupIndex < data.socials.length - 1) {
-          socialIcons.appendChild(makeSeparator());
-        }
-      });
-    }
-
-    createDocsPanel(data.documents);
-
-    if (data.picture) {
-      const heroCard = document.querySelector('.hero-card');
-      if (heroCard) {
-        heroCard.classList.add('hero-split');
-
-        const heroLeft = document.createElement('div');
-        heroLeft.className = 'hero-left';
-        while (heroCard.firstChild) heroLeft.appendChild(heroCard.firstChild);
-
-        const heroRight = document.createElement('div');
-        heroRight.className = 'hero-right';
-        heroRight.innerHTML = `<img src='${data.picture}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false />`;
-
-        heroCard.appendChild(heroLeft);
-        heroCard.appendChild(heroRight);
-      }
-    }
+    buildHero(data, () => theme, (newTheme) => { theme = newTheme; });
 
     const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
     const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
