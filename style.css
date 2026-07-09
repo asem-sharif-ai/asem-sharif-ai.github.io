@@ -1388,9 +1388,9 @@ body {
   
   .hero-left {
     align-items: center;
-    margin-top: -90px;
     margin-left: -20px;
     margin-right: -20px;
+    padding-bottom: 160px;
   }
 
   .hero-left .socials {
