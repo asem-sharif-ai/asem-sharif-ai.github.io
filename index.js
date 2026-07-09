@@ -419,7 +419,6 @@ function buildHero(data, getTheme, setTheme) {
       }
 
       const timeToMinutes = (str) => { const [h, m] = str.split(':').map(Number); return h * 60 + m; };
-
       const getLocalMinutes = (timezone) => {
         const formatter = new Intl.DateTimeFormat('en-US', {
           timeZone: timezone,

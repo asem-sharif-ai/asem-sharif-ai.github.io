@@ -21,7 +21,7 @@
       "friday": "Weekend"
     }
   },
-  "picture": ["./Data/Me.jpg", "./Data/Me-Light.jpg"],
+  "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
   "documents": {
     "resume": { "title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
