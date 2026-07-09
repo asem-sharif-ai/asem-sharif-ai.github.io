@@ -16,7 +16,7 @@ const sectionMap = {
   about:        'fa-solid fa-address-card',
   resume:       'fa-solid fa-file-pdf',
   contact:      'fa-solid fa-envelope',
-  connect:      'fa-solid fa-circle-nodes',
+  connect:      'fa-brands fa-nfc-symbol',
 
   experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
@@ -82,6 +82,7 @@ function _address(key) {
 const addresses = {
   userTheme:           _address('user-theme'),
   chatHistory:         _address('chat-history'),
+  indexScrollY:        _address('index-scroll-y'),
   mailFormData:        _address('mail-form-data'),
   projectsActiveTopic: _address('projects-active-topics'),
   projectsSearchQuery: _address('projects-search-query'),
@@ -521,24 +522,6 @@ function createQRCodeModal(qrData) {
   qrBtn.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
   modalOverlay.querySelector('.close-qr-modal').addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-}
-
-function createDocsPanel(documents) {
-  if (!documents || Object.keys(documents).length === 0) return;
-
-  let panel = document.getElementById('doc-panel');
-  const entries = Object.entries(documents);
-
-  entries.forEach(([key, doc], i) => {
-    const btn = document.createElement('button');
-    btn.className = 'doc-trigger has-fast-glow';
-    btn.id = `doc-trigger-${key}`;
-    btn.dataset.index = i;
-    btn.dataset.total = entries.length;
-    btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
-    btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
-    panel.appendChild(btn);
-  });
 }
 
 // ───── UI Utils ────────────────────────────────────────

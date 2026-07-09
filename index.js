@@ -382,6 +382,28 @@ function runScrollSpy(spyTargets) {
       });
     });
   });
+
+  window.addEventListener('scroll', () => {
+    sessionStorage.setItem(addresses.indexScrollY, window.scrollY);
+  }, { passive: true });
+}
+
+function createDocsPanel(documents) {
+  if (!documents || Object.keys(documents).length === 0) return;
+
+  let panel = document.getElementById('doc-panel');
+  const entries = Object.entries(documents);
+
+  entries.forEach(([key, doc], i) => {
+    const btn = document.createElement('button');
+    btn.className = 'doc-trigger has-fast-glow';
+    btn.id = `doc-trigger-${key}`;
+    btn.dataset.index = i;
+    btn.dataset.total = entries.length;
+    btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+    btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
+    panel.appendChild(btn);
+  });
 }
 
 // ───── Profile App ────────────────────────────────────────
@@ -399,7 +421,6 @@ async function runProfileApp() {
     const socialIcons = document.getElementById('social-icons');
     const sectionsContainer = document.getElementById('sections-container');
 
-    createDocsPanel(data.documents);
     let theme = applyBaseSetup(data, '', ['assistant', 'qr_code']);
 
     if (data.symbol) {
@@ -478,6 +499,26 @@ async function runProfileApp() {
       });
     }
 
+    createDocsPanel(data.documents);
+
+    if (data.picture) {
+      const heroCard = document.querySelector('.hero-card');
+      if (heroCard) {
+        heroCard.classList.add('hero-split');
+
+        const heroLeft = document.createElement('div');
+        heroLeft.className = 'hero-left';
+        while (heroCard.firstChild) heroLeft.appendChild(heroCard.firstChild);
+
+        const heroRight = document.createElement('div');
+        heroRight.className = 'hero-right';
+        heroRight.innerHTML = `<img src='${data.picture}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false />`;
+
+        heroCard.appendChild(heroLeft);
+        heroCard.appendChild(heroRight);
+      }
+    }
+
     const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
     const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
 
@@ -530,6 +571,37 @@ async function runProfileApp() {
         spyTargets.push({ id: rowId, navIds: rowNavIds });
         sectionsContainer.appendChild(wrapper);
       });
+    }
+
+    // ───── Quick Links Row (icon + label columns, before Connect card) ─────
+    const quickLinksMap = {
+      education:  { label: 'Education',  href: './log.html?page=education' },
+      experience: { label: 'Experience', href: './log.html?page=experience' },
+      projects:   { label: 'Projects',   href: './projects.html' },
+      skills:     { label: 'Skills',     href: './log.html?page=skills' },
+    };
+
+    if (sectionsContainer) {
+      const quickLinksRow = document.createElement('div');
+      quickLinksRow.className = 'quick-links-row';
+      quickLinksRow.id = 'quick-links-row';
+
+      Object.keys(quickLinksMap).forEach(key => {
+        if (!(key in data)) return;
+        const { label, href } = quickLinksMap[key];
+        const icon = sectionMap[key] ?? sectionMap['default'];
+
+        const link = document.createElement('a');
+        link.className = 'quick-link-item';
+        link.href = href;
+        link.innerHTML = `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
+        quickLinksRow.appendChild(link);
+      });
+
+      if (quickLinksRow.children.length) {
+        quickLinksRow.style.setProperty('--col-count', quickLinksRow.children.length);
+        sectionsContainer.appendChild(quickLinksRow);
+      }
     }
 
     if (data.form && sectionsContainer) {
@@ -598,7 +670,7 @@ async function runProfileApp() {
         if (fileOrder.includes(cleanKey)) {
           return fileOrder.indexOf(cleanKey);
         }
-        
+
         return 999;
       };
 
@@ -623,5 +695,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);
     setTimeout(() => { jumpToCard(targetId, targetId); }, 150);
+  } else {
+    const savedY = sessionStorage.getItem(addresses.indexScrollY);
+    if (savedY !== null) requestAnimationFrame(() => window.scrollTo(0, parseInt(savedY, 10)));
   }
 });

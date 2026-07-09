@@ -1,9 +1,11 @@
 {
   "theme": null,
   "dark_mode": null,
-  "symbol": ">_",
   "icon": "./icon.png",
+
+  "symbol": ">_",
   "name": "Asem E. Sharif",
+  "picture": "./Data/Me.jpg",
   "role": ["AI & Computer Vision Engineer", "Qt Developer"],
   "location": "Cairo, Egypt.",
   "timezone": "Africa/Cairo",
