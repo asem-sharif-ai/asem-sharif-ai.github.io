@@ -573,7 +573,6 @@ async function runProfileApp() {
       });
     }
 
-    // ───── Quick Links Row (icon + label columns, before Connect card) ─────
     const quickLinksMap = {
       education:  { label: 'Education',  href: './log.html?page=education' },
       experience: { label: 'Experience', href: './log.html?page=experience' },
@@ -586,8 +585,12 @@ async function runProfileApp() {
       quickLinksRow.className = 'quick-links-row';
       quickLinksRow.id = 'quick-links-row';
 
-      Object.keys(quickLinksMap).forEach(key => {
-        if (!(key in data)) return;
+      const fileOrder = Object.keys(data);
+      const orderedQuickKeys = Object.keys(quickLinksMap)
+        .filter(key => key in data)
+        .sort((a, b) => fileOrder.indexOf(a) - fileOrder.indexOf(b));
+
+      orderedQuickKeys.forEach(key => {
         const { label, href } = quickLinksMap[key];
         const icon = sectionMap[key] ?? sectionMap['default'];
 

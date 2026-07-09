@@ -1269,8 +1269,7 @@ body {
 }
 
 .hero-picture {
-  width: 100%;
-  max-width: 360px;
+  height: calc(100vh - 160px);
   aspect-ratio: 2 / 2.5;
   object-fit: cover;
   border-radius: 20px;
@@ -3190,7 +3189,6 @@ body {
 
   .form-actions-wrapper {
     width: 100%;
-    margin-left: 20px;
     justify-content: space-around;
     gap: 20px;
   }

@@ -100,141 +100,6 @@
     }
   ],
 
-  "projects": {
-    "latest": {
-      "title": "Lynx DMS",
-      "subtitle": "Intelligent Edge-Deployed Driver Monitoring System",
-      "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
-      "url": "https://github.com/asem-sharif-ai/Lynx-DMS",
-      "summary": "",
-      "star": true
-    },
-
-    "content": [
-      [
-        {
-          "title": "Lynx DMS",
-          "content": [
-            "./Data/Files/Pro_0/lynx_dms.md",
-            "./Data/Files/Pro_0/image_1.png",
-            "./Data/Files/Pro_0/image_2.png",
-            "./Data/Files/Pro_0/image_3.png"
-          ],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
-          "summary": "",
-          "star": true,
-          "size": 2
-        },
-        {
-          "title": "DMD",
-          "content": [
-            "./Data/Files/Pro_1/dmd_dataset.md",
-            "./Data/Files/Pro_1/image_1.png",
-            "./Data/Files/Pro_1/image_2.png",
-            "./Data/Files/Pro_1/image_3.png",
-            "./Data/Files/Pro_1/image_4.png",
-            "./Data/Files/Pro_1/image_5.png"
-          ],
-          "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 1
-        }
-      ],
-      [
-        {
-          "title": "YTFetcherPlus",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": ["Python", "Desktop", "Tools", "PyQt6", "yt-dlp", "APIs"],
-          "summary": "",
-          "star": false,
-          "size": 3
-        },
-        {
-          "title": "Smart Note",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": ["Python", "Desktop", "Tools", "PyQt6"],
-          "summary": "",
-          "star": false,
-          "size": 3
-        }
-      ],
-      [
-        {
-          "title": "Face Detector",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 3
-        },
-        {
-          "title": "Face Recognizer",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 3
-        }
-      ],
-      [
-        {
-          "title": "Mask Detector",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 2
-        },
-        {
-          "title": "Glasses Detector",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 2
-        },
-        {
-          "title": "Expression Classifier",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 2
-        }
-      ],
-      [
-        {
-          "title": "No-Code Machine Learning Lab",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 3
-        },
-        {
-          "title": "Hand Gestures CNN",
-          "content": [],
-          "url": "https://github.com/asem-sharif-ai",
-          "topics": [],
-          "summary": "",
-          "star": false,
-          "size": 3
-        }
-      ]
-    ]
-  },
-
   "skills": {
     "layout": 4,
     
@@ -580,6 +445,141 @@
         }
       ]
     }
+  },
+
+  "projects": {
+    "latest": {
+      "title": "Lynx DMS",
+      "subtitle": "Intelligent Edge-Deployed Driver Monitoring System",
+      "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
+      "url": "https://github.com/asem-sharif-ai/Lynx-DMS",
+      "summary": "",
+      "star": true
+    },
+
+    "content": [
+      [
+        {
+          "title": "Lynx DMS",
+          "content": [
+            "./Data/Files/Pro_0/lynx_dms.md",
+            "./Data/Files/Pro_0/image_1.png",
+            "./Data/Files/Pro_0/image_2.png",
+            "./Data/Files/Pro_0/image_3.png"
+          ],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
+          "summary": "",
+          "star": true,
+          "size": 2
+        },
+        {
+          "title": "DMD",
+          "content": [
+            "./Data/Files/Pro_1/dmd_dataset.md",
+            "./Data/Files/Pro_1/image_1.png",
+            "./Data/Files/Pro_1/image_2.png",
+            "./Data/Files/Pro_1/image_3.png",
+            "./Data/Files/Pro_1/image_4.png",
+            "./Data/Files/Pro_1/image_5.png"
+          ],
+          "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 1
+        }
+      ],
+      [
+        {
+          "title": "YTFetcherPlus",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Desktop", "Tools", "PyQt6", "yt-dlp", "APIs"],
+          "summary": "",
+          "star": false,
+          "size": 3
+        },
+        {
+          "title": "Smart Note",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": ["Python", "Desktop", "Tools", "PyQt6"],
+          "summary": "",
+          "star": false,
+          "size": 3
+        }
+      ],
+      [
+        {
+          "title": "Face Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 3
+        },
+        {
+          "title": "Face Recognizer",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 3
+        }
+      ],
+      [
+        {
+          "title": "Mask Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 2
+        },
+        {
+          "title": "Glasses Detector",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 2
+        },
+        {
+          "title": "Expression Classifier",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 2
+        }
+      ],
+      [
+        {
+          "title": "No-Code Machine Learning Lab",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 3
+        },
+        {
+          "title": "Hand Gestures CNN",
+          "content": [],
+          "url": "https://github.com/asem-sharif-ai",
+          "topics": [],
+          "summary": "",
+          "star": false,
+          "size": 3
+        }
+      ]
+    ]
   },
 
   "form": {
