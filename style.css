@@ -1203,6 +1203,8 @@ body {
   top: calc(100% + 12px);
   left: 50%;
   display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
   gap: 18px;
   padding: 10px 16px;
   background: var(--bg-card);
@@ -1378,7 +1380,6 @@ body {
   font-size: 0.95rem;
 }
 
-
 @media (max-width: 840px) {
   .hero-card.hero-split {
     grid-template-columns: 1fr;
@@ -1388,8 +1389,8 @@ body {
   .hero-left {
     align-items: center;
     margin-top: -90px;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-left: -20px;
+    margin-right: -20px;
   }
 
   .hero-left .socials {
@@ -1406,11 +1407,18 @@ body {
     flex-direction: column;
     gap: 4px;
   }
+  
+  .socials-more-panel {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+  }
 
   .separator {
     display: none;
   }
-  
+
   #latest-hero-card { margin-top: 0px !important; }
 }
 
