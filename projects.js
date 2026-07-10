@@ -297,7 +297,7 @@ function buildLatestHero(latest) {
   }
 
   if (latest.url) {
-      const btn = document.getElementById('visit-latest-btn');
+      const btn = document.getElementById('isolate-latest-btn');
       btn.style.display = '';
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
@@ -608,7 +608,7 @@ function renderProjectsGrid(projectRows) {
   processedRows.forEach((row, rowIndex) => {
     const colCount = row.length;
     const totalSize = row.reduce((sum, p) => sum + (p.size || 1), 0);
-    const rowId = `proj-row-${rowIndex}`;
+    const rowId = `project-row-${rowIndex}`;
 
     const wrapper = document.createElement('div');
     if (colCount > 1) {

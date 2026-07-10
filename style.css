@@ -353,12 +353,7 @@ body {
   color: var(--text-bright);
 }
 
-.post-detail {
-  font-size: 0.8em;
-  font-weight: normal;
-  margin-left: 2px;
-  opacity: 0.75;
-}
+.share-icon:not(#nav-share-icon .share-icon) { font-size: 0.95rem; }
 
 .filter-wrapper {
   align-items: center;
@@ -566,6 +561,13 @@ body {
 
 .template-footer a:hover {
   color: var(--text-bright);
+}
+
+.post-detail {
+  font-size: 0.8em;
+  font-weight: normal;
+  margin-left: 2px;
+  opacity: 0.75;
 }
 
 @media (max-width: 1024px) {
@@ -1334,7 +1336,8 @@ body {
 .hero-picture-wrapper:hover { transform: scale(1.025); }
 .hero-picture:hover { transform: scale(1.05); }
 
-#latest-hero-card { margin-top: 60px; }
+#latest-hero { margin-bottom: -90px; }
+#latest-title { margin-top: -8px; margin-bottom: -8px; }
 
 .latest-meta {
   align-items: center;
@@ -1355,13 +1358,9 @@ body {
   padding: 0;
 }
 
-#visit-latest-btn i {
-  font-size: 0.9rem;
-}
+#isolate-latest-btn { margin-top: 0px; }
+#isolate-latest-btn i { font-size: 0.9rem; }
 
-.share-icon:not(#nav-share-icon .share-icon) {
-  font-size: 0.95rem;
-}
 
 @media (max-width: 840px) {
   .hero-card.hero-split {
@@ -1428,7 +1427,7 @@ body {
 
   .separator { display: none; }
 
-  #latest-hero-card { margin-top: 0px !important; }
+  #latest-hero-card{ margin-top: -30px !important; }
 }
 
 /* ---------- ---------- [CONTAINERS] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
@@ -3212,14 +3211,21 @@ body {
   border-radius: 6px;
   margin-top: 6px;
   z-index: 100;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 220px; /* 5 × 44px item height */
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  
   opacity: 0;
   transform: translateY(-4px);
   pointer-events: none;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
+
+.autocomplete-suggestions::-webkit-scrollbar { width: 6px; }
+.autocomplete-suggestions::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
 
 .autocomplete-suggestions.show {
   opacity: 1;
@@ -3228,7 +3234,11 @@ body {
 }
 
 .suggestion-item {
-  padding: 12px 14px;
+  height: 44px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   color: var(--text-bright);
   font-family: "Ubuntu", sans-serif;
   font-size: 0.9rem;
@@ -3238,9 +3248,7 @@ body {
   transition: background-color 0.15s ease, padding-left 0.15s ease, color 0.15s ease;
 }
 
-.suggestion-item:last-child {
-  border-bottom: none;
-}
+.suggestion-item:last-child { border-bottom: none; }
 
 .suggestion-item:hover {
   background-color: rgba(255, 255, 255, 0.03); 
