@@ -100,8 +100,11 @@ function buildLogCard(item, index) {
     </div>
   `;
   
-  header.addEventListener('click', (e) => {toggleCard(cardId, collapseId); });
-
+  header.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    toggleCard(cardId, collapseId);
+  });
+  
   const collapse = document.createElement('div');
   collapse.className = 'card-collapse';
   collapse.id = collapseId;
