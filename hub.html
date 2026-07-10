@@ -26,11 +26,15 @@
           <i class='fa-solid fa-circle-question'></i>
           <span class='nav-label'>FAQ</span>
         </a>
+        <a class='hub-tab' id='hub-tab-feed'>
+          <i class='fa-solid fa-book-open'></i>
+          <span class='nav-label'>Feed</span>
+        </a>
         <a class='hub-tab' id='hub-tab-guestbook'>
-          <i class='fa-solid fa-book'></i>
+          <i class='fa-solid fa-user-group'></i>
           <span class='nav-label'>Guests</span>
         </a>
-        <div class='search-wrapper'>
+        <div class='search-wrapper' id='hub-search-wrapper'>
           <i class='fa-solid fa-magnifying-glass search-icon'></i>
           <input type='text' id='hub-search-input' placeholder='Search' autocomplete='off' maxlength='100'/>
         </div>
@@ -39,8 +43,9 @@
     </nav>
     <main class='hub-main'>
       <div class='container' id='hub-panel-faq'> <div id='list-container'></div> </div>
+      <div class='container hub-hidden' id='hub-panel-feed'> <div id='feed-list'></div> </div>
       <div class='hub-hidden' id='hub-panel-guestbook'>
-        <div class='container'> <div id='gb-list'></div> </div>
+        <div class='container'> <div id='guestbook-list'></div> </div>
         <div class='gb-footer gb-hidden' id='gb-footer'> <div id='gb-footer-inner'></div> </div>
       </div>
     </main>

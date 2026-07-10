@@ -538,7 +538,7 @@ function buildHero(data, getTheme, setTheme) {
       toggle.setAttribute('tabindex', '0');
 
       const icon = document.createElement('i');
-      icon.className = 'fa-solid fa-list';
+      icon.className = 'fa-solid fa-bars';
       icon.id = 'socials-list';
       toggle.appendChild(icon);
 
@@ -610,7 +610,7 @@ function buildHero(data, getTheme, setTheme) {
 
       const heroRight = document.createElement('div');
       heroRight.className = 'hero-right';
-      heroRight.innerHTML = `<div class="hero-picture-wrapper"><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false /></div>`;
+      heroRight.innerHTML = `<div class='hero-picture-wrapper'><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false fetchpriority='high' /></div>`;
 
       heroCard.appendChild(heroLeft);
       heroCard.appendChild(heroRight);

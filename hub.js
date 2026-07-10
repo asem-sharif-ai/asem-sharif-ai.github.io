@@ -3,6 +3,7 @@ let _currentTab    = 'faq';
 let _searchQuery   = '';
 
 let _allFaq        = [];
+let _allFeed        = [];
 let _allGuestbook  = [];
 
 let _faqHasMatches = true;
@@ -30,7 +31,7 @@ function loadHubState() {
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
 
   const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
-  if (savedTab === 'guestbook' || savedTab === 'faq') _currentTab = savedTab;
+  if (savedTab === 'guestbook' || savedTab === 'faq' || savedTab === 'feed') _currentTab = savedTab;
 
   _gbToken = localStorage.getItem(addresses.hubGuestbookToken);
 }
@@ -44,14 +45,19 @@ function switchHubTab(targetTab) {
   document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
 
-  const faqPanel = document.getElementById('hub-panel-faq');
-  const gbPanel  = document.getElementById('hub-panel-guestbook');
+  const faqPanel  = document.getElementById('hub-panel-faq');
+  const feedPanel = document.getElementById('hub-panel-feed');
+  const gbPanel   = document.getElementById('hub-panel-guestbook');
+
+  faqPanel.classList.add('hub-hidden');
+  feedPanel.classList.add('hub-hidden');
+  gbPanel.classList.add('hub-hidden');
 
   if (targetTab === 'guestbook') {
-    faqPanel.classList.add('hub-hidden');
     gbPanel.classList.remove('hub-hidden');
+  } else if (targetTab === 'feed') {
+    feedPanel.classList.remove('hub-hidden');
   } else {
-    gbPanel.classList.add('hub-hidden');
     faqPanel.classList.remove('hub-hidden');
   }
 
@@ -68,17 +74,22 @@ async function runHubApp() {
     applyBaseSetup(configData, 'Hub', []);
     loadHubState();
 
-    // Apply initial tab state
     if (_currentTab === 'guestbook') {
       document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
       document.getElementById('hub-tab-guestbook').classList.add('active');
       document.getElementById('hub-panel-faq').classList.add('hub-hidden');
       document.getElementById('hub-panel-guestbook').classList.remove('hub-hidden');
+    } else if (_currentTab === 'feed') {
+      document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('hub-tab-feed').classList.add('active');
+      document.getElementById('hub-panel-faq').classList.add('hub-hidden');
+      document.getElementById('hub-panel-feed').classList.remove('hub-hidden');
     }
 
     updateShareIconState();
 
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
+    document.getElementById('hub-tab-feed').addEventListener('click', () => switchHubTab('feed'));
     document.getElementById('hub-tab-guestbook').addEventListener('click', () => switchHubTab('guestbook'));
 
     const shareBtn = document.getElementById('nav-share-icon');
@@ -107,6 +118,18 @@ async function runHubApp() {
     } else {
       if (_currentTab === 'faq')
         renderNoData('FAQ Not Set Yet', 'list-container', false);
+    }
+
+    if (configData?.hub?.feed) {
+      try {
+        const feedRes = await fetch(configData.hub.feed);
+        _allFeed = await feedRes.json();
+        renderFeed(_allFeed);
+      } catch {
+        renderNoData('Undefined Error Occurred While Loading Feed', 'feed-list', false);
+      }
+    } else {
+      renderNoData('Feed Not Set Yet', 'feed-list', false);
     }
 
     _gbEndpoint = configData?.hub?.guestbook || '';

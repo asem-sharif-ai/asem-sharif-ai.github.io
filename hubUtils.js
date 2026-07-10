@@ -10,11 +10,8 @@ function initHubSearch() {
     _debounceTimer = setTimeout(() => {
       _saveHubState();
       
-      // 1. Render both tabs in the background on every search change
       if (typeof renderFAQ === 'function') renderFAQ(_allFaq);
       if (typeof renderGuestbook === 'function') renderGuestbook();
-      
-      // 2. Update the search icon state based on the active tab's results
       if (typeof updateShareIconState === 'function') updateShareIconState();
       
     }, 300);
@@ -104,14 +101,14 @@ async function loadFAQ(configData) {
   }
 }
 
-function renderFAQ(faqList) {
-  const container = document.getElementById('list-container');
+function renderFAQ(faqList, containerId = 'list-container') {
+  const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
 
   if (!Array.isArray(faqList) || faqList.length === 0) {
     _faqHasMatches = false;
-    renderNoData('FAQ', 'list-container');
+    renderNoData('FAQ', containerId);
     return;
   }
 
@@ -135,7 +132,7 @@ function renderFAQ(faqList) {
 
   if (filtered.length === 0) {
     _faqHasMatches = false;
-    renderNoData('No FAQ Matched The Search Key', 'list-container', false);
+    renderNoData('No FAQ Matched The Search Key', containerId, false);
     return;
   }
 
@@ -182,6 +179,66 @@ function buildFaqCard(item, index) {
   return card;
 }
 
+// ───── Feed ────────────────────────────────────────
+
+async function loadFeed(configData) {
+  const feedPath = configData?.hub?.feed;
+  if (feedPath) {
+    const res = await fetch(feedPath);
+    _allFeed = await res.json();
+  } else {
+    _allFeed = [];
+  }
+}
+
+function renderFeed(feedList) {
+  const container = document.getElementById('feed-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!Array.isArray(feedList) || feedList.length === 0) {
+    renderNoData('No Feed Yet', 'feed-list', false);
+    return;
+  }
+
+  const sorted = [...feedList].sort((a, b) => {
+    const parse = (d) => {
+      const parts = (d || '').split('/');
+      if (parts.length !== 3) return 0;
+      const [day, month, year] = parts.map(Number);
+      return new Date(year, month - 1, day).getTime();
+    };
+    return parse(b.date) - parse(a.date);
+  });
+
+  sorted.forEach((item) => container.appendChild(buildFeedCard(item)));
+
+  observeCards();
+}
+
+function buildFeedCard(item) {
+  const card = document.createElement('div');
+  card.className = 'gb-card card visible';
+
+  const duration = formatDuration(item.date);
+  const dateLabel = item.date ? `${item.date}${duration ? ` · ${duration}` : ''}` : '';
+
+  card.innerHTML = `
+    <div class='gb-card-header'>
+      <div class='gb-identity'>
+        ${`<div class='gb-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
+        <div class='gb-identity-info'>
+          <span class='gb-name'>${item.title || ''}</span>
+          <span class='gb-date'>${dateLabel}</span>
+        </div>
+      </div>
+    </div>
+    <p class='gb-msg ${getTextDirection(item.subtitle || '') === 'rtl' ? 'gb-msg-rtl' : ''}'>${item.subtitle || ''}</p>
+  `;
+
+  return card;
+}
+
 // ───── Guestbook ────────────────────────────────────────
 
 async function fetchGuestbook(action, body = null) {
@@ -196,10 +253,10 @@ async function fetchGuestbook(action, body = null) {
 }
 
 async function loadGuestbook() {
-  const container = document.getElementById('gb-list');
+  const container = document.getElementById('guestbook-list');
   if (!container) return;
   container.innerHTML = '';
-  renderNoData('Loading Guestbook', 'gb-list', false);
+  renderNoData('Loading Guestbook', 'guestbook-list', false);
 
   try {
     if (_gbToken) {
@@ -274,13 +331,13 @@ async function loadGuestbook() {
     setFooterPage('login');
     syncFooter();
   } catch (e) {
-    renderNoData('Failed To Load Guestbook', 'gb-list', false);
+    renderNoData('Failed To Load Guestbook', 'guestbook-list', false);
     console.error(e);
   }
 }
 
 function renderGuestbook() {
-  const container = document.getElementById('gb-list');
+  const container = document.getElementById('guestbook-list');
   if (!container) return;
   container.innerHTML = '';
 
@@ -319,7 +376,7 @@ function renderGuestbook() {
 
   if (!hasEntries && !hasBanned) {
     _gbHasMatches = false;
-    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'gb-list', false);
+    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'guestbook-list', false);
     return;
   }
 
@@ -557,8 +614,8 @@ function setFooterPage(state) {
 
   if (state === 'admin') {
     const avatarMarkup = _gbIdentity?.image
-      ? `<img class='gb-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-      : `<div class='gb-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+      ? `<img class='gb-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
+      : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
     innerFooter.innerHTML = `
       <div id='gb-state-admin'>
@@ -583,8 +640,8 @@ const isUserEdit = state === 'edit';
   const isUserNoEntry = state === 'no-entry';
 
   const avatarMarkup = _gbIdentity?.image
-    ? `<img class='gb-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-    : `<div class='gb-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+    ? `<img class='gb-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
+    : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
   const showPreview = isUserHasEntry && !isUserEdit;
   const showTextarea = isUserEdit || isUserNoEntry;
@@ -833,4 +890,3 @@ function gbFooterHandlers(state) {
     }
   });
 }
-

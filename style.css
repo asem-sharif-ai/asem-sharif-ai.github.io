@@ -658,17 +658,9 @@ body {
     width: 100%;
   }
 
-  #nav-share-icon {
-    display: none !important;
-  }
-
-  .nav-links #hub-tab-faq {
-    order: 3;
-  }
-
-  .nav-links #hub-tab-guestbook {
-    order: 4;
-  }
+  #hub-search-wrapper { display: none; }
+  
+  #nav-share-icon { display: none !important; }
 }
 
 /* ---------- ---------- [FLOATING TRIGGERS] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
@@ -1317,11 +1309,12 @@ body {
   max-width: 480px;
   aspect-ratio: 2 / 2.5;
   border-radius: 60% 40% 60% 45% / 45% 55% 45% 55%;
+  clip-path: inset(-20px round 60% 40% 60% 45% / 45% 55% 45% 55%);
   overflow: hidden;
-  border: 1px solid var(--border-color);
   isolation: isolate;
-  transition: transform 1s cubic-bezier(0.15, 1, 0.3, 1);
-  will-change: transform;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--focus-shadow) 40%, transparent);
+  transition: transform 1s cubic-bezier(0.15, 1, 0.3, 1), border-color 1s ease, box-shadow 1s ease;
 }
 
 .hero-picture {
@@ -1333,8 +1326,13 @@ body {
   will-change: transform;
 }
 
-.hero-picture-wrapper:hover { transform: scale(1.025); }
-.hero-picture:hover { transform: scale(1.05); }
+.hero-picture-wrapper:hover {
+  border-color: var(--text-muted);
+  box-shadow: 0 0 15px var(--focus-shadow);
+  transform: scale(1.025);
+}
+
+.hero-picture:hover { transform: scale(1.025); }
 
 #latest-hero { margin-bottom: -90px; }
 #latest-title { margin-top: -8px; margin-bottom: -8px; }
@@ -1449,13 +1447,13 @@ body {
   margin-top: 0px;
 }
 
-#list-container, #gb-list {
+#list-container, #feed-list, #guestbook-list {
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
 
-#gb-list {
+#guestbook-list {
   margin-top: 0px !important;
   padding-bottom: 0px !important;
 }
@@ -1481,7 +1479,7 @@ body {
     grid-column: span 1 !important;
   }
 
-  #gb-list {
+  #guestbook-list {
     margin-top: 60px !important;
   }
 }
@@ -2625,7 +2623,7 @@ body {
 }
 
 
-/* ---------- ---------- [GUESTBOOK] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
+/* ---------- ---------- [HUB] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
 
 .hub-hidden {
   display: none !important;
@@ -2635,6 +2633,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  align-items: center;
+  width: 100%;
 }
 
 #hub-panel-guestbook {
@@ -2716,13 +2716,17 @@ body {
   margin-right: 4px;
 }
 
-.gb-avatar {
-  background-color: var(--navbar-bg);
+.gb-card-avatar {
+  align-items: center;
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 50%;
+  color: var(--text-deep-muted);
+  display: flex;
   flex-shrink: 0;
+  font-size: 0.85rem;
   height: 40px;
-  object-fit: cover;
+  justify-content: center;
   width: 40px;
 }
 
@@ -2742,10 +2746,10 @@ body {
 
 .gb-card-avatar-fallback i {
   display: block;
-  line-height: 0;
+  line-height: 1;
   margin: 0;
   padding: 0;
-  transform: translateX(1px);
+  transform: translate(0.5px, 0.5px);
 }
 
 .gb-identity-info {
@@ -3025,15 +3029,6 @@ body {
   display: flex;
   gap: 10px;
   min-width: 0;
-}
-
-.gb-card-avatar {
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
-  flex-shrink: 0;
-  height: 36px;
-  object-fit: cover;
-  width: 36px;
 }
 
 .gb-msg {

@@ -627,7 +627,8 @@
   },
 
   "hub": {
-    "faq":       "./faq.json",
+    "faq": "./faq.json",
+    "feed": "./feed.json",
     "guestbook": "https://minimal-portfolio-guestbook.asem-sharif-ai.workers.dev"
   }
 }

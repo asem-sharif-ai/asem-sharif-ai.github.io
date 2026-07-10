@@ -1,0 +1,38 @@
+[
+    {
+        "icon": "fa-solid fa-microchip",
+        "date": "10/07/2026",
+        "title": "LYNX DMS quantization pipeline is done",
+        "subtitle": "Model size reduced by 4x with negligible accuracy loss."
+    },
+    {
+        "icon": "fa-solid fa-rocket",
+        "date": "08/07/2026",
+        "title": "Hub Feed Tab Launched",
+        "subtitle": "You can now follow project updates directly from the Hub."
+    },
+    {
+        "icon": "fa-solid fa-bug",
+        "date": "05/07/2026",
+        "title": "Fixed Guestbook Login Redirect Issue",
+        "subtitle": "Google OAuth callback now correctly restores the previous page state."
+    },
+    {
+        "icon": "fa-solid fa-server",
+        "date": "01/07/2026",
+        "title": "Backend Migrated To New Infrastructure",
+        "subtitle": "Improved response times and reduced downtime during deployments."
+    },
+    {
+        "icon": "fa-solid fa-shield-halved",
+        "date": "27/06/2026",
+        "title": "Security Audit Completed",
+        "subtitle": "No critical vulnerabilities found across the guestbook and hub services."
+    },
+    {
+        "icon": "fa-solid fa-code-branch",
+        "date": "20/06/2026",
+        "title": "Version 2.3 Released",
+        "subtitle": "Includes FAQ search improvements and dark mode refinements."
+    }
+]
