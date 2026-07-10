@@ -237,6 +237,78 @@ async function resolveDirectory(configInput, mediaOnly = false) {
 
 // ───── Content Render (Projects / Log) ────────────────────────────────────────
 
+function buildGalleryPane(gallery) {
+  const pane = document.createElement('div');
+  pane.className = 'gallery-pane';
+
+  const viewport = document.createElement('div');
+  viewport.className = 'gallery-viewport';
+
+  const track = document.createElement('div');
+  track.className = 'gallery-track';
+
+  gallery.forEach(src => {
+    const slide = document.createElement('div');
+    slide.className = 'gallery-slide';
+    slide.innerHTML = renderContentItem(src);
+    track.appendChild(slide);
+  });
+
+  viewport.appendChild(track);
+  pane.appendChild(viewport);
+
+  const controls = document.createElement('div');
+  controls.className = 'gallery-controls';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'btn prev-btn gallery-btn';
+  prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+  prevBtn.style.opacity = '0.35';
+  prevBtn.style.pointerEvents = 'none';
+
+  const counter = document.createElement('span');
+  counter.className = 'slide-counter gallery-counter';
+  counter.textContent = `1/${gallery.length}`;
+
+  const nextBtn = document.createElement('button');
+  const isSingleItem = gallery.length <= 1;
+  nextBtn.className = 'btn next-btn gallery-btn';
+  nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+  nextBtn.style.opacity = isSingleItem ? '0.35' : '1';
+  nextBtn.style.pointerEvents = isSingleItem ? 'none' : 'auto';
+
+  let current = 0;
+
+  function goTo(idx) {
+    current = Math.max(0, Math.min(idx, gallery.length - 1));
+    track.style.transform = `translateX(-${current * 100}%)`;
+    counter.textContent = `${current + 1}/${gallery.length}`;
+
+    if (prevBtn) {
+      prevBtn.style.opacity = current === 0 ? '0.35' : '1';
+      prevBtn.style.pointerEvents = current === 0 ? 'none' : 'auto';
+    }
+    if (nextBtn) {
+      nextBtn.style.opacity = current === gallery.length - 1 ? '0.35' : '1';
+      nextBtn.style.pointerEvents = current === gallery.length - 1 ? 'none' : 'auto';
+    }
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  setupSwipeNavigation(viewport, () => goTo(current + 1), () => goTo(current - 1));
+
+  controls.appendChild(prevBtn);
+  controls.appendChild(counter);
+  controls.appendChild(nextBtn);
+  pane.appendChild(controls);
+
+  return pane;
+}
+
+// ───── Content Render (Projects / Log) ────────────────────────────────────────
+
 function renderContentItem(contentItem, containerId) {
   if (!contentItem) return '';
 

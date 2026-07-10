@@ -226,7 +226,9 @@ function buildFeedCard(item) {
   const query = _searchQuery;
   const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
 
-  card.innerHTML = `
+  const msgPane = document.createElement('div');
+  msgPane.className = 'gb-msg-pane';
+  msgPane.innerHTML = `
     <div class='gb-card-header'>
       <div class='gb-identity'>
         ${`<div class='gb-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
@@ -239,8 +241,20 @@ function buildFeedCard(item) {
     <p class='gb-msg ${getTextDirection(item.subtitle || '') === 'rtl' ? 'gb-msg-rtl' : ''}'>${highlightText(item.subtitle || '', query)}</p>
   `;
 
+  if (item.gallery && item.gallery.length > 1) {
+    const row = document.createElement('div');
+    row.className = 'gb-row';
+    row.appendChild(msgPane);
+    row.appendChild(buildGalleryPane(item.gallery));
+    card.appendChild(row);
+  } else {
+    card.appendChild(msgPane);
+  }
+
   return card;
 }
+
+
 
 // ───── Guestbook ────────────────────────────────────────
 
