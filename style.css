@@ -2745,11 +2745,8 @@ body {
 }
 
 .gb-card-avatar-fallback i {
-  display: block;
-  line-height: 1;
-  margin: 0;
-  padding: 0;
-  transform: translate(0.5px, 0.5px);
+  font-size: larger;
+  transform: translateX(1px);
 }
 
 .gb-identity-info {
