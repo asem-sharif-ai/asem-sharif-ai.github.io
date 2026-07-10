@@ -1727,7 +1727,8 @@ body {
   background-color: var(--highlight-color);
   border-radius: 2px;
   color: var(--text-bright);
-  padding: 0 1px;
+  padding: 1px 2px;
+  margin: 0px 0px;
 }
 
 .log-subtitle p,
@@ -2743,11 +2744,7 @@ body {
   justify-content: center;
   width: 40px;
 }
-
-.gb-card-avatar-fallback i {
-  font-size: larger;
-  transform: translateX(1px);
-}
+.gb-card-avatar-fallback i { font-size: larger; }
 
 .gb-identity-info {
   display: flex;
@@ -2780,7 +2777,6 @@ body {
   font-style: italic;
 }
 
-/* Consolidated Shared Badge States */
 .gb-badge-pending,
 .gb-badge-approved,
 .gb-badge-banned { 

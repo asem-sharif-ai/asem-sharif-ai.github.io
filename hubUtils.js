@@ -11,11 +11,35 @@ function initHubSearch() {
       _saveHubState();
       
       if (typeof renderFAQ === 'function') renderFAQ(_allFaq);
+      if (typeof renderFeed === 'function') renderFeed(_allFeed);
       if (typeof renderGuestbook === 'function') renderGuestbook();
       if (typeof updateShareIconState === 'function') updateShareIconState();
       
     }, 300);
   });
+}
+
+function updateShareIconState() {
+  const searchIcon = document.getElementById('nav-share-icon');
+  if (!searchIcon) return;
+  if (!_searchQuery) {
+    searchIcon.classList.remove('ui-disabled');
+  } else {
+    const hasMatches = _currentTab === 'feed' ? _feedHasMatches : _currentTab === 'faq' ? _faqHasMatches : _gbHasMatches;
+    if (hasMatches) {
+      searchIcon.classList.remove('ui-disabled');
+    } else {
+      searchIcon.classList.add('ui-disabled');
+    }
+  }
+}
+
+function buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('tab', _currentTab);
+  if (_searchQuery) url.searchParams.set('search', _searchQuery);
+  return url.toString();
 }
 
 function highlightText(text, query) {
@@ -42,51 +66,9 @@ function formatDuration(dateStr) {
   const then = new Date(y, m - 1, d);
   const now  = new Date();
   const days = Math.floor((now - then) / 86400000);
-  
-  if (days < 1)   return 'Today';
-  if (days < 7)   return `${days} Day Ago`;
-  if (days < 31)  return `${Math.floor(days / 7)} Week Ago`;
-  if (days < 365) return `${Math.floor(days / 30)} Month Ago`;
-  return `${Math.floor(days / 365)} Year Ago`;
-}
-
-function syncFooter() {
-  const footer = document.getElementById('gb-footer');
-  if (!footer) return;
-  
-  if (_currentTab === 'guestbook') {
-    footer.classList.remove('gb-hidden');
-  } else {
-    footer.classList.add('gb-hidden');
-  }
-}
-
-function updateShareIconState() {
-  const searchIcon = document.getElementById('nav-share-icon');
-  if (!searchIcon) return;
-
-  if (!_searchQuery) {
-    searchIcon.classList.add('ui-disabled');
-    return;
-  }
-
-  const hasMatches = _currentTab === 'faq' ? _faqHasMatches : _gbHasMatches;
-  
-  if (hasMatches) {
-    searchIcon.classList.remove('ui-disabled');
-  } else {
-    searchIcon.classList.add('ui-disabled');
-  }
-}
-
-function buildShareUrl() {
-  const url = new URL(window.location.href);
-  url.search = '';
-
-  url.searchParams.set('tab', _currentTab);
-  if (_searchQuery) url.searchParams.set('search', _searchQuery);
-
-  return url.toString();
+  if (days < 1) return 'Today';
+  const [value, unit] = days < 7 ? [days, 'Day'] : days < 31 ? [Math.floor(days / 7), 'Week'] : days < 365 ? [Math.floor(days / 30), 'Month'] : [Math.floor(days / 365), 'Year'];
+  return `${value} ${unit}${value > 1 ? 's' : ''} Ago`;
 }
 
 // ───── FAQ ────────────────────────────────────────
@@ -121,13 +103,13 @@ function renderFAQ(faqList, containerId = 'list-container') {
     filtered = indexTokens.filter(n => n >= 1 && n <= faqList.length && !seen.has(n) && seen.add(n)).map(n => ({ item: faqList[n - 1], originalIndex: n - 1 }));
   } else {
     const words = raw.toLowerCase().split(/\s+/).filter(Boolean);
-    filtered = (words.length > 0
-      ? faqList.filter(item => {
+    const withIndex = faqList.map((item, i) => ({ item, originalIndex: i }));
+    filtered = words.length > 0
+      ? withIndex.filter(({ item }) => {
           const a = Array.isArray(item.a) ? item.a.join(' ') : (item.a || '');
           return words.every(w => `${item.q || ''} ${a}`.toLowerCase().includes(w));
         })
-      : faqList
-    ).map((item, i) => ({ item, originalIndex: i }));
+      : withIndex;
   }
 
   if (filtered.length === 0) {
@@ -197,11 +179,31 @@ function renderFeed(feedList) {
   container.innerHTML = '';
 
   if (!Array.isArray(feedList) || feedList.length === 0) {
+    _feedHasMatches = false;
     renderNoData('No Feed Yet', 'feed-list', false);
     return;
   }
 
-  const sorted = [...feedList].sort((a, b) => {
+  const rawQuery = (_searchQuery || '').trim();
+  const words = rawQuery.toLowerCase().split(/\s+/).filter(Boolean);
+
+  const filtered = words.length > 0
+    ? feedList.filter(item => {
+        const duration = formatDuration(item.date);
+        const text = `${item.title || ''} ${item.subtitle || ''} ${item.date || ''} ${duration || ''}`.toLowerCase();
+        return words.every(w => text.includes(w));
+      })
+    : feedList;
+
+  if (filtered.length === 0) {
+    _feedHasMatches = false;
+    renderNoData('No Feed Matched The Search Key', 'feed-list', false);
+    return;
+  }
+
+  _feedHasMatches = true;
+
+  const sorted = [...filtered].sort((a, b) => {
     const parse = (d) => {
       const parts = (d || '').split('/');
       if (parts.length !== 3) return 0;
@@ -221,19 +223,20 @@ function buildFeedCard(item) {
   card.className = 'gb-card card visible';
 
   const duration = formatDuration(item.date);
-  const dateLabel = item.date ? `${item.date}${duration ? ` · ${duration}` : ''}` : '';
+  const query = _searchQuery;
+  const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
 
   card.innerHTML = `
     <div class='gb-card-header'>
       <div class='gb-identity'>
         ${`<div class='gb-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
         <div class='gb-identity-info'>
-          <span class='gb-name'>${item.title || ''}</span>
+          <span class='gb-name'>${highlightText(item.title || '', query)}</span>
           <span class='gb-date'>${dateLabel}</span>
         </div>
       </div>
     </div>
-    <p class='gb-msg ${getTextDirection(item.subtitle || '') === 'rtl' ? 'gb-msg-rtl' : ''}'>${item.subtitle || ''}</p>
+    <p class='gb-msg ${getTextDirection(item.subtitle || '') === 'rtl' ? 'gb-msg-rtl' : ''}'>${highlightText(item.subtitle || '', query)}</p>
   `;
 
   return card;
@@ -349,7 +352,9 @@ function renderGuestbook() {
     if (words.length === 0) return true;
     const name = (e.name || e.id?.split('@')[0] || '').toLowerCase();
     const msg = (e.msg || e.message || '').toLowerCase();
-    return words.every((w) => name.includes(w) || msg.includes(w));
+    const date = (e.date || '').toLowerCase();
+    const duration = formatDuration(e.date).toLowerCase();
+    return words.every((w) => name.includes(w) || msg.includes(w) || date.includes(w) || duration.includes(w));
   };
 
   let finalEntries = [];
@@ -386,26 +391,27 @@ function renderGuestbook() {
     const statusOrder = { approved: 1, pending: 2, deletedByGuest: 3, deletedByAdmin: 4, banned: 5 };
     const sortedEntries = [...finalEntries].sort((a, b) => (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99));
     
-    sortedEntries.forEach((e) => container.appendChild(buildGuestCard(e, true)));
+    sortedEntries.forEach((e) => container.appendChild(buildGuestbookCard(e, true)));
     finalBanned.forEach((e) => container.appendChild(buildBannedCard(e)));
   } else {
     const pinned = finalEntries.filter((e) => e.pin).sort((a, b) => (b.date > a.date ? 1 : -1));
     const rest = finalEntries.filter((e) => !e.pin).sort((a, b) => (b.date > a.date ? 1 : -1));
     
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
   }
 
   observeCards();
 }
 
-function buildGuestCard(entry, isAdmin = false) {
+function buildGuestbookCard(entry, isAdmin = false) {
   const card = document.createElement('div');
   card.className = 'gb-card card visible';
   card.id = `gb-card-${CSS.escape(entry.id)}`;
 
   const gmailSub = isAdmin ? `<span class='gb-gmail'>${entry.id}</span>` : '';
+  const highlightQuery = _searchQuery || '';
   const duration = formatDuration(entry.date);
-  const dateLabel = entry.date ? `${entry.date}${duration ? ` · ${duration}` : ''}` : '';
+  const dateLabel = entry.date ? highlightText(`${entry.date}${duration ? ` · ${duration}` : ''}`, highlightQuery) : '';
 
   const avatarUI = entry.image ? `<img class='gb-card-avatar' src='${entry.image}' alt='avatar' referrerpolicy='no-referrer' />` : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
@@ -421,7 +427,6 @@ function buildGuestCard(entry, isAdmin = false) {
     statusBadge = `<span class='${badgeClass}'>${entry.status.replace('deletedBy', 'Deleted By ').toUpperCase()}</span>`;
   }
 
-  const highlightQuery = _searchQuery || '';
   const messageText = highlightText(entry.msg || entry.message || '', highlightQuery);
   const displayName = highlightText(entry.name || entry.id.split('@')[0], highlightQuery);
 
@@ -507,6 +512,12 @@ function buildBannedCard(entry) {
 }
 
 // ───── Guestbook Footer ────────────────────────────────────────
+
+function syncFooter() {
+  const footer = document.getElementById('gb-footer');
+  if (_currentTab === 'guestbook') footer.classList.remove('gb-hidden');
+  else footer.classList.add('gb-hidden');
+}
 
 function buildFooter() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -598,7 +609,7 @@ function setFooterPage(state) {
       </div>
       <div id='gb-footer-status' class='subtitle gb-hidden'></div>
       `;
-    gbFooterHandlers('login');
+    footerHandlers('login');
     return;
   }
 
@@ -631,7 +642,7 @@ function setFooterPage(state) {
         </button>
       </div>
     `;
-    gbFooterHandlers('admin');
+    footerHandlers('admin');
     return;
   }
 
@@ -714,7 +725,7 @@ const isUserEdit = state === 'edit';
     }
   }
 
-  gbFooterHandlers(state);
+  footerHandlers(state);
 }
 
 // ───── Guestbook Calls ────────────────────────────────────────
@@ -806,7 +817,7 @@ async function gbAdminAction(action, id, cardUI) {
   }
 }
 
-function gbFooterHandlers(state) {
+function footerHandlers(state) {
   if (state === 'login') {
     document.getElementById('gb-verify-btn')?.addEventListener('click', async () => {
         setFooterPage('loading');

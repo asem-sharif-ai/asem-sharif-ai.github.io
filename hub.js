@@ -1,21 +1,22 @@
-let _configData    = {};
-let _currentTab    = 'faq';
-let _searchQuery   = '';
+let _configData  = {};
+let _currentTab  = 'feed';
+let _searchQuery = '';
 
-let _allFaq        = [];
-let _allFeed        = [];
-let _allGuestbook  = [];
+let _allFaq       = [];
+let _allFeed      = [];
+let _allGuestbook = [];
 
-let _faqHasMatches = true;
-let _gbHasMatches  = true;
+let _faqHasMatches  = true;
+let _feedHasMatches = true;
+let _gbHasMatches   = true;
 
-let _gbToken       = null;
-let _gbEntries     = [];
-let _gbEndpoint    = '';
-let _gbIdentity    = null;
-let _gbHasEntry    = false;
-let _gbOwnEntry    = null;
-let _gbEditMode    = false;
+let _gbToken    = null;
+let _gbEntries  = [];
+let _gbEndpoint = '';
+let _gbIdentity = null;
+let _gbHasEntry = false;
+let _gbOwnEntry = null;
+let _gbEditMode = false;
 
 // ───── State & Tab ────────────────────────────────────────
 
@@ -26,13 +27,10 @@ function _saveHubState() {
 
 function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
-
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
-
   const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
   if (savedTab === 'guestbook' || savedTab === 'faq' || savedTab === 'feed') _currentTab = savedTab;
-
   _gbToken = localStorage.getItem(addresses.hubGuestbookToken);
 }
 
@@ -77,13 +75,13 @@ async function runHubApp() {
     if (_currentTab === 'guestbook') {
       document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
       document.getElementById('hub-tab-guestbook').classList.add('active');
-      document.getElementById('hub-panel-faq').classList.add('hub-hidden');
+      document.getElementById('hub-panel-feed').classList.add('hub-hidden');
       document.getElementById('hub-panel-guestbook').classList.remove('hub-hidden');
-    } else if (_currentTab === 'feed') {
+    } else if (_currentTab === 'faq') {
       document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById('hub-tab-feed').classList.add('active');
-      document.getElementById('hub-panel-faq').classList.add('hub-hidden');
-      document.getElementById('hub-panel-feed').classList.remove('hub-hidden');
+      document.getElementById('hub-tab-faq').classList.add('active');
+      document.getElementById('hub-panel-feed').classList.add('hub-hidden');
+      document.getElementById('hub-panel-faq').classList.remove('hub-hidden');
     }
 
     updateShareIconState();

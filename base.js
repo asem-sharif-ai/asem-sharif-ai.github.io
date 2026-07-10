@@ -89,7 +89,7 @@ const addresses = {
   projectsStarredOnly: _address('projects-starred-only'),
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
-  hubActiveTab:        _address('hub-active-tab'),
+  hubActiveTab:        _address('hub-actccive-tab'),
   hubGuestbookToken:   _address('hub-guestbook-token'),
 };
 

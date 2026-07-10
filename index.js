@@ -127,12 +127,12 @@ function buildForm(section, cardId) {
   const nameId = `name-${cardId}`;
   const roleId = `role-${cardId}`;
   const contactId = `contact-${cardId}`;
-  const headerId = `header-input-${cardId}`;
+  const subjectId = `subject-input-${cardId}`;
   const suggestionsId = `suggestions-${cardId}`;
   const messageId = `message-${cardId}`;
   const contactDetailId = `contact-detail-${cardId}`;
 
-  const allowedHeaders = Array.isArray(section.headers) ? section.headers : ['General Inquiry', 'Feedback'];
+  const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
 
   const othersHTML = Array.isArray(section.others) ? section.others.map(item => {
     const iconValue = iconMap[item.icon] || iconMap.default || 'fa-solid fa-link';
@@ -168,8 +168,8 @@ function buildForm(section, cardId) {
           </div>
           <div class='form-row-full'>
             <div class='form-group autocomplete-wrapper'>
-              <label class='form-label' for='${headerId}'>Header</label>
-              <input class='form-input' type='text' id='${headerId}' name='header' autocomplete='off' required />
+              <label class='form-label' for='${subjectId}'>Subject</label>
+              <input class='form-input' type='text' id='${subjectId}' name='subject' autocomplete='off' required />
               <div class='autocomplete-suggestions' id='${suggestionsId}'></div>
             </div>
           </div>
@@ -180,7 +180,7 @@ function buildForm(section, cardId) {
           <div class='form-footer'>
             <div class='form-others-container'>${othersHTML}</div>
             <div class='form-actions-wrapper'>
-              <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-trash' style='margin: 0; padding-top: 2px;'></i></button>
+              <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-eraser' style='margin: 0; padding-top: 2px;'></i></button>
               <button class='action-btn' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
             </div>
           </div>
@@ -198,13 +198,13 @@ function buildForm(section, cardId) {
   const roleInput = form.querySelector(`#${roleId}`);
   const contactInput = form.querySelector(`#${contactId}`);
   const contactDetail = form.querySelector(`#${contactDetailId}`);
-  const headerInput = form.querySelector(`#${headerId}`);
+  const subjectInput = form.querySelector(`#${subjectId}`);
   const suggestionsBox = form.querySelector(`#${suggestionsId}`);
   const messageInput = form.querySelector(`#${messageId}`);
 
   form.addEventListener('click', (e) => e.stopPropagation());
 
-  const inputs = [nameInput, roleInput, contactInput, headerInput, messageInput];
+  const inputs = [nameInput, roleInput, contactInput, subjectInput, messageInput];
 
   const triggerContactDetailDetection = (value) => {
     if (!value) { contactDetail.textContent = ''; return; }
@@ -223,7 +223,7 @@ function buildForm(section, cardId) {
       name: nameInput.value,
       role: roleInput.value,
       contact: contactInput.value,
-      header: headerInput.value,
+      subject: subjectInput.value,
       message: messageInput.value
     };
     localStorage.setItem(addresses.mailFormData, JSON.stringify(state));
@@ -240,7 +240,7 @@ function buildForm(section, cardId) {
           contactInput.value = state.contact;
           triggerContactDetailDetection(state.contact.trim());
         }
-        if (state.header !== undefined) headerInput.value = state.header;
+        if (state.subject !== undefined) subjectInput.value = state.subject;
         if (state.message !== undefined) messageInput.value = state.message;
       }
     } catch (err) {
@@ -264,7 +264,7 @@ function buildForm(section, cardId) {
     inputs.forEach(input => input.classList.remove('error-glow'));
   });
 
-  headerInput.addEventListener('input', (e) => {
+  subjectInput.addEventListener('input', (e) => {
     const value = e.target.value.trim().toLowerCase();
     suggestionsBox.innerHTML = ''; 
 
@@ -273,7 +273,7 @@ function buildForm(section, cardId) {
       return;
     }
 
-    const matches = allowedHeaders.filter(header => header.toLowerCase().includes(value));
+    const matches = suggestSubjects.filter(sub => sub.toLowerCase().includes(value));
 
     if (matches.length === 0) {
       suggestionsBox.classList.remove('show');
@@ -286,8 +286,8 @@ function buildForm(section, cardId) {
       item.textContent = match;
       
       item.addEventListener('click', () => {
-        headerInput.value = match;
-        headerInput.classList.remove('error-glow');
+        subjectInput.value = match;
+        subjectInput.classList.remove('error-glow');
         suggestionsBox.classList.remove('show');
         saveFormState();
       });
@@ -299,7 +299,7 @@ function buildForm(section, cardId) {
   });
 
   document.addEventListener('click', (e) => {
-    if (!headerInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+    if (!subjectInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
       suggestionsBox.classList.remove('show');
     }
   });
@@ -318,7 +318,7 @@ function buildForm(section, cardId) {
     let hasError = false;
     if (!nameInput.value.trim()) { nameInput.classList.add('error-glow'); hasError = true; }
     if (!contactInput.value.trim()) { contactInput.classList.add('error-glow'); hasError = true; }
-    if (!headerInput.value.trim()) { headerInput.classList.add('error-glow'); hasError = true; }
+    if (!subjectInput.value.trim()) { subjectInput.classList.add('error-glow'); hasError = true; }
     if (!messageInput.value.trim()) { messageInput.classList.add('error-glow'); hasError = true; }
 
     if (hasError) {
@@ -332,7 +332,7 @@ function buildForm(section, cardId) {
       role: roleInput.value.trim(),
       method: detectedMethod,
       contact: contactInput.value.trim(),
-      header: headerInput.value.trim(),
+      subject: subjectInput.value.trim(),
       message: messageInput.value.trim(),
       section: section.title || 'Contact',
     };

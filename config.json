@@ -12,7 +12,7 @@
   "status": {
     "daily": [
       { "from": "06:00", "to": "12:00", "label": "Open For Business" },
-      { "from": "12:00", "to": "18:00", "label": "Currently Working", "busy": true },
+      { "from": "12:00", "to": "18:00", "label": "Working Hours", "busy": true },
       { "from": "18:00", "to": "22:00", "label": "Available Now" },
       { "from": "22:00", "to": "01:00", "label": "It's Late Night", "away": true },
       { "from": "01:00", "to": "06:00", "label": "Back By Morning", "away": true }
@@ -605,7 +605,7 @@
     "key": "Connect",
     "icon": "connect",
     "title": "Let's Connect",
-    "headers": [
+    "subjects": [
       "Job Opportunity",
       "Internship Opportunity",
       "Freelance / Contract Work",
