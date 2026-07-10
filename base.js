@@ -397,8 +397,9 @@ function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight) {
 
 function toggleCard(cardId, collapseId) {
   const collapse = document.getElementById(collapseId);
+  if (!collapse) return;
+
   const icons = document.getElementById(cardId).querySelectorAll('.card-toggle-btn');
-  if (!collapse || !icons.length) return;
 
   if (collapse.classList.contains('closed')) {
     collapse.classList.remove('closed');

@@ -238,7 +238,7 @@ function buildFeedCard(item) {
         </div>
       </div>
     </div>
-    <p class='gb-msg ${getTextDirection(item.subtitle || '') === 'rtl' ? 'gb-msg-rtl' : ''}'>${highlightText(item.subtitle || '', query)}</p>
+     <div class='feed-text'>${highlightText(parseMarkdown(Array.isArray(item.content) ? item.content.join('\n') : (item.content || '')), query)}</div>
   `;
 
   if (item.gallery && item.gallery.length > 1) {
@@ -253,8 +253,6 @@ function buildFeedCard(item) {
 
   return card;
 }
-
-
 
 // ───── Guestbook ────────────────────────────────────────
 

@@ -78,7 +78,6 @@ function buildLogCard(item, index) {
           ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''} 
           ${item.type && item.location ? `<span class='separator'>·</span>` : ''} 
           ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
-          <button class='btn log-toggle-btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
         </div>
       </div>
     </div>
@@ -92,21 +91,16 @@ function buildLogCard(item, index) {
       </div>
       <div class='log-flex-row'>
         <div class='log-flex-left'>
-          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
+          <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
         </div>
         <div class='log-flex-right'>
-          <button class='btn log-toggle-btn'> <i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
         </div>
       </div>
     </div>
   `;
-
-  header.querySelectorAll('.log-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleCard(cardId, collapseId);
-    });
-  });
+  
+  header.addEventListener('click', (e) => {toggleCard(cardId, collapseId); });
 
   const collapse = document.createElement('div');
   collapse.className = 'card-collapse';

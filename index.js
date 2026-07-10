@@ -479,8 +479,18 @@ function buildHero(data, getTheme, setTheme) {
           }
         };
 
+        const msToNextMinute = () => {
+          const now = new Date();
+          return (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+        };
+
+        const scheduleTick = () => {
+          tick();
+          setTimeout(scheduleTick, msToNextMinute());
+        };
+
         tick();
-        setInterval(tick, 1000 * 30);
+        setTimeout(scheduleTick, msToNextMinute());
       }
     }
   }
