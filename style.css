@@ -2370,7 +2370,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color 0.3s ease;
-  white-space: nowrap;
 }
 
 .log-date,

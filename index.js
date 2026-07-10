@@ -144,10 +144,8 @@ function buildForm(section, cardId) {
 
   card.innerHTML = `
     <div class='card-header' id='header-${cardId}'>
-      <div class='card-title'>${section.title || 'Get In Touch'}</div>
-      <div class='card-btns'>
-        <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
-      </div>
+      <div class='card-title'>${section.title || 'Get In Touch'} <span class='log-subtitle' style='margin-left: 4px; '> ${section.subtitle || 'Reach Out For Collaborations'} </span></div>
+      <div class='card-btns'><button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button></div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
       <div class='card-body'>
