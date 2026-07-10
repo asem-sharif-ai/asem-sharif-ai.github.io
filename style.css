@@ -2615,7 +2615,7 @@ body {
 
   .gb-row { flex-direction: column; }
   .gb-row .gb-msg-pane, .gb-row .gallery-pane { width: 100% !important; }
-  .gb-row .gallery-pane { order: 1; margin-top: -10px; width: 100% !important; border: none !important; }
+  .gb-row .gallery-pane { order: 1; margin-top: -10px; align-items: center; width: 100% !important; border-left: none !important; }
 }
 
 
