@@ -47,15 +47,6 @@ body.light-mode {
   --navbar-bg: rgba(245, 245, 247, 0);
   --focus-shadow: rgba(160, 162, 167, 0.2);
   --deep-shadow: rgba(255, 255, 255, 0.25);
-
-  --approved-color: #18c484;
-  --pending-color: #e09000;
-  --heart-color: #d42020;
-  --heart-color-sub: #921515;
-  --pin-color: #6b707a;
-  --pin-color-sub: #4e535b;
-  --star-color: #c9970a;
-  --star-color-sub: #a07508;
 }
 
 body.light-mode #qr-light {
