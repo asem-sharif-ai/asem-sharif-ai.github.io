@@ -698,8 +698,6 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
       syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
     }
   }
-
-
   return appliedTheme;
 }
 

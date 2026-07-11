@@ -110,7 +110,7 @@ function buildLogCard(item, index) {
   collapse.id = collapseId;
 
   const cardBody = document.createElement('div');
-  cardBody.className = 'card-body';
+  cardBody.className = 'card-body ';
 
   const logBody = document.createElement('div');
   logBody.className = 'log-body';
@@ -159,134 +159,115 @@ function renderLogList(items) {
 
 // ───── Skills ────────────────────────────────────────
 
-function buildSkillsGroup(groupKey, groupData, groupIndex) {
-  const cardId = `skill-group-${groupIndex}`;
-  const collapseId = `skill-group-collapse-${groupIndex}`;
+function buildSkillsCard(group, index) {
+  const cardId = `skill-group-${index}`;
+  const collapseId = `skill-group-collapse-${index}`;
 
   const card = document.createElement('div');
   card.className = 'card visible';
   card.id = cardId;
+  card.style.animationDelay = `${index * 0.075}s`;
 
-  const header = document.createElement('div');
-  header.className = 'card-header';
-  header.innerHTML = `
-    <div class='card-title'>${groupKey.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
-    <div class='card-btns'>
-      <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+  const content = Array.isArray(group.content) ? group.content : [];
+  const achievements = Array.isArray(group.achievements) ? group.achievements : [];
+
+  const buildSlider = (entry, row, gridColumn) => `
+    <div class='skill-slider' style='grid-row: ${row}; grid-column: ${gridColumn};'>
+      <div class='log-flex-row'>
+        <div class='log-flex-left'><span class='item-card-title'>${entry.title || 'Skill'}</span></div>
+      </div>
+      <div class='progress-bar progress-bar-thin'>
+        <div class='progress-bar-fill has-glow' style='width: ${(Math.min(Math.max(parseFloat(entry.level ?? 0), 0), 1) * 100).toFixed(1)}%;'></div>
+      </div>
+      <div class='post-detail'>${Array.isArray(entry.values) ? entry.values.map(v => `<span class='log-subtitle'>${v}</span>`).join(`<span class='meta-separator'> · </span>`) : ''}</div>
     </div>
   `;
-  header.addEventListener('click', () => toggleCard(cardId, collapseId));
 
-  const collapse = document.createElement('div');
-  collapse.className = 'card-collapse';
-  collapse.id = collapseId;
+  const buildBox = (a, row, gridColumn) => `
+    <div class='skill-box ${a.full ? 'skill-full' : ''} has-glow' style='grid-row: ${row}; grid-column: ${gridColumn};'>
+      <span class='item-card-title'>${a.title ?? ''}</span>
+      <span class='post-detail'>${a.subtitle ?? ''}</span>
+    </div>
+  `;
 
-  const body = document.createElement('div');
-  body.className = 'card-body';
-  
-  const gridWrapper = document.createElement('div');
-  gridWrapper.className = 'skill-group-grid';
+  let rowItems = [];
+  if (achievements.length === 0 && content.length > 0) {
+    const firstColCount = Math.ceil(content.length / 2);
+    const col0Items = content.slice(0, firstColCount);
+    const col1Items = content.slice(firstColCount);
 
-  renderGroupGrid(groupData.content, groupData.layout, gridWrapper);
+    col0Items.forEach((entry, i) => { rowItems.push({ row: i + 1, col: 0, html: buildSlider(entry, i + 1, '1') }); });
+    col1Items.forEach((entry, i) => { rowItems.push({ row: i + 1, col: 1, html: buildSlider(entry, i + 1, '3 / 5') }); });
+  } else {
+    let sliderRowCursor = 1;
+    const fullRows = new Set();
+    const sldPlacements = content.map(entry => {
+      const isFull = !!entry.full;
+      const row = sliderRowCursor++;
+      if (isFull) fullRows.add(row);
+      return { entry, row, isFull };
+    });
 
-  body.appendChild(gridWrapper);
-  collapse.appendChild(body);
-  card.appendChild(header);
-  card.appendChild(collapse);
-
-  return card;
-}
-
-function renderGroupGrid(skills, columns, container) {
-  container.innerHTML = '';
-  container.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
-  
-  skills.forEach(skill => {
-    const card = buildSkillCard(skill);
-    if (skill.span) { 
-      card.style.gridColumn = `span ${Math.min(skill.span, columns)}`; 
+    const boxRows = [];
+    for (let i = 0; i < achievements.length; i++) {
+      const a = achievements[i];
+      if (a.full) {
+        boxRows.push([a]);
+        continue;
+      }
+      const row = [a];
+      if (i + 1 < achievements.length && !achievements[i + 1].full) {
+        row.push(achievements[i + 1]);
+        i++;
+      }
+      boxRows.push(row);
     }
-    container.appendChild(card);
-  });
-}
 
-function buildSkillCard(skill) {
-  const card = document.createElement('div');
-  card.className = 'card skill-card visible';
+    let boxRowCursor = 1;
+    const boxPlacements = boxRows.map(items => {
+      while (fullRows.has(boxRowCursor)) boxRowCursor++;
+      const row = boxRowCursor++;
+      return { items, row };
+    });
 
-  const level = Math.min(Math.max(parseFloat(skill.level ?? 0), 0), 1);
-  const progressPercentage = (level * 100).toFixed(1);
-
-  const isLight = document.body.classList.contains('light-mode');
-  let darkIconPath = '', lightIconPath = '', currentSrc = '';
-
-  if (Array.isArray(skill.icon)) {
-    darkIconPath = skill.icon[0] || '';
-    lightIconPath = skill.icon[1] || darkIconPath;
-    currentSrc = isLight ? lightIconPath : darkIconPath;
-  } else if (typeof skill.icon === 'string') {
-    darkIconPath = lightIconPath = currentSrc = skill.icon;
+    sldPlacements.forEach(p => rowItems.push({ row: p.row, sort: 0, html: buildSlider(p.entry, p.row, p.isFull ? '1 / 5' : '1') }));
+    boxPlacements.forEach(p => {
+      p.items.forEach((a, idx) => {
+        const col = a.full ? '3 / 5' : (idx === 0 ? '3' : '4');
+        rowItems.push({ row: p.row, sort: 1 + idx, html: buildBox(a, p.row, col) });
+      });
+    });
   }
 
-  const hasValidSource = skill.source && (skill.source.startsWith('http') || skill.source.includes('.'));
-
+  rowItems.sort((a, b) => a.row - b.row || (a.sort ?? 0) - (b.sort ?? 0) || (a.col ?? 0) - (b.col ?? 0));
   card.innerHTML = `
-    <div class='skill-card-main-row'>
-      <div class='skill-card-title-group'>
-        ${currentSrc ? `
-          <img
-            class='skill-card-image thematic-icon'
-            src='${currentSrc}'
-            data-dark='${darkIconPath}'
-            data-light='${lightIconPath}'
-            alt='${skill.title || 'Skill'}'
-          />` : ''}
-        <div class='skill-card-text'>
-          <span class='item-card-title'>${skill.title || 'Skill'}</span>
-          ${skill.proof ? `<span class='post-detail'>${skill.proof}</span>` : ''}
-        </div>
-      </div>
-      
-      <div>
-        ${hasValidSource ? `
-          <a class='skill-url-btn' href='${skill.source}' target='_blank' rel='noopener noreferrer'>
-            <i class='fa-solid fa-arrow-up-right-from-square'></i>
-          </a>` : ''}
+    <div class='card-header'>
+      <div class='card-title'>${group.title || 'Untitled'}</div>
+      <div class='card-btns'>
+        <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
     </div>
-
-    <div class='progress-bar'>
-      <div class='progress-bar-fill has-glow' style='width: ${progressPercentage}%;'></div>
+    <div class='card-collapse' id='${collapseId}'>
+      <div class='card-body skill-card-body'>
+        <div class='skills-grid'>${rowItems.map(i => i.html).join('')}</div>
+      </div>
     </div>
   `;
 
-  card.querySelector('.skill-url-btn')?.addEventListener('click', e => e.stopPropagation());
+  card.querySelector('.card-header').addEventListener('click', () => toggleCard(cardId, collapseId));
 
   return card;
 }
 
 function renderSkillsList(skillsData) {
   try {
-    if (skillsData.content && typeof skillsData.content === 'object' && Object.keys(skillsData.content).length > 0) {
-
+    if (Array.isArray(skillsData) && skillsData.length > 0) {
       const container = document.getElementById('list-container');
       if (!container) return;
       container.innerHTML = '';
-
-      const globalLayout = skillsData.layout  || 4;
-      const content = skillsData.content || {};
-
-      Object.entries(content).forEach(([groupKey, groupSkills], groupIndex) => {
-        if (!groupSkills || !Array.isArray(groupSkills)) return;
-        container.appendChild(buildSkillsGroup(groupKey, { content: groupSkills, layout: globalLayout }, groupIndex));
-      });
-
+      skillsData.forEach((group, index) => { container.appendChild(buildSkillsCard(group, index));});
       observeCards();
-
-    } else {
-      renderNoData('Skills', 'list-container');
-    }
-
+    } else { renderNoData('Skills', 'list-container'); }
   } catch (e) {
     console.error('Skills Page Initialization Failure:', e);
   }
