@@ -187,7 +187,7 @@ function buildSkillsCard(group, index) {
     <div class='skill-box ${a.full ? 'skill-full' : ''} ${a.url ? 'skill-url' : ''} has-glow'
         style='grid-row: ${row}; grid-column: ${gridColumn};'
         ${a.url ? `data-url='${a.url}'` : ''}>
-      <span class='card-title'>${a.title ?? ''}</span>
+      <span class='item-card-title'>${a.title ?? ''}</span>
       <span class='log-subtitle'>${a.subtitle ?? ''}</span>
     </div>
   `;
