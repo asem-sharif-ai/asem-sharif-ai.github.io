@@ -1001,6 +1001,7 @@ body {
   margin-top: 12px;
 }
 
+
 .subtitle {
   color: var(--text-deep-muted);
   font-size: 0.95rem;
@@ -1239,6 +1240,7 @@ body {
 
 #latest-hero { margin-bottom: -90px; }
 #latest-title { margin-top: -8px; margin-bottom: -8px; }
+#latest-subtitle { margin: 16px 0 16px 0; }
 
 .latest-meta {
   align-items: center;
