@@ -581,14 +581,14 @@ function buildHero(data, getTheme, setTheme) {
   if (data.documents && Object.keys(data.documents).length > 0) {
     let panel = document.getElementById('doc-panel');
     if (panel) {
-      const entries = Object.entries(data.documents);
+      const entries = Object.entries(data.documents).slice(0, 3);
       entries.forEach(([key, doc], i) => {
         const btn = document.createElement('button');
         btn.className = 'doc-trigger has-fast-glow';
         btn.id = `doc-trigger-${key}`;
         btn.dataset.index = i;
         btn.dataset.total = entries.length;
-        btn.innerHTML = `<i class='${iconMap[key === 'cv' ? 'paper' : 'resume']} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+        btn.innerHTML = `<i class='${iconMap[key]} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
         btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
         panel.appendChild(btn);
       });

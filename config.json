@@ -24,8 +24,9 @@
   "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
   "documents": {
-    "resume": { "title": "Résumé", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    "cv":     { "title": "CV",     "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
+    "resume":   { "title": "Résumé",   "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "paper":    { "title": "CV",       "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "contract": { "title": "Contract", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
   },
 
   "qr_code": { "title": "Asem E. Sharif - Portfolio", "url": "https://asem-sharif-ai.github.io" },
@@ -121,110 +122,123 @@
   
   "skills": [
     {
-      "title": "Programming",
+      "title": "Technical Skills",
       "content": [
         {
-          "title": "Programming",
-          "values": ["Python", "C++", "Bash / Shell", "SQL", "JavaScript", "HTML & CSS"],
-          "level": 0.64
+          "title": "Programming Languages",
+          "values": ["Python", "C++"],
+          "level": 0.9
         },
         {
-          "title": "Programming",
-          "values": ["Python", "C++", "Bash / Shell", "SQL", "JavaScript", "HTML & CSS"],
-          "level": 0.64
+          "title": "Scripting & Data",
+          "values": ["Bash / Shell", "SQL"],
+          "level": 0.75
         },
         {
-          "title": "Programming",
-          "values": ["Python", "C++", "Bash / Shell", "SQL", "JavaScript", "HTML & CSS"],
-          "level": 0.64
+          "title": "Web Basics",
+          "values": ["JavaScript", "HTML & CSS"],
+          "level": 0.55
         }
       ],
-      "achievements": [
-        { "title": "6", "subtitle": "Languages & Tools", "full": true },
-        { "title": "95%", "subtitle": "Top: Python" },
-        { "title": "64%", "subtitle": "Avg Proficiency" },
-        { "title": "1", "subtitle": "Expert-Level Skill", "full": true }
+      "highlight": [
+        { "title": "Python", "subtitle": "Main Language", "url": "q" },
+        { "title": "6", "subtitle": "Languages & Tools" },
+        { "title": "OOP", "subtitle": "Primary Paradigm" },
+        { "title": "3", "subtitle": "Years Coding" }
       ]
     },
     {
       "title": "Artificial Intelligence",
       "content": [
         {
-          "title": "Artificial Intelligence",
-          "values": ["Deep Learning", "Machine Learning", "Convolutional Networks", "Metric Learning", "Transformers & ViTs", "Generative Models"],
-          "level": 0.81,
-          "full": true
+          "title": "Core ML & Deep Learning",
+          "values": ["Machine Learning", "Deep Learning", "Convolutional Networks", "Metric Learning"],
+          "level": 0.85
+        },
+        {
+          "title": "Advanced Architectures",
+          "values": ["Transformers & ViTs", "Generative Models"],
+          "level": 0.6
+        },
+        {
+          "title": "Frameworks & Libraries",
+          "values": ["PyTorch", "TensorFlow", "Scikit-Learn", "NumPy", "SciPy"],
+          "level": 0.85
         }
       ],
-      "achievements": [
-        { "title": "6", "subtitle": "Core AI Domains" },
-        { "title": "90%", "subtitle": "Top: CNNs" },
-        { "title": "81%", "subtitle": "Avg Proficiency" },
-        { "title": "4", "subtitle": "Expert-Level Skills" }
+      "highlight": [
+        { "title": "PyTorch", "subtitle": "Main Framework" },
+        { "title": "11", "subtitle": "Techniques & Tools" },
+        { "title": "Deep Learning", "subtitle": "Core Focus" },
+        { "title": "2", "subtitle": "Architecture Families" }
       ]
     },
     {
       "title": "Computer Vision",
       "content": [
         {
-          "title": "Computer Vision",
-          "values": ["Face Detection & Analysis", "Face Recognition", "Anti-Spoofing (PAD)", "Pose Estimation", "Object Detection", "Object Tracking", "Emotion Recognition", "Image Processing", "Data Augmentation", "Segmentation"],
-          "level": 0.87
+          "title": "Face Analysis",
+          "values": ["Face Detection & Analysis", "Face Recognition", "Presentation Attack Detection"],
+          "level": 0.9
+        },
+        {
+          "title": "Detection & Tracking",
+          "values": ["Pose Estimation", "Object Detection", "Object Tracking", "Emotion Classification"],
+          "level": 0.8
+        },
+        {
+          "title": "Processing & Libraries",
+          "values": ["Image Processing", "Data Augmentation", "Segmentation", "OpenCV", "MediaPipe", "InsightFace"],
+          "level": 0.85
         }
       ],
-      "achievements": [
-        { "title": "10", "subtitle": "CV Specializations" },
-        { "title": "95%", "subtitle": "Top: Face Detection" },
-        { "title": "87%", "subtitle": "Avg Proficiency" },
-        { "title": "9", "subtitle": "Expert-Level Skills" }
+      "highlight": [
+        { "title": "OpenCV", "subtitle": "Key Library" },
+        { "title": "13", "subtitle": "Techniques & Tools" },
+        { "title": "Face Analysis", "subtitle": "Core Domain" },
+        { "title": "LYNX DMS", "subtitle": "Flagship Project" }
       ]
     },
     {
-      "title": "Frameworks & Libraries",
+      "title": "Edge & Deployment",
       "content": [
         {
-          "title": "Frameworks & Libraries",
-          "values": ["OpenCV", "PyTorch", "MediaPipe", "InsightFace", "NumPy / SciPy", "Scikit-Learn", "PyQt6", "TensorFlow / Keras"],
-          "level": 0.86
+          "title": "Hardware Platforms",
+          "values": ["Raspberry Pi 5", "Hailo-8L NPU", "Hardware Prototyping"],
+          "level": 0.85
+        },
+        {
+          "title": "Optimization",
+          "values": ["ONNX Runtime", "Model Quantization", "Model Pruning"],
+          "level": 0.8
         }
       ],
-      "achievements": [
-        { "title": "8", "subtitle": "Frameworks & Libraries" },
-        { "title": "92%", "subtitle": "Top: OpenCV" },
-        { "title": "86%", "subtitle": "Avg Proficiency" },
-        { "title": "7", "subtitle": "Expert-Level Skills" }
+      "highlight": [
+        { "title": "Raspberry Pi 5", "subtitle": "Target Platform" },
+        { "title": "Hailo-8L", "subtitle": "NPU Accelerator" },
+        { "title": "6", "subtitle": "Tools & Techniques" },
+        { "title": "Real-Time", "subtitle": "Deployment Mode" }
       ]
     },
     {
-      "title": "Edge AI & Deployment",
+      "title": "Development Tools",
       "content": [
         {
-          "title": "Edge AI & Deployment",
-          "values": ["Raspberry Pi 5", "Hailo-8L NPU", "ONNX Runtime", "Model Quantization", "Model Pruning", "Hardware Prototyping"],
-          "level": 0.79
-        }
-      ],
-      "achievements": [
-        { "title": "6", "subtitle": "Deployment Skills" },
-        { "title": "85%", "subtitle": "Top: Raspberry Pi 5" },
-        { "title": "79%", "subtitle": "Avg Proficiency" },
-        { "title": "3", "subtitle": "Expert-Level Skills" }
-      ]
-    },
-    {
-      "title": "Tools & Environment",
-      "content": [
+          "title": "GUI Development",
+          "values": ["PyQt6", "PySide6"],
+          "level": 0.9
+        },
         {
-          "title": "Tools & Environment",
-          "values": ["Git & GitHub", "Linux", "Google Colab", "SQLite", "Docker"],
-          "level": 0.79
+          "title": "Environment & Infra",
+          "values": ["Git & GitHub", "Linux", "Docker", "SQLite", "Google Colab"],
+          "level": 0.8
         }
       ],
-      "achievements": [
-        { "title": "5", "subtitle": "Tools & Platforms" },
-        { "title": "88%", "subtitle": "Top: Git & GitHub" },
-        { "title": "79%", "subtitle": "Avg Proficiency" },
-        { "title": "3", "subtitle": "Expert-Level Skills" }
+      "highlight": [
+        { "title": "PyQt6", "subtitle": "GUI Framework" },
+        { "title": "7", "subtitle": "Tools & Platforms" },
+        { "title": "Linux", "subtitle": "Primary OS" },
+        { "title": "Git", "subtitle": "Version Control" }
       ]
     }
   ],

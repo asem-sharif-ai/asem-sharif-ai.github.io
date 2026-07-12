@@ -169,7 +169,7 @@ function buildSkillsCard(group, index) {
   card.style.animationDelay = `${index * 0.075}s`;
 
   const content = Array.isArray(group.content) ? group.content : [];
-  const achievements = Array.isArray(group.achievements) ? group.achievements : [];
+  const highlight = Array.isArray(group.highlight) ? group.highlight : [];
 
   const buildSlider = (entry, row, gridColumn) => `
     <div class='skill-slider' style='grid-row: ${row}; grid-column: ${gridColumn};'>
@@ -179,19 +179,21 @@ function buildSkillsCard(group, index) {
       <div class='progress-bar progress-bar-thin'>
         <div class='progress-bar-fill has-glow' style='width: ${(Math.min(Math.max(parseFloat(entry.level ?? 0), 0), 1) * 100).toFixed(1)}%;'></div>
       </div>
-      <div class='post-detail'>${Array.isArray(entry.values) ? entry.values.map(v => `<span class='log-subtitle'>${v}</span>`).join(`<span class='meta-separator'> · </span>`) : ''}</div>
+      <div class='log-subtitle'>${Array.isArray(entry.values) ? entry.values.map(v => `<span class='log-subtitle'>${v}</span>`).join(`<span class='meta-separator log-subtitle'> · </span>`) : ''}</div>
     </div>
   `;
 
   const buildBox = (a, row, gridColumn) => `
-    <div class='skill-box ${a.full ? 'skill-full' : ''} has-glow' style='grid-row: ${row}; grid-column: ${gridColumn};'>
-      <span class='item-card-title'>${a.title ?? ''}</span>
-      <span class='post-detail'>${a.subtitle ?? ''}</span>
+    <div class='skill-box ${a.full ? 'skill-full' : ''} ${a.url ? 'skill-url' : ''} has-glow'
+        style='grid-row: ${row}; grid-column: ${gridColumn};'
+        ${a.url ? `data-url='${a.url}'` : ''}>
+      <span class='card-title'>${a.title ?? ''}</span>
+      <span class='log-subtitle'>${a.subtitle ?? ''}</span>
     </div>
   `;
 
   let rowItems = [];
-  if (achievements.length === 0 && content.length > 0) {
+  if (highlight.length === 0 && content.length > 0) {
     const firstColCount = Math.ceil(content.length / 2);
     const col0Items = content.slice(0, firstColCount);
     const col1Items = content.slice(firstColCount);
@@ -209,15 +211,15 @@ function buildSkillsCard(group, index) {
     });
 
     const boxRows = [];
-    for (let i = 0; i < achievements.length; i++) {
-      const a = achievements[i];
+    for (let i = 0; i < highlight.length; i++) {
+      const a = highlight[i];
       if (a.full) {
         boxRows.push([a]);
         continue;
       }
       const row = [a];
-      if (i + 1 < achievements.length && !achievements[i + 1].full) {
-        row.push(achievements[i + 1]);
+      if (i + 1 < highlight.length && !highlight[i + 1].full) {
+        row.push(highlight[i + 1]);
         i++;
       }
       boxRows.push(row);
@@ -255,6 +257,11 @@ function buildSkillsCard(group, index) {
   `;
 
   card.querySelector('.card-header').addEventListener('click', () => toggleCard(cardId, collapseId));
+  card.querySelectorAll('.skill-url[data-url]').forEach(box => {
+    box.addEventListener('click', () => {
+      window.open(box.dataset.url, '_blank', 'noopener,noreferrer');
+    });
+  });
 
   return card;
 }

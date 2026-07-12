@@ -67,6 +67,7 @@ const iconMap = {
   paper:        'fa-solid fa-file-lines',
   scholar:      'iconify:academicons:google-scholar',
   resume:       'fa-solid fa-address-card',
+  contract:     'fa-solid fa-file-contract',
 
   demo:         'fa-solid fa-laptop-code',
   info:         'fa-solid fa-info',
