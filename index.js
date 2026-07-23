@@ -231,7 +231,7 @@ function buildForm(section, cardId, api, adminTimezone) {
   const dayLabelFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
 
   const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const tzNoteEl = card.querySelector(`#time-tz-note-${cardId}`);
+  const tzNoteEl = card.querySelector(`#timezone-note-${cardId}`);
 
   const getTimezoneOffsetMinutes = (timeZone, atDate) => {
     try {
@@ -350,14 +350,14 @@ function buildForm(section, cardId, api, adminTimezone) {
 
       const dayHeader = document.createElement('div');
       dayHeader.className = 'time-day-label';
-      dayHeader.innerHTML = `<span class='time-day-name'>${dayNameFmt.format(date)}</span><span class='time-day-date'>${dayDateFmt.format(date)}</span>`;
+      dayHeader.innerHTML = `<span class='form-label'>${dayNameFmt.format(date)}</span><span class='form-label'>${dayDateFmt.format(date)}</span>`;
       dayCell.appendChild(dayHeader);
 
       const bar = document.createElement('div');
       bar.className = 'time-day-bar';
 
       const tzLabel = document.createElement('div');
-      tzLabel.className = 'time-day-tz-label';
+      tzLabel.className = 'timezone-note-label';
 
       const updateTzLabel = (def) => {
         if (!def) { tzLabel.textContent = ''; tzLabel.classList.remove('show'); return; }
@@ -423,7 +423,7 @@ function buildForm(section, cardId, api, adminTimezone) {
   renderTimeGrid();
   {
     const initialLabel = formatSelectedLabel();
-    if (initialLabel) changeFormBtn.textContent = `Preferred Time: ${initialLabel}.`;
+    if (initialLabel) changeFormBtn.textContent = `Preferred Time: ${initialLabel}`;
   }
   changeFormBtn.addEventListener('click', () => {
     onMailScreen = !onMailScreen;
@@ -432,7 +432,7 @@ function buildForm(section, cardId, api, adminTimezone) {
 
     if (onMailScreen) {
       const label = formatSelectedLabel();
-      changeFormBtn.textContent = label ? `Preferred Time: ${label}.` : 'Prefer A Specific Time? (Optional)';
+      changeFormBtn.textContent = label ? `Preferred Time: ${label}` : 'Prefer A Specific Time? (Optional)';
     } else {
       changeFormBtn.textContent = 'Back To Email';
     }
