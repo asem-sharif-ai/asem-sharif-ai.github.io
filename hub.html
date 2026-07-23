@@ -23,16 +23,16 @@
           <span class='nav-label'>Home</span>
         </a>
         <a class='hub-tab active' id='hub-tab-feed'>
-          <i class='fa-solid fa-book-open'></i>
+          <i class='fa-solid fa-user'></i>
           <span class='nav-label'>Feed</span>
+        </a>
+        <a class='hub-tab' id='hub-tab-guests'>
+          <i class='fa-solid fa-user-group'></i>
+          <span class='nav-label'>Guests</span>
         </a>
         <a class='hub-tab' id='hub-tab-faq'>
           <i class='fa-solid fa-circle-question'></i>
           <span class='nav-label'>FAQ</span>
-        </a>
-        <a class='hub-tab' id='hub-tab-guestbook'>
-          <i class='fa-solid fa-user-group'></i>
-          <span class='nav-label'>Guests</span>
         </a>
         <div class='search-wrapper' id='hub-search-wrapper'>
           <i class='fa-solid fa-magnifying-glass search-icon'></i>
@@ -42,13 +42,16 @@
       </div>
     </nav>
     <main class='hub-main'>
-      <div class='container' id='hub-panel-feed'> <div id='feed-list'></div> </div>
-      <div class='container hub-hidden' id='hub-panel-faq'> <div id='list-container'></div> </div>
-      <div class='hub-hidden' id='hub-panel-guestbook'>
-        <div class='container'> <div id='guestbook-list'></div> </div>
-        <div class='gb-footer gb-hidden' id='gb-footer'> <div id='gb-footer-inner'></div> </div>
-      </div>
+      <div class='floating-trigger has-glow feed-action-trigger' id='modal-trigger'><i class='fa-brands fa-google'></i>  </div>
+      <div class='container'            id='hub-panel-feed'>   <div id='feed-container'></div>   </div>
+      <div class='container hub-hidden' id='hub-panel-guests'> <div id='guests-container'></div> </div>
+      <div class='container hub-hidden' id='hub-panel-faq'>    <div id='list-container'></div>   </div>
     </main>
+    <div class='feed-modal-overlay' id='feed-modal-overlay'>
+      <div class='feed-footer' id='feed-footer'>
+        <div id='feed-footer-inner'></div>
+      </div>
+    </div>
     <script src='https://cdn.jsdelivr.net/npm/marked/marked.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'></script>
     <script src='base.js'></script>

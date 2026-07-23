@@ -11,36 +11,28 @@ const symbolMap = {
 const sectionMap = {
   home:         'fa-solid fa-house',
   search:       'fa-solid fa-magnifying-glass',
-
   user:         'fa-solid fa-user',
   about:        'fa-solid fa-address-card',
   resume:       'fa-solid fa-file-pdf',
   contact:      'fa-solid fa-envelope',
   connect:      'fa-brands fa-nfc-symbol',
-
   experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
   skills:       'fa-solid fa-layer-group',
-
   projects:     'fa-solid fa-laptop-code',
   services:     'fa-solid fa-handshake',
   gallery:      'fa-solid fa-image',
-
   blog:         'fa-solid fa-pen-to-square',
   testimonials: 'fa-solid fa-comment-dots',
-
   pricing:      'fa-solid fa-tags',
   team:         'fa-solid fa-users',
-
   status:       'fa-solid fa-circle-info',
   update:       'fa-solid fa-clock-rotate-left',
   analytics:    'fa-solid fa-chart-line',
-
   faq:          'fa-solid fa-circle-question',
   hub:          'fa-solid fa-share-nodes',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
-
   default:      'fa-solid fa-layer-group',
 };
 
@@ -49,29 +41,24 @@ const iconMap = {
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
   youtube:      'fa-brands fa-youtube',
-
   whatsapp:     'iconify:iconoir:whatsapp-solid',
   telegram:     'fa-brands fa-telegram',
   discord:      'fa-brands fa-discord',
   mailto:       'fa-solid fa-envelope',
-
   linkedin:     'fa-brands fa-linkedin-in',
   medium:       'fa-brands fa-medium',
-
   github:       'fa-brands fa-github',
   huggingface:  'iconify:simple-icons:huggingface', 
   kaggle:       'fa-brands fa-kaggle',
   bitbucket:    'fa-solid fa-bucket',
-  
   researchgate: 'fa-brands fa-researchgate',
   paper:        'fa-solid fa-file-lines',
   scholar:      'iconify:academicons:google-scholar',
   resume:       'fa-solid fa-address-card',
   contract:     'fa-solid fa-file-contract',
-
+  calendar:     'fa-solid fa-calendar',
   demo:         'fa-solid fa-laptop-code',
   info:         'fa-solid fa-info',
-
   default:      'fa-solid fa-link',
 };
 
@@ -82,18 +69,18 @@ function _address(key) {
 
 const addresses = {
   userTheme:           _address('user-theme'),
+  userToken:           _address('user-token'),
+  chatToken:           _address('chat-token'),
   chatHistory:         _address('chat-history'),
-  indexScrollY:        _address('index-scroll-y'),
   mailFormData:        _address('mail-form-data'),
-  projectsActiveTopic: _address('projects-active-topics'),
+  indexScrollY:        _address('index-scroll-y'),
+  projectsActiveTopic: _address('projects-active-topic'),
   projectsSearchQuery: _address('projects-search-query'),
   projectsStarredOnly: _address('projects-starred-only'),
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
-  hubActiveTab:        _address('hub-actccive-tab'),
-  hubGuestbookToken:   _address('hub-guestbook-token'),
+  hubActiveTab:        _address('hub-active-tab')
 };
-
 
 // ───── Viewport ────────────────────────────────────────
 
@@ -429,135 +416,10 @@ function observeCards() {
     });
   }, { threshold: 0.08 });
 
-  document.querySelectorAll('.card').forEach(card => observer.observe(card));
+  document.querySelectorAll('.card, .quick-link-item').forEach(el => observer.observe(el));
 }
 
-// ───── Triggers ────────────────────────────────────────
-
-function initChatAssistant(configData) {
-  globalProfileData = configData;
-  chatConfigData = configData.assistant;
-  
-  const assistantConfig = configData.assistant;
-
-  function updateTriggerIcon(btnUI) {
-    if (!btnUI || !assistantConfig) return;
-    const isLight = document.body.classList.contains('light-mode');
-    const icons = assistantConfig.icon || [];
-
-    if (icons.length > 0 && (icons[0] || icons[1])) {
-      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
-      if (activeIcon) {
-        btnUI.innerHTML = `<img src='${activeIcon}' alt='Chat' />`;
-        return;
-      }
-    }
-    btnUI.innerHTML = '<i class="fa-regular fa-message"></i>';
-  }
-
-  function updateAvatarLayout() {
-    const container = document.getElementById('chat-bot-avatar-container');
-    if (!container || !assistantConfig) return;
-
-    const isLight = document.body.classList.contains('light-mode');
-    const icons = assistantConfig.icon || [];
-
-    if (icons.length > 0 && (icons[0] || icons[1])) {
-      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
-      if (activeIcon) {
-        container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
-        container.style.display = 'block';
-        return;
-      }
-    }
-    container.innerHTML = '';
-    container.style.display = 'none';
-  }
-
-  const triggerBtn = document.createElement('button');
-  triggerBtn.title = 'Chat With AI Assistant';
-  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
-  triggerBtn.id = 'chat-assistant-trigger';
-
-  updateTriggerIcon(triggerBtn);
-
-  const chatWindow = document.createElement('div');
-  chatWindow.className = 'chat-window';
-  chatWindow.id = 'chat-assistant-window';
-
-  chatWindow.innerHTML = `
-    <div class='chat-header'>
-      <div class='chat-bot-info'>
-        <div id='chat-bot-avatar-container'></div>
-        <div class='chat-bot-brand'>
-          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
-          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
-        </div>
-      </div>
-      <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
-      <button class='chat-clear-btn' id='chat-clear-window'><i class='fa-solid fa-xmark'></i></button>
-    </div>
-    <div class='chat-messages' id='chat-messages-container'></div>
-    <div class='chat-footer'>
-      <div class='chat-input-wrapper'>
-        <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${MAX_MESSAGE_LENGTH}' />
-      </div>
-      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
-    </div>
-  `;
-
-  document.body.appendChild(triggerBtn);
-  document.body.appendChild(chatWindow);
-
-  updateAvatarLayout();
-  loadChatHistory();
-
-  const systemLogo = document.querySelector('.hero-logo');
-  if (systemLogo) {
-    systemLogo.addEventListener('click', () => {
-      setTimeout(() => {
-        updateTriggerIcon(document.getElementById('chat-assistant-trigger'));
-        updateAvatarLayout();
-      }, 50);
-    });
-  }
-
-  triggerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleChatWindow();
-  });
-
-  document.getElementById('chat-close-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleChatWindow();
-  });
-
-  document.getElementById('chat-clear-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleChatLogPurge();
-    const win = document.getElementById('chat-assistant-window');
-    if (win) win.classList.remove('open');
-  });
-
-  document.addEventListener('click', (e) => {
-    const win = document.getElementById('chat-assistant-window');
-    if (win && win.classList.contains('open')) {
-      if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
-        win.classList.remove('open');
-      }
-    }
-  });
-
-  chatWindow.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-
-  const inputField = document.getElementById('chat-user-input');
-  inputField.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleUserMessageSubmit();
-  });
-  document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
-}
+// ───── QR Trigger ────────────────────────────────────────
 
 function createQRCodeModal(qrData) {
   const qrBtn = document.createElement('button');
@@ -684,7 +546,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
     createQRCodeModal(data.qr_code);
   }
 
-  if (triggers.includes('assistant') && data.assistant?.endpoint) {
+  if (triggers.includes('assistant') && data.assistant?.name) {
     initChatAssistant(data);
     
     const chatWin = document.getElementById('chat-assistant-window');

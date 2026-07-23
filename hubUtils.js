@@ -25,7 +25,9 @@ function updateShareIconState() {
   if (!_searchQuery) {
     searchIcon.classList.remove('ui-disabled');
   } else {
-    const hasMatches = _currentTab === 'feed' ? _feedHasMatches : _currentTab === 'faq' ? _faqHasMatches : _gbHasMatches;
+    const hasMatches = _currentTab === 'faq'
+      ? _faqHasMatches
+      : (_currentTab === 'guests' ? _gbHasMatches : _feedHasMatches);
     if (hasMatches) {
       searchIcon.classList.remove('ui-disabled');
     } else {
@@ -174,13 +176,13 @@ async function loadFeed(configData) {
 }
 
 function renderFeed(feedList) {
-  const container = document.getElementById('feed-list');
+  const container = document.getElementById('feed-container');
   if (!container) return;
   container.innerHTML = '';
 
   if (!Array.isArray(feedList) || feedList.length === 0) {
     _feedHasMatches = false;
-    renderNoData('No Feed Yet', 'feed-list', false);
+    renderNoData('No Feed Yet', 'feed-container', false);
     return;
   }
 
@@ -197,7 +199,7 @@ function renderFeed(feedList) {
 
   if (filtered.length === 0) {
     _feedHasMatches = false;
-    renderNoData('No Feed Matched The Search Key', 'feed-list', false);
+    renderNoData('No Feed Matched The Search Key', 'feed-container', false);
     return;
   }
 
@@ -220,21 +222,21 @@ function renderFeed(feedList) {
 
 function buildFeedCard(item) {
   const card = document.createElement('div');
-  card.className = 'gb-card card visible';
+  card.className = 'feed-card card visible';
 
   const duration = formatDuration(item.date);
   const query = _searchQuery;
   const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
 
   const msgPane = document.createElement('div');
-  msgPane.className = 'gb-msg-pane';
+  msgPane.className = 'feed-msg-pane';
   msgPane.innerHTML = `
-    <div class='gb-card-header'>
-      <div class='gb-identity'>
-        ${`<div class='gb-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
-        <div class='gb-identity-info'>
-          <span class='gb-name'>${highlightText(item.title || '', query)}</span>
-          <span class='gb-date'>${dateLabel}</span>
+    <div class='feed-card-header'>
+      <div class='feed-identity'>
+        ${`<div class='feed-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
+        <div class='feed-identity-info'>
+          <span class='feed-name'>${highlightText(item.title || '', query)}</span>
+          <span class='feed-date'>${dateLabel}</span>
         </div>
       </div>
     </div>
@@ -243,7 +245,7 @@ function buildFeedCard(item) {
 
   if (item.gallery && item.gallery.length > 1) {
     const row = document.createElement('div');
-    row.className = 'gb-row';
+    row.className = 'feed-row';
     row.appendChild(msgPane);
     row.appendChild(buildGalleryPane(item.gallery));
     card.appendChild(row);
@@ -268,10 +270,10 @@ async function fetchGuestbook(action, body = null) {
 }
 
 async function loadGuestbook() {
-  const container = document.getElementById('guestbook-list');
+  const container = document.getElementById('guests-container');
   if (!container) return;
   container.innerHTML = '';
-  renderNoData('Loading Guestbook', 'guestbook-list', false);
+  renderNoData('Loading Guestbook', 'guests-container', false);
 
   try {
     if (_gbToken) {
@@ -303,7 +305,6 @@ async function loadGuestbook() {
               
             renderGuestbook();
             setFooterPage('admin');
-            syncFooter();
             return;
           }
 
@@ -314,28 +315,26 @@ async function loadGuestbook() {
           _gbEntries = listData.entries || [];
           renderGuestbook();
           setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-          syncFooter();
           return;
         } else {
           if (check.error) {
             _gbToken = null;
-            localStorage.removeItem(addresses.hubGuestbookToken);
+            localStorage.removeItem(addresses.userToken);
             const listData = await fetchGuestbook('list');
             _gbEntries = listData.entries || [];
             _gbIdentity = null;
             renderGuestbook();
             setFooterPage('login');
             setFooterStatus(check.error, true);
-            syncFooter();
             return;
           }
           _gbToken = null;
-          localStorage.removeItem(addresses.hubGuestbookToken);
+          localStorage.removeItem(addresses.userToken);
         }
       } catch (sessionErr) {
         console.error('Session Check Failed:', sessionErr);
         _gbToken = null;
-        localStorage.removeItem(addresses.hubGuestbookToken);
+        localStorage.removeItem(addresses.userToken);
       }
     }
 
@@ -344,15 +343,14 @@ async function loadGuestbook() {
     _gbIdentity = null;
     renderGuestbook();
     setFooterPage('login');
-    syncFooter();
   } catch (e) {
-    renderNoData('Failed To Load Guestbook', 'guestbook-list', false);
+    renderNoData('Failed To Load Guestbook', 'guests-container', false);
     console.error(e);
   }
 }
 
 function renderGuestbook() {
-  const container = document.getElementById('guestbook-list');
+  const container = document.getElementById('guests-container');
   if (!container) return;
   container.innerHTML = '';
 
@@ -393,7 +391,7 @@ function renderGuestbook() {
 
   if (!hasEntries && !hasBanned) {
     _gbHasMatches = false;
-    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'guestbook-list', false);
+    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'guests-container', false);
     return;
   }
 
@@ -410,6 +408,15 @@ function renderGuestbook() {
     const rest = finalEntries.filter((e) => !e.pin).sort((a, b) => (b.date > a.date ? 1 : -1));
     
     [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
   }
 
   observeCards();
@@ -417,25 +424,25 @@ function renderGuestbook() {
 
 function buildGuestbookCard(entry, isAdmin = false) {
   const card = document.createElement('div');
-  card.className = 'gb-card card visible';
-  card.id = `gb-card-${CSS.escape(entry.id)}`;
+  card.className = 'feed-card card visible';
+  card.id = `feed-card-${CSS.escape(entry.id)}`;
 
-  const gmailSub = isAdmin ? `<span class='gb-gmail'>${entry.id}</span>` : '';
+  const gmailSub = isAdmin ? `<span class='feed-gmail'>${entry.id}</span>` : '';
   const highlightQuery = _searchQuery || '';
   const duration = formatDuration(entry.date);
   const dateLabel = entry.date ? highlightText(`${entry.date}${duration ? ` · ${duration}` : ''}`, highlightQuery) : '';
 
-  const avatarUI = entry.image ? `<img class='gb-card-avatar' src='${entry.image}' alt='avatar' referrerpolicy='no-referrer' />` : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+  const avatarUI = entry.image ? `<img class='feed-card-avatar' src='${entry.image}' alt='avatar' referrerpolicy='no-referrer' />` : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
   let statusBadge = '';
   if (isAdmin) {
     const badgeClass = {
-      approved:       'keyword gb-badge gb-badge-approved',
-      pending:        'keyword gb-badge gb-badge-pending',
-      deletedByGuest: 'keyword gb-badge gb-badge-banned',
-      deletedByAdmin: 'keyword gb-badge gb-badge-banned',
-      banned:         'keyword gb-badge gb-badge-banned',
-    } [entry.status] || 'gb-badge-pending';
+      approved:       'keyword feed-badge feed-badge-approved',
+      pending:        'keyword feed-badge feed-badge-pending',
+      deletedByGuest: 'keyword feed-badge feed-badge-banned',
+      deletedByAdmin: 'keyword feed-badge feed-badge-banned',
+      banned:         'keyword feed-badge feed-badge-banned',
+    } [entry.status] || 'feed-badge-pending';
     statusBadge = `<span class='${badgeClass}'>${entry.status.replace('deletedBy', 'Deleted By ').toUpperCase()}</span>`;
   }
 
@@ -443,35 +450,35 @@ function buildGuestbookCard(entry, isAdmin = false) {
   const displayName = highlightText(entry.name || entry.id.split('@')[0], highlightQuery);
 
   card.innerHTML = `
-    <div class='gb-card-header'>
-      <div class='gb-identity'>
+    <div class='feed-card-header'>
+      <div class='feed-identity'>
         ${avatarUI}
-        <div class='gb-identity-info'>
-          <span class='gb-name${entry.status === 'banned' ?  ' gb-name-banned' : ''}'>${displayName} ${gmailSub}</span>
-          <span class='gb-date'>${dateLabel}</span>
+        <div class='feed-identity-info'>
+          <span class='feed-name${entry.status === 'banned' ?  ' feed-name-banned' : ''}'>${displayName} ${gmailSub}</span>
+          <span class='feed-date'>${dateLabel}</span>
         </div>
       </div>
-      <div class='gb-card-icons'>
+      <div class='feed-card-icons'>
         ${statusBadge}
         ${
           isAdmin 
             ? `
-          <button class='btn gb-btn gb-btn-approve ${entry.status === 'approved' ? 'gb-btn-active' : ''}'>
+          <button class='btn feed-btn feed-btn-approve ${entry.status === 'approved' ? 'feed-btn-active' : ''}'>
             <i class='fa-solid fa-check'></i>
           </button>
-          <button class='btn gb-btn gb-btn-heart ${entry.like ? 'gb-btn-active' : ''}'>
+          <button class='btn feed-btn feed-btn-heart ${entry.like ? 'feed-btn-active' : ''}'>
             <i class='${entry.like ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
           </button>
-          <button class='btn gb-btn gb-btn-pin ${entry.pin ? 'gb-btn-active' : ''}'>
+          <button class='btn feed-btn feed-btn-pin ${entry.pin ? 'feed-btn-active' : ''}'>
             <i class='${entry.pin ? 'fa-solid' : 'fa-regular'} fa-bookmark'></i>
           </button>
-          <button class='btn gb-btn gb-btn-delete'>
+          <button class='btn feed-btn feed-btn-delete'>
             <i class='fa-solid fa-eraser'></i>
           </button>
-          <button class='btn gb-btn gb-btn-remove'>
+          <button class='btn feed-btn feed-btn-remove'>
             <i class='fa-solid fa-trash'></i>
           </button>
-          <button class='btn gb-btn gb-btn-ban'>
+          <button class='btn feed-btn feed-btn-ban'>
             <i class='fa-solid fa-ban'></i>
           </button>
         `
@@ -482,16 +489,16 @@ function buildGuestbookCard(entry, isAdmin = false) {
         }
       </div>
     </div>
-    <p class='gb-msg ${getTextDirection(messageText) === 'rtl' ? 'gb-msg-rtl' : ''}'>${messageText}</p>
+    <p class='feed-msg ${getTextDirection(messageText) === 'rtl' ? 'feed-msg-rtl' : ''}'>${messageText}</p>
   `;
 
   if (isAdmin) {
-    card.querySelector('.gb-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card));
-    card.querySelector('.gb-btn-heart').addEventListener('click', () =>    gbAdminAction('like',       entry.id, card));
-    card.querySelector('.gb-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',        entry.id, card));
-    card.querySelector('.gb-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card));
-    card.querySelector('.gb-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',     entry.id, card));
-    card.querySelector('.gb-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',        entry.id, card));
+    card.querySelector('.feed-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card));
+    card.querySelector('.feed-btn-heart').addEventListener('click', () =>    gbAdminAction('like',       entry.id, card));
+    card.querySelector('.feed-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',        entry.id, card));
+    card.querySelector('.feed-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card));
+    card.querySelector('.feed-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',     entry.id, card));
+    card.querySelector('.feed-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',        entry.id, card));
   }
 
   return card;
@@ -499,36 +506,37 @@ function buildGuestbookCard(entry, isAdmin = false) {
 
 function buildBannedCard(entry) {
   const card = document.createElement('div');
-  card.className = 'gb-card gb-card-banned card visible';
-  card.id = `gb-card-${CSS.escape(entry.id)}`;
+  card.className = 'feed-card feed-card-banned card visible';
+  card.id = `feed-card-${CSS.escape(entry.id)}`;
 
   card.innerHTML = `
-    <div class='gb-card-header'>
-      <div class='gb-identity'>
-        <div class='gb-card-avatar-fallback'><i class='fa-solid fa-ban'></i></div>
-        <div class='gb-identity-info'>
-          <span class='gb-name gb-name-banned'>${highlightText(entry.id, _searchQuery || '')}</span>
-          <span class='gb-date'>Banned Account</span>
+    <div class='feed-card-header'>
+      <div class='feed-identity'>
+        <div class='feed-card-avatar-fallback'><i class='fa-solid fa-ban'></i></div>
+        <div class='feed-identity-info'>
+          <span class='feed-name feed-name-banned'>${highlightText(entry.id, _searchQuery || '')}</span>
+          <span class='feed-date'>Banned Account</span>
         </div>
       </div>
-      <div class='gb-card-icons'>
-        <span class='keyword gb-badge-banned'>Banned</span>
-        <button class='btn gb-btn gb-btn-unban'>
+      <div class='feed-card-icons'>
+        <span class='keyword feed-badge-banned'>Banned</span>
+        <button class='btn feed-btn feed-btn-unban'>
           <i class='fa-solid fa-rotate-left'></i>
         </button>
       </div>
     </div>
   `;
-  card.querySelector('.gb-btn-unban').addEventListener('click', () => gbAdminAction('unban', entry.id, card));
+  card.querySelector('.feed-btn-unban').addEventListener('click', () => gbAdminAction('unban', entry.id, card));
   return card;
 }
 
 // ───── Guestbook Footer ────────────────────────────────────────
 
 function syncFooter() {
-  const footer = document.getElementById('gb-footer');
-  if (_currentTab === 'guestbook') footer.classList.remove('gb-hidden');
-  else footer.classList.add('gb-hidden');
+  const footer = document.getElementById('feed-footer');
+  if (!footer) return;
+  if (_currentTab === 'guests') footer.classList.remove('feed-hidden');
+  else footer.classList.add('feed-hidden');
 }
 
 function buildFooter() {
@@ -544,7 +552,7 @@ function buildFooter() {
   fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
     .then((data) => {
       _gbToken = data.token;
-      localStorage.setItem(addresses.hubGuestbookToken, data.token);
+      localStorage.setItem(addresses.userToken, data.token);
       _gbIdentity = {
         name: data.name,
         isAdmin: data.isAdmin,
@@ -568,7 +576,6 @@ function buildFooter() {
           }));
         renderGuestbook();
         setFooterPage('admin');
-        syncFooter();
         return;
       }
 
@@ -580,46 +587,55 @@ function buildFooter() {
           _gbEntries = listData.entries || [];
           renderGuestbook();
           setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-          syncFooter();
         })
         .catch(() => {
           _gbEntries = [];
           renderGuestbook();
           setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-          syncFooter();
         });
     })
     .catch((e) => {
       _gbToken = null;
-      localStorage.removeItem(addresses.hubGuestbookToken);
+      localStorage.removeItem(addresses.userToken);
       setFooterPage('login');
       setFooterStatus(e.message, true);
     });
 }
 
 function setFooterStatus(msg, isError = false) {
-  const el = document.getElementById('gb-footer-status');
+  const el = document.getElementById('feed-footer-status');
   if (!el) return;
   if (!msg) {
     el.textContent = '';
-    el.classList.add('gb-hidden');
+    el.classList.add('feed-hidden');
     return;
   }
   el.textContent = msg;
-  el.classList.remove('gb-hidden');
+  el.classList.remove('feed-hidden');
   el.style.color = isError ? 'var(--heart-color)' : 'var(--text-deep-muted)';
 }
 
 function setFooterPage(state) {
-  const innerFooter = document.getElementById('gb-footer-inner');
+  const innerFooter = document.getElementById('feed-footer-inner');
   if (!innerFooter) return;
+
+  updateModalTriggerIcon(state);
 
   if (state === 'login') {
     innerFooter.innerHTML = `
-      <div id='gb-state-login'>
-        <button class='action-btn' id='gb-verify-btn'> <i class='fa-brands fa-google'></i> Leave A Message </button>
+      <div id='feed-state-login'>
+        <div class='feed-login-title-row'>
+          <span class='feed-login-title'>Sign in to interact or leave a message — we'd love to hear from you!</span>
+          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+        </div>
+        <button class='action-btn' id='feed-verify-btn'> <i class='fa-brands fa-google'></i> Google Authentication </button>
+        <div class='form-divider'><span>OR</span></div>
+        <div class='feed-otp-row'>
+          <input type='email' id='feed-otp-email' class='form-input' placeholder='Enter your email' autocomplete='email' maxlength='120' />
+          <button class='btn feed-otp-btn' id='feed-otp-btn'>Send OTP</button>
+        </div>
       </div>
-      <div id='gb-footer-status' class='subtitle gb-hidden'></div>
+      <div id='feed-footer-status' class='subtitle feed-hidden'></div>
       `;
     footerHandlers('login');
     return;
@@ -627,31 +643,36 @@ function setFooterPage(state) {
 
   if (state === 'loading') {
     innerFooter.innerHTML = `
-      <div id='gb-state-loading'>
-        <span class='subtitle'><i class='fa-solid fa-circle-notch fa-spin'></i> Processing Authentication Request </span>
+      <div id='feed-state-loading'>
+        <div class='feed-login-row'>
+          <span class='subtitle'><i class='fa-solid fa-circle-notch fa-spin'></i> Processing Authentication Request</span>
+          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+        </div>
       </div>
-      <div id='gb-footer-status' class='subtitle gb-hidden'></div>
+      <div id='feed-footer-status' class='subtitle feed-hidden'></div>
     `;
+    footerHandlers('loading');
     return;
   }
 
   if (state === 'admin') {
     const avatarMarkup = _gbIdentity?.image
-      ? `<img class='gb-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-      : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+      ? `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
+      : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
     innerFooter.innerHTML = `
-      <div id='gb-state-admin'>
-        <div class='gb-state-admin-row'>
+      <div id='feed-state-admin'>
+        <div class='feed-state-admin-row'>
           ${avatarMarkup}
-          <div class='gb-identity-meta'>
-            <span class='gb-name '>${_gbIdentity?.name || 'Admin'}</span>
-            <span class='gb-date'>Administrator</span>
+          <div class='feed-identity-meta'>
+            <span class='feed-name '>${_gbIdentity?.name || 'Admin'}</span>
+            <span class='feed-date'>Administrator</span>
           </div>
         </div>
-        <button class='btn gb-unlink-btn' id='gb-unlink-btn'>
+        <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
           <i class='fa-solid fa-right-from-bracket'></i>
         </button>
+        <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
       </div>
     `;
     footerHandlers('admin');
@@ -663,20 +684,20 @@ const isUserEdit = state === 'edit';
   const isUserNoEntry = state === 'no-entry';
 
   const avatarMarkup = _gbIdentity?.image
-    ? `<img class='gb-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-    : `<div class='gb-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+    ? `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
+    : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
   const showPreview = isUserHasEntry && !isUserEdit;
   const showTextarea = isUserEdit || isUserNoEntry;
 
   const previewBlock = showPreview
     ? `
-    <div id='gb-entry-preview'>
-      <p class='gb-preview-text'>${_gbOwnEntry?.msg || ''}</p>
-      <div class='gb-entry-meta'>
-        <span class='gb-preview-date'>${_gbOwnEntry?.date || ''}${_gbOwnEntry?.date ? ` · ${formatDuration(_gbOwnEntry.date)}` : ''}</span>
-        <div class='gb-preview-indicators'>
-          <span class='gb-entry-status-${_gbOwnEntry?.status || 'pending'}'> ${(_gbOwnEntry?.status || 'pending').toUpperCase()} </span>
+    <div id='feed-entry-preview'>
+      <p class='feed-preview-text'>${_gbOwnEntry?.msg || ''}</p>
+      <div class='feed-entry-meta'>
+        <span class='feed-preview-date'>${_gbOwnEntry?.date || ''}${_gbOwnEntry?.date ? ` · ${formatDuration(_gbOwnEntry.date)}` : ''}</span>
+        <div class='feed-preview-indicators'>
+          <span class='feed-entry-status-${_gbOwnEntry?.status || 'pending'}'> ${(_gbOwnEntry?.status || 'pending').toUpperCase()} </span>
           ${_gbOwnEntry?.like ? `<i class='fa-solid fa-heart heart-icon'></i>` : ''}
           ${_gbOwnEntry?.pin ? `<i class='fa-solid fa-bookmark pin-icon'></i>` : ''}
         </div>
@@ -685,42 +706,43 @@ const isUserEdit = state === 'edit';
     : '';
 
   const textareaBlock = showTextarea
-    ? `<textarea id='gb-textarea' class='gb-textarea' placeholder='Leave A Message...' maxlength='250'>${isUserEdit ? _gbOwnEntry?.msg || '' : ''}</textarea>`
+    ? `<textarea id='feed-textarea' class='feed-textarea' placeholder='Leave A Message...' maxlength='250'>${isUserEdit ? _gbOwnEntry?.msg || '' : ''}</textarea>`
     : '';
 
   const rowBtns = (() => {
     if (isUserNoEntry) {
-      return `<button class='gb-icon-btn gb-icon-send' id='gb-submit-btn'><i class='fa-solid fa-paper-plane'></i></button>`;
+      return `<button class='feed-icon-btn feed-icon-send' id='feed-submit-btn'><i class='fa-solid fa-paper-plane'></i></button>`;
     }
     if (isUserEdit) {
       return `
-        <button class='gb-icon-btn gb-icon-save' id='gb-submit-btn'><i class='fa-solid fa-check'></i></button>
-        <button class='gb-icon-btn gb-icon-cancel' id='gb-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
+        <button class='feed-icon-btn feed-icon-save' id='feed-submit-btn'><i class='fa-solid fa-check'></i></button>
+        <button class='feed-icon-btn feed-icon-cancel' id='feed-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
     }
     if (isUserHasEntry) {
       return `
-        <button class='gb-icon-btn gb-icon-edit' id='gb-edit-btn'><i class='fa-solid fa-pen'></i></button>
-        <button class='gb-icon-btn gb-icon-delete' id='gb-delete-btn'><i class='fa-solid fa-trash'></i></button>`;
+        <button class='feed-icon-btn feed-icon-edit' id='feed-edit-btn'><i class='fa-solid fa-pen'></i></button>
+        <button class='feed-icon-btn feed-icon-delete' id='feed-delete-btn'><i class='fa-solid fa-trash'></i></button>`;
     }
     return '';
   })();
 
   innerFooter.innerHTML = `
-    <div id='gb-state-user'>
-      <div class='gb-identity-row'>
-        <div class='gb-identity-left'>
+    <div id='feed-state-user'>
+      <div class='feed-identity-row'>
+        <div class='feed-identity-left'>
           ${avatarMarkup}
-          <div class='gb-identity-meta'>
-            <span class='gb-name '>${_gbIdentity?.name || ''}</span>
-            <span class='gb-date'>Guest</span>
+          <div class='feed-identity-meta'>
+            <span class='feed-name '>${_gbIdentity?.name || ''}</span>
+            <span class='feed-date'>Guest</span>
           </div>
         </div>
-        <div class='gb-identity-right'>
-          <div id='gb-footer-status' class='post-detail gb-hidden'></div>
+        <div class='feed-identity-right'>
+          <div id='feed-footer-status' class='post-detail feed-hidden'></div>
           ${rowBtns}
-          <button class='btn gb-unlink-btn' id='gb-unlink-btn'>
+          <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
             <i class='fa-solid fa-right-from-bracket'></i>
           </button>
+          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
 
@@ -730,7 +752,7 @@ const isUserEdit = state === 'edit';
   `;
 
   if (showTextarea) {
-    const ta = document.getElementById('gb-textarea');
+    const ta = document.getElementById('feed-textarea');
     if (ta) {
       if (isUserEdit) ta.value = _gbOwnEntry?.msg || '';
       ta.focus();
@@ -778,12 +800,12 @@ async function gbAdminAction(action, id, cardUI) {
           entry.status = 'deletedByAdmin';
         }
       }
-      const msgUI = cardUI.querySelector('.gb-msg');
+      const msgUI = cardUI.querySelector('.feed-msg');
       if (msgUI) msgUI.textContent = '';
-      const badge = cardUI.querySelector('.gb-badge');
+      const badge = cardUI.querySelector('.feed-badge');
       if (badge) {
         badge.textContent = 'DELETED BY ADMIN';
-        badge.className = 'keyword gb-badge gb-badge-banned';
+        badge.className = 'keyword feed-badge feed-badge-banned';
       }
       return;
     }
@@ -793,13 +815,13 @@ async function gbAdminAction(action, id, cardUI) {
         const entry = _allGuestbook.find((e) => e.id === id);
         if (entry) entry.status = data.status;
       }
-      const btn = cardUI.querySelector('.gb-btn-approve');
-      btn.classList.toggle('gb-btn-active', data.status === 'approved');
-      const badge = cardUI.querySelector('.gb-badge');
+      const btn = cardUI.querySelector('.feed-btn-approve');
+      btn.classList.toggle('feed-btn-active', data.status === 'approved');
+      const badge = cardUI.querySelector('.feed-badge');
       if (badge) {
         badge.textContent = data.status === 'approved' ? 'Approved' : 'Pending';
         badge.className =
-          data.status === 'approved' ? 'keyword gb-badge gb-badge-approved' : 'keyword gb-badge gb-badge-pending';
+          data.status === 'approved' ? 'keyword feed-badge feed-badge-approved' : 'keyword feed-badge feed-badge-pending';
       }
     }
 
@@ -808,8 +830,8 @@ async function gbAdminAction(action, id, cardUI) {
         const entry = _allGuestbook.find((e) => e.id === id);
         if (entry) entry.like = data.like;
       }
-      const btn = cardUI.querySelector('.gb-btn-heart');
-      btn.className = `btn gb-btn gb-btn-heart ${data.like ? 'gb-btn-active' : ''}`;
+      const btn = cardUI.querySelector('.feed-btn-heart');
+      btn.className = `btn feed-btn feed-btn-heart ${data.like ? 'feed-btn-active' : ''}`;
       const icon = btn.querySelector('i');
       icon.className = `fa-${data.like ? 'solid' : 'regular'} fa-heart`;
     }
@@ -819,8 +841,8 @@ async function gbAdminAction(action, id, cardUI) {
         const entry = _allGuestbook.find((e) => e.id === id);
         if (entry) entry.pin = data.pin;
       }
-      const btn = cardUI.querySelector('.gb-btn-pin');
-      btn.className = `btn gb-btn gb-btn-pin ${data.pin ? 'gb-btn-active' : ''}`;
+      const btn = cardUI.querySelector('.feed-btn-pin');
+      btn.className = `btn feed-btn feed-btn-pin ${data.pin ? 'feed-btn-active' : ''}`;
       const icon = btn.querySelector('i');
       icon.className = `fa-${data.pin ? 'solid' : 'regular'} fa-bookmark`;
     }
@@ -830,8 +852,10 @@ async function gbAdminAction(action, id, cardUI) {
 }
 
 function footerHandlers(state) {
+  document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeFeedModal);
+
   if (state === 'login') {
-    document.getElementById('gb-verify-btn')?.addEventListener('click', async () => {
+    document.getElementById('feed-verify-btn')?.addEventListener('click', async () => {
         setFooterPage('loading');
         const currentPagePath =
           window.location.origin + window.location.pathname;
@@ -854,22 +878,22 @@ function footerHandlers(state) {
     return;
   }
 
-  document.getElementById('gb-unlink-btn')?.addEventListener('click', () => {
+  document.getElementById('feed-unlink-btn')?.addEventListener('click', () => {
     _gbToken = null;
     _gbIdentity = null;
     _gbHasEntry = false;
     _gbOwnEntry = null;
     _gbEditMode = false;
     _allGuestbook = null;
-    localStorage.removeItem(addresses.hubGuestbookToken);
+    localStorage.removeItem(addresses.userToken);
     setFooterPage('login');
     loadGuestbook();
   });
 
   if (state === 'admin') return;
 
-  document.getElementById('gb-submit-btn')?.addEventListener('click', async () => {
-    const msg = document.getElementById('gb-textarea')?.value.trim();
+  document.getElementById('feed-submit-btn')?.addEventListener('click', async () => {
+    const msg = document.getElementById('feed-textarea')?.value.trim();
     if (!msg) {
       setFooterStatus('Write Something First', true);
       return;
@@ -896,10 +920,10 @@ function footerHandlers(state) {
     }
   });
 
-  document.getElementById('gb-edit-btn')?.addEventListener('click', () => { setFooterPage('edit'); });
-  document.getElementById('gb-cancel-btn')?.addEventListener('click', () => { setFooterPage('has-entry'); });
+  document.getElementById('feed-edit-btn')?.addEventListener('click', () => { setFooterPage('edit'); });
+  document.getElementById('feed-cancel-btn')?.addEventListener('click', () => { setFooterPage('has-entry'); });
 
-  document.getElementById('gb-delete-btn')?.addEventListener('click', async () => {
+  document.getElementById('feed-delete-btn')?.addEventListener('click', async () => {
     setFooterStatus('Deleting');
     try {
       await fetchGuestbook('delete', { token: _gbToken });

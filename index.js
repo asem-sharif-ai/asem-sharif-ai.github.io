@@ -117,7 +117,7 @@ function makeCardId(rowIndex, colIndex, title) {
 
 // ───── Form Setup ────────────────────────────────────────
 
-function buildForm(section, cardId) {
+function buildForm(section, cardId, api, adminTimezone) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId });
 
   const formId = `mail-form-${cardId}`;
@@ -132,62 +132,68 @@ function buildForm(section, cardId) {
   const messageId = `message-${cardId}`;
   const contactDetailId = `contact-detail-${cardId}`;
 
-  const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
+  const stackId = `form-stack-${cardId}`;
+  const mailScreenId = `screen-mail-${cardId}`;
+  const timeScreenId = `screen-time-${cardId}`;
+  const timeGridId = `time-grid-${cardId}`;
+  const changeFormId = `change-form-${cardId}`;
 
-  const othersHTML = Array.isArray(section.others) ? section.others.map(item => {
-    const iconValue = iconMap[item.icon] || iconMap.default || 'fa-solid fa-link';
-    const iconHTML = iconValue.startsWith('iconify:') 
-      ? `<iconify-icon icon='${iconValue.replace('iconify:', '')}'></iconify-icon>` 
-      : `<i class='${iconValue}'></i>`;
-    return `<span class='form-label form-other-raw'>${iconHTML} ${item.title}</span>`;
-  }).join('') : '';
+  const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
 
   card.innerHTML = `
     <div class='card-header' id='header-${cardId}'>
       <div class='card-title'>${section.title || 'Get In Touch'} <span class='log-subtitle' style='margin-left: 4px; '> ${section.subtitle || 'Reach Out For Collaborations'} </span></div>
-      <div class='card-btns'><button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button></div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
-      <div class='card-body'>
-        <form class='mail-form' id='${formId}' novalidate>
-          <div class='form-row-top'>
-            <div class='form-group'>
-              <label class='form-label' for='${nameId}'>Name</label>
-              <input class='form-input' type='text' id='${nameId}' name='name' autocomplete='name' required />
-            </div>
-            <div class='form-group'>
-              <label class='form-label' for='${roleId}'>Role <span class='post-detail'>optional</span></label>
-              <input class='form-input' type='text' id='${roleId}' name='role' />
-            </div>
-            <div class='form-group'>
-              <label class='form-label' for='${contactId}'>Reach Back At <span class='post-detail' id='${contactDetailId}'></span></label>
-              <input class='form-input' type='text' id='${contactId}' name='contact' autocomplete='off' required />
-            </div>
+      <div class='card-body' id='form-card-body'>
+        <div class='form-stack' id='${stackId}'>
+
+          <div class='form-screen active' id='${mailScreenId}'>
+            <form class='mail-form' id='${formId}' novalidate>
+              <div class='form-row-top'>
+                <div class='form-group'>
+                  <label class='form-label' for='${nameId}'>Name</label>
+                  <input class='form-input' type='text' id='${nameId}' name='name' autocomplete='name' required />
+                </div>
+                <div class='form-group'>
+                  <label class='form-label' for='${roleId}'>Role <span class='post-detail'>optional</span></label>
+                  <input class='form-input' type='text' id='${roleId}' name='role' />
+                </div>
+                <div class='form-group'>
+                  <label class='form-label' for='${contactId}'>Reach Back At <span class='post-detail' id='${contactDetailId}'></span></label>
+                  <input class='form-input' type='text' id='${contactId}' name='contact' autocomplete='off' required />
+                </div>
+              </div>
+              <div class='form-row-full'>
+                <div class='form-group autocomplete-wrapper'>
+                  <label class='form-label' for='${subjectId}'>Subject</label>
+                  <input class='form-input' type='text' id='${subjectId}' name='subject' autocomplete='off' required />
+                  <div class='autocomplete-suggestions' id='${suggestionsId}'></div>
+                </div>
+              </div>
+              <div class='form-group'>
+                <label class='form-label' for='${messageId}'>Message</label>
+                <textarea class='form-input form-textarea' id='${messageId}' name='message' rows='4' required></textarea>
+              </div>
+              <div class='form-footer'>
+                <a class='form-label' href='mailto:${section.forward}'><i class='${iconMap['mailto']}'></i> ${section.forward}</a>
+                <div class='form-actions-wrapper'>
+                  <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-eraser' style='margin: 0; padding-top: 2px;'></i></button>
+                  <button class='action-btn' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
+                </div>
+              </div>
+            </form>
           </div>
-          <div class='form-row-full'>
-            <div class='form-group autocomplete-wrapper'>
-              <label class='form-label' for='${subjectId}'>Subject</label>
-              <input class='form-input' type='text' id='${subjectId}' name='subject' autocomplete='off' required />
-              <div class='autocomplete-suggestions' id='${suggestionsId}'></div>
-            </div>
+
+          <div class='form-screen' id='${timeScreenId}'>
+            <div class='time-grid' id='${timeGridId}'></div>
           </div>
-          <div class='form-group'>
-            <label class='form-label' for='${messageId}'>Message</label>
-            <textarea class='form-input form-textarea' id='${messageId}' name='message' rows='4' required></textarea>
-          </div>
-          <div class='form-footer'>
-            <div class='form-others-container'>${othersHTML}</div>
-            <div class='form-actions-wrapper'>
-              <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-eraser' style='margin: 0; padding-top: 2px;'></i></button>
-              <button class='action-btn' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
-            </div>
-          </div>
-        </form>
+
+        </div>
+        <p class='form-divider form-label form-last' id='${changeFormId}'>Prefer A Specific Time? (Optional)</p>
       </div>
     </div>
   `;
-
-  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, collapseId));
 
   const form = card.querySelector(`#${formId}`);
   const submitBtn = form.querySelector(`#${submitId}`);
@@ -203,6 +209,234 @@ function buildForm(section, cardId) {
   form.addEventListener('click', (e) => e.stopPropagation());
 
   const inputs = [nameInput, roleInput, contactInput, subjectInput, messageInput];
+
+  const mailScreen = card.querySelector(`#${mailScreenId}`);
+  const meetingScreen = card.querySelector(`#${timeScreenId}`);
+  const changeFormBtn = card.querySelector(`#${changeFormId}`);
+
+  let onMailScreen = true;
+
+  const timeGrid = card.querySelector(`#${timeGridId}`);
+  const timeSlotDefs = [ { hours: [10, 13] }, { hours: [13, 16] }, { hours: [16, 19] }, { hours: [19, 22] }, { hours: [22, 25] } ];
+
+  const hourLabel = (h) => {
+    const normalized = ((h % 24) + 24) % 24;
+    const suffix = normalized >= 12 ? 'PM' : 'AM';
+    const display = normalized % 12 === 0 ? 12 : normalized % 12;
+    return `${display} ${suffix}`;
+  };
+
+  const dayNameFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long' });
+  const dayDateFmt = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const dayLabelFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+
+  const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const tzNoteEl = card.querySelector(`#time-tz-note-${cardId}`);
+
+  const getTimezoneOffsetMinutes = (timeZone, atDate) => {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset', hour: '2-digit' }).formatToParts(atDate);
+      const tzName = parts.find(p => p.type === 'timeZoneName')?.value || 'GMT+0';
+      const match = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+      if (!match) return 0;
+      const sign = match[1] === '-' ? -1 : 1;
+      const hours = parseInt(match[2], 10);
+      const mins = match[3] ? parseInt(match[3], 10) : 0;
+      return sign * (hours * 60 + mins);
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  const adminHourToInstant = (date, hour) => {
+    const approxUTC = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hour % 24, 0);
+    const offsetMin = getTimezoneOffsetMinutes(adminTimezone, new Date(approxUTC));
+    return new Date(approxUTC - offsetMin * 60000);
+  };
+
+  const viewerTimeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const viewerDateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
+  const buildSlotViewerLabel = (date, def) => {
+    if (!adminTimezone || adminTimezone === viewerTimezone) return '';
+    try {
+      const startInstant = adminHourToInstant(date, def.hours[0]);
+      const endInstant = adminHourToInstant(date, def.hours[def.hours.length - 1]);
+
+      const baseDateStr = viewerDateFmt.format(date);
+      const startDateStr = viewerDateFmt.format(startInstant);
+      const endDateStr = viewerDateFmt.format(endInstant);
+
+      let label = viewerTimeFmt.format(startInstant);
+      if (startDateStr !== baseDateStr) label += ` (${startDateStr})`;
+      label += ` – ${viewerTimeFmt.format(endInstant)}`;
+      if (endDateStr !== startDateStr) label += ` (${endDateStr})`;
+      return label;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const getUpcomingDays = () => {
+    const days = [];
+    for (let i = 1; i <= 6; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  };
+
+  const timeStorageKey = (addresses && addresses.timeSlotData) ? addresses.timeSlotData : `timeSlotData-${cardId}`;
+  const maxSelectedSlots = 6;
+  let selectedSlots = [];
+
+  const saveTimeSlot = () => {
+    if (selectedSlots.length) {
+      localStorage.setItem(timeStorageKey, JSON.stringify(selectedSlots));
+    } else {
+      localStorage.removeItem(timeStorageKey);
+    }
+  };
+
+  const loadTimeSlot = () => {
+    try {
+      const saved = localStorage.getItem(timeStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        selectedSlots = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+      }
+    } catch (e) {
+      console.error('[Time Screen] Failed To Load Saved Slot:', e);
+      selectedSlots = [];
+    }
+  };
+
+  const findSlotIndex = (dateISO, slotIndex) => selectedSlots.findIndex(s => s.dateISO === dateISO && s.slotIndex === slotIndex);
+  const findDaySlotIndex = (dateISO) => selectedSlots.findIndex(s => s.dateISO === dateISO);
+
+  const formatSelectedTimesFull = () => {
+    if (!selectedSlots.length) return null;
+    return selectedSlots.map((slot) => {
+      const date = new Date(slot.dateISO);
+      const def = timeSlotDefs[slot.slotIndex];
+      if (!def) return null;
+      return `${dayLabelFmt.format(date)}, ${hourLabel(def.hours[0])} – ${hourLabel(def.hours[def.hours.length - 1])}`;
+    }).filter(Boolean).join('\n');
+  };
+
+  const formatSelectedLabel = () => {
+    if (!selectedSlots.length) return null;
+    if (selectedSlots.length === 1) {
+      const slot = selectedSlots[0];
+      const def = timeSlotDefs[slot.slotIndex];
+      if (!def) return null;
+      const fromH = def.hours[0];
+      const toH = def.hours[def.hours.length - 1];
+      return `${dayNameFmt.format(new Date(slot.dateISO))}, ${hourLabel(fromH)} To ${hourLabel(toH)}`;
+    }
+    return `${selectedSlots.length} Selections`;
+  };
+
+  const renderTimeGrid = () => {
+    timeGrid.innerHTML = '';
+    const days = getUpcomingDays();
+
+    days.forEach((date) => {
+      const dateISO = date.toISOString().slice(0, 10);
+
+      const dayCell = document.createElement('div');
+      dayCell.className = 'time-day-cell';
+
+      const dayHeader = document.createElement('div');
+      dayHeader.className = 'time-day-label';
+      dayHeader.innerHTML = `<span class='time-day-name'>${dayNameFmt.format(date)}</span><span class='time-day-date'>${dayDateFmt.format(date)}</span>`;
+      dayCell.appendChild(dayHeader);
+
+      const bar = document.createElement('div');
+      bar.className = 'time-day-bar';
+
+      const tzLabel = document.createElement('div');
+      tzLabel.className = 'time-day-tz-label';
+
+      const updateTzLabel = (def) => {
+        if (!def) { tzLabel.textContent = ''; tzLabel.classList.remove('show'); return; }
+        const viewerLabel = buildSlotViewerLabel(date, def);
+        if (!viewerLabel) { tzLabel.textContent = ''; tzLabel.classList.remove('show'); return; }
+        tzLabel.textContent = `By Your Local Time: ${viewerLabel}`;
+        tzLabel.classList.add('show');
+      };
+
+      const parts = [];
+
+      timeSlotDefs.forEach((def, slotIndex) => {
+        const part = document.createElement('button');
+        part.type = 'button';
+        part.className = 'time-slot-part has-glow';
+        part.innerHTML = `<span class='time-slot-from'>${hourLabel(def.hours[0])}</span><span class='time-slot-to'>${hourLabel(def.hours[def.hours.length - 1])}</span>`;
+
+        if (findSlotIndex(dateISO, slotIndex) !== -1) part.classList.add('selected');
+
+        part.addEventListener('click', () => {
+          const existingIndex = findSlotIndex(dateISO, slotIndex);
+
+          if (existingIndex !== -1) {
+            // same slot clicked again -> deselect
+            selectedSlots.splice(existingIndex, 1);
+            part.classList.remove('selected');
+            updateTzLabel(null);
+          } else {
+            // remove any other selection for this day (one per day), not blocked by max
+            const dayIndex = findDaySlotIndex(dateISO);
+            if (dayIndex !== -1) {
+              const prevSlotIndex = selectedSlots[dayIndex].slotIndex;
+              selectedSlots.splice(dayIndex, 1);
+              const prevPart = parts[prevSlotIndex];
+              if (prevPart) prevPart.classList.remove('selected');
+            } else if (selectedSlots.length >= maxSelectedSlots) {
+              return;
+            }
+
+            selectedSlots.push({ dateISO, slotIndex });
+            part.classList.add('selected');
+            updateTzLabel(def);
+          }
+
+          saveTimeSlot();
+        });
+
+        parts.push(part);
+        bar.appendChild(part);
+      });
+
+      dayCell.appendChild(bar);
+
+      const initialDaySlotIndex = findDaySlotIndex(dateISO);
+      updateTzLabel(initialDaySlotIndex !== -1 ? timeSlotDefs[selectedSlots[initialDaySlotIndex].slotIndex] : null);
+      dayCell.appendChild(tzLabel);
+
+      timeGrid.appendChild(dayCell);
+    });
+  };
+
+  loadTimeSlot();
+  renderTimeGrid();
+  {
+    const initialLabel = formatSelectedLabel();
+    if (initialLabel) changeFormBtn.textContent = `Preferred Time: ${initialLabel}.`;
+  }
+  changeFormBtn.addEventListener('click', () => {
+    onMailScreen = !onMailScreen;
+    mailScreen.classList.toggle('active', onMailScreen);
+    meetingScreen.classList.toggle('active', !onMailScreen);
+
+    if (onMailScreen) {
+      const label = formatSelectedLabel();
+      changeFormBtn.textContent = label ? `Preferred Time: ${label}.` : 'Prefer A Specific Time? (Optional)';
+    } else {
+      changeFormBtn.textContent = 'Back To Email';
+    }
+  });
 
   const triggerContactDetailDetection = (value) => {
     if (!value) { contactDetail.textContent = ''; return; }
@@ -241,8 +475,8 @@ function buildForm(section, cardId) {
         if (state.subject !== undefined) subjectInput.value = state.subject;
         if (state.message !== undefined) messageInput.value = state.message;
       }
-    } catch (err) {
-      console.error('Failed to load form state from memory:', err);
+    } catch (e) {
+      console.error('[Connect Form] Failed To Load Form State From Memory:', e);
     }
   };
 
@@ -260,11 +494,16 @@ function buildForm(section, cardId) {
     contactDetail.textContent = '';
     suggestionsBox.classList.remove('show');
     inputs.forEach(input => input.classList.remove('error-glow'));
+
+    selectedSlots = [];
+    saveTimeSlot();
+    renderTimeGrid();
+    if (onMailScreen) changeFormBtn.textContent = 'Prefer A Specific Time? (Optional)';
   });
 
   subjectInput.addEventListener('input', (e) => {
     const value = e.target.value.trim().toLowerCase();
-    suggestionsBox.innerHTML = ''; 
+    suggestionsBox.innerHTML = '';
 
     if (!value) {
       suggestionsBox.classList.remove('show');
@@ -282,7 +521,7 @@ function buildForm(section, cardId) {
       const item = document.createElement('div');
       item.className = 'suggestion-item';
       item.textContent = match;
-      
+
       item.addEventListener('click', () => {
         subjectInput.value = match;
         subjectInput.classList.remove('error-glow');
@@ -332,25 +571,31 @@ function buildForm(section, cardId) {
       contact: contactInput.value.trim(),
       subject: subjectInput.value.trim(),
       message: messageInput.value.trim(),
-      section: section.title || 'Contact',
+      preferredTime: selectedSlots.length ? formatSelectedTimesFull() : null,
+      preferredTimezone: selectedSlots.length ? viewerTimezone : null,
+      token: localStorage.getItem(addresses.userToken)
     };
 
     submitBtn.disabled = true;
-
     try {
-      const res = await fetch(section.endpoint, {
+      const res = await fetch(api, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ tag: 'mailForm', payload: payload}),
       });
 
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) throw new Error(`Request Failed: ${res.status}`);
 
       submitBtn.classList.add('btn-success-glow');
       form.reset();
       localStorage.removeItem(addresses.mailFormData);
       contactDetail.textContent = '';
       suggestionsBox.classList.remove('show');
+
+      selectedSlots = [];
+      saveTimeSlot();
+      renderTimeGrid();
+      changeFormBtn.textContent = 'Prefer A Specific Time? (Optional)';
     } catch (err) {
       submitBtn.classList.add('btn-fail-glow');
     } finally {
@@ -578,17 +823,17 @@ function buildHero(data, getTheme, setTheme) {
     }
   }
 
-  if (data.documents && Object.keys(data.documents).length > 0) {
-    let panel = document.getElementById('doc-panel');
+  if (data.cta) {
+    const panel = document.getElementById('cta-panel');
     if (panel) {
-      const entries = Object.entries(data.documents).slice(0, 3);
+      const entries = Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0);
       entries.forEach(([key, doc], i) => {
         const btn = document.createElement('button');
-        btn.className = 'doc-trigger has-fast-glow';
-        btn.id = `doc-trigger-${key}`;
+        btn.className = `cta-trigger has-fast-glow ${key === 'main' ? 'inverse' : ''}`;
+        btn.id = `cta-trigger-${key}`;
         btn.dataset.index = i;
         btn.dataset.total = entries.length;
-        btn.innerHTML = `<i class='${iconMap[key]} doc-icon'></i><span class='doc-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+        btn.innerHTML = `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
         btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
         panel.appendChild(btn);
       });
@@ -741,7 +986,7 @@ async function runProfileApp() {
         const icon = sectionMap[key] ?? sectionMap['default'];
 
         const link = document.createElement('a');
-        link.className = 'quick-link-item';
+        link.className = 'quick-link-item has-glow';
         link.href = href;
         link.innerHTML = `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
         quickLinksRow.appendChild(link);
@@ -759,7 +1004,7 @@ async function runProfileApp() {
 
       const formRow = document.createElement('div');
       formRow.id = formRowId;
-      formRow.appendChild(buildForm(data.form, formCardId));
+      formRow.appendChild(buildForm(data.form, formCardId, data.api, data.timezone));
       sectionsContainer.appendChild(formRow);
 
       spyTargets.push({ id: formRowId, navIds: [`nav-${formCardId}`] });

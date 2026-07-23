@@ -8,7 +8,7 @@
   "role": ["AI & Computer Vision Engineer", "PyQt Developer"],
   "bio": "I build full-pipeline computer vision systems and the interfaces around them, delivering AI solutions with real-time inference through production-grade desktop applications.",
   "location": "Cairo, Egypt.",
-  "timezone": "Africa/Cairo",
+  "timezone": "Asia/Tokyo",
   "status": {
     "daily": [
       { "from": "06:00", "to": "12:00", "label": "Open For Business" },
@@ -23,25 +23,25 @@
   },
   "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
-  "documents": {
-    "resume":   { "title": "Résumé",   "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    "paper":    { "title": "CV",       "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    "contract": { "title": "Contract", "date": "",        "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
+  "cta": {
+    "main": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "side": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf"}
   },
 
+  "api": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
+  
   "qr_code": { "title": "Asem E. Sharif - Portfolio", "url": "https://asem-sharif-ai.github.io" },
 
   "assistant": {
     "name":"Twin",
     "role": "Digital Assistant",
     "icon": ["./Data/Icons/chat_dark.png", "./Data/Icons/chat_light.png"],
-    "endpoint": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
     "initial": [
       "Hello there! I'm Twin, Asem's digital assistant, and here to give you an inside look at his portfolio.",
       "Ask me anything about his projects, skillsets, or system architectural approach. What can I uncover for you today?"
     ],
     "motivation": [
-      "Use the frist name only, 'Asem' when referring to me (the admin), arabic is 'عاصم'"
+      "Use the first name only, 'Asem' when referring to me (the admin), arabic is 'عاصم'"
     ]
   },
 
@@ -400,8 +400,7 @@
       "General Question",
       "Just Saying Hi!"
     ],
-    "others": [ { "icon": "mailto", "title": "asem.sharif.ai@gmail.com"} ],
-    "endpoint": "https://minimal-portfolio-mail.asem-sharif-ai.workers.dev"
+    "forward": "asem.sharif.ai@gmail.com"
   },
 
   "hub": {

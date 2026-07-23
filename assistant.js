@@ -1,22 +1,24 @@
-const MAX_MESSAGE_LENGTH = 100;
-const REQUEST_TIMEOUT_MS = 10000;
-
+let newWindow = true;
 let chatConfigData = null;
 let globalProfileData = null;
 
-// ───── Core API Functions ──────────────────────────────────────────────────────
-
-async function getModelResponse(configData = {}, newMessage = '', conversationLog = []) {
+async function getModelResponse(configData = {}, newMessage = '') {
   if (!newMessage || typeof newMessage !== 'string') {
-    return { text: 'No message provided.', systemAlerts: null };
+    return { text: 'No Message Provided.', systemAlerts: null };
   }
 
   let response;
   try {
-    response = await fetch(configData.assistant.endpoint, {
+    response = await fetch(configData.api, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ config: configData, history: conversationLog, message: newMessage }),
+      body: JSON.stringify({
+        tag: 'chat',
+        message: newMessage,
+        token: localStorage.getItem(addresses.userToken),
+        chatToken: localStorage.getItem(addresses.chatToken),
+        newWindow: newWindow,
+      }),
     });
   } catch (networkErr) {
     const err = new Error('C001');
@@ -43,6 +45,10 @@ async function getModelResponse(configData = {}, newMessage = '', conversationLo
     throw err;
   }
 
+  if (data.token) {
+    localStorage.setItem(addresses.chatToken, data.token);
+  }
+
   const systemAlerts = Array.isArray(data?.systemAlerts) ? data.systemAlerts : null;
 
   if (!data.response && systemAlerts && systemAlerts.length > 0) {
@@ -57,9 +63,7 @@ async function handleUserMessageSubmit() {
   let text = input.value.trim();
   if (!text) return;
 
-  if (text.length > MAX_MESSAGE_LENGTH) {
-    text = text.substring(0, MAX_MESSAGE_LENGTH);
-  }
+  if (text.length > 250) text = text.substring(0, 250);
 
   input.value = '';
 
@@ -69,23 +73,11 @@ async function handleUserMessageSubmit() {
   toggleChatState(true);
   showTypingIndicator();
 
-  let conversationHistory = [];
-  const stored = localStorage.getItem(addresses.chatHistory);
-  if (stored) {
-    try {
-      conversationHistory = JSON.parse(stored);
-      conversationHistory = conversationHistory.filter(m => m.sender === 'user' || m.sender === 'assistant');
-    } catch (e) {
-      conversationHistory = [];
-    }
-  }
-
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const workerCallPromise = getModelResponse(globalProfileData, text, conversationHistory);
-
+    const workerPromise = getModelResponse(globalProfileData, text);
     const abortPromise = new Promise((_, reject) => {
       controller.signal.addEventListener('abort', () => {
         const err = new Error('C002');
@@ -94,9 +86,11 @@ async function handleUserMessageSubmit() {
       });
     });
 
-    const finalResponse = await Promise.race([workerCallPromise, abortPromise]);
+    const finalResponse = await Promise.race([workerPromise, abortPromise]);
     clearTimeout(timeoutId);
     removeTypingIndicator();
+
+    newWindow = false;
 
     if (finalResponse.text) {
       const systemTime = appendChatMessage('assistant', finalResponse.text);
@@ -120,12 +114,8 @@ async function handleUserMessageSubmit() {
       userMessage = 'Request Timed Out. Try Again Later.';
     } else if (code === 'C001') {
       userMessage = 'Network Error. Check Your Connection.';
-    } else if (code === 'G005') {
-      userMessage = 'Service Is Busy. Try Again Shortly.';
-    } else if (code === 'G006') {
-      userMessage = 'Service Is Temporarily Unavailable.';
-    } else if (e.isWorkerError && e.message) {
-      userMessage = e.message;
+    } else {
+      console.log(e)
     }
 
     const errTime = appendChatMessage('system-error', userMessage);
@@ -136,7 +126,130 @@ async function handleUserMessageSubmit() {
   }
 }
 
-// ───── UI Init ─────────────────────────────────────────────────────────────────
+function initChatAssistant(configData) {
+  globalProfileData = configData;
+  chatConfigData = configData.assistant;
+  
+  const assistantConfig = configData.assistant;
+
+  function updateTriggerIcon(btnUI) {
+    if (!btnUI || !assistantConfig) return;
+    const isLight = document.body.classList.contains('light-mode');
+    const icons = assistantConfig.icon || [];
+
+    if (icons.length > 0 && (icons[0] || icons[1])) {
+      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
+      if (activeIcon) {
+        btnUI.innerHTML = `<img src='${activeIcon}' alt='Chat' />`;
+        return;
+      }
+    }
+    btnUI.innerHTML = '<i class="fa-regular fa-message"></i>';
+  }
+
+  function updateAvatarLayout() {
+    const container = document.getElementById('chat-bot-avatar-container');
+    if (!container || !assistantConfig) return;
+
+    const isLight = document.body.classList.contains('light-mode');
+    const icons = assistantConfig.icon || [];
+
+    if (icons.length > 0 && (icons[0] || icons[1])) {
+      const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
+      if (activeIcon) {
+        container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
+        container.style.display = 'block';
+        return;
+      }
+    }
+    container.innerHTML = '';
+    container.style.display = 'none';
+  }
+
+  const triggerBtn = document.createElement('button');
+  triggerBtn.title = 'Chat With AI Assistant';
+  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
+  triggerBtn.id = 'chat-assistant-trigger';
+
+  updateTriggerIcon(triggerBtn);
+
+  const chatWindow = document.createElement('div');
+  chatWindow.className = 'chat-window';
+  chatWindow.id = 'chat-assistant-window';
+
+  chatWindow.innerHTML = `
+    <div class='chat-header'>
+      <div class='chat-bot-info'>
+        <div id='chat-bot-avatar-container'></div>
+        <div class='chat-bot-brand'>
+          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
+          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
+        </div>
+      </div>
+      <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
+      <button class='chat-clear-btn' id='chat-clear-window'><i class='fa-solid fa-xmark'></i></button>
+    </div>
+    <div class='chat-messages' id='chat-messages-container'></div>
+    <div class='chat-footer'>
+      <div class='chat-input-wrapper'>
+        <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${250}' />
+      </div>
+      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
+    </div>
+  `;
+
+  document.body.appendChild(triggerBtn);
+  document.body.appendChild(chatWindow);
+
+  updateAvatarLayout();
+  loadChatHistory();
+
+  const systemLogo = document.querySelector('.hero-logo');
+  if (systemLogo) {
+    systemLogo.addEventListener('click', () => {
+      setTimeout(() => {
+        updateTriggerIcon(document.getElementById('chat-assistant-trigger'));
+        updateAvatarLayout();
+      }, 50);
+    });
+  }
+
+  triggerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleChatWindow();
+  });
+
+  document.getElementById('chat-close-window').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleChatWindow();
+  });
+
+  document.getElementById('chat-clear-window').addEventListener('click', (e) => {
+    e.stopPropagation();
+    handleChatLogPurge();
+    const win = document.getElementById('chat-assistant-window');
+    if (win) win.classList.remove('open');
+  });
+
+  document.addEventListener('click', (e) => {
+    const win = document.getElementById('chat-assistant-window');
+    if (win && win.classList.contains('open')) {
+      if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
+        win.classList.remove('open');
+      }
+    }
+  });
+
+  chatWindow.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  const inputField = document.getElementById('chat-user-input');
+  inputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleUserMessageSubmit();
+  });
+  document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
+}
 
 function toggleChatWindow() {
   const win = document.getElementById('chat-assistant-window');
@@ -191,8 +304,6 @@ function removeTypingIndicator() {
   if (indicator) indicator.remove();
 }
 
-// ───── Chat Functions ──────────────────────────────────────────────────────────
-
 function appendChatMessage(sender, text, timestampString = null) {
   const container = document.getElementById('chat-messages-container');
   if (!container) return;
@@ -239,7 +350,6 @@ function loadChatHistory() {
         return;
       }
     } catch (e) {
-      // fall through to initial message
     }
   }
 
@@ -255,6 +365,7 @@ function loadChatHistory() {
 
 function handleChatLogPurge() {
   localStorage.removeItem(addresses.chatHistory);
+  newWindow = true;
   loadChatHistory();
   const input = document.getElementById('chat-user-input');
   if (input && !input.disabled) input.focus();
