@@ -129,12 +129,14 @@ function buildLogCard(item, index) {
   mdPane.appendChild(mdContent);
   logBody.appendChild(mdPane);
 
-  resolveDirectory(item.gallery, true).then(galleryList => {
-    if (galleryList.length > 0) {
-      logBody.classList.add('has-gallery');
-      logBody.appendChild(buildGalleryPane(galleryList));
-    }
-  });
+const gallery = item.gallery;
+if (gallery && Array.isArray(gallery.content)) {
+  const galleryList = gallery.content.filter(src => isImagePath(src) || isVideoPath(src));
+  if (galleryList.length > 0) {
+    logBody.classList.add('has-gallery');
+    logBody.appendChild(buildGalleryPane(galleryList, gallery.header));
+  }
+}
   
   cardBody.appendChild(logBody);
   collapse.appendChild(cardBody);

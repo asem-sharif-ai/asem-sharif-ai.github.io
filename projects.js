@@ -386,8 +386,6 @@ function buildProjectCard(project, cardId) {
 
   const textId = `text-${cardId}`;
   const contents = Array.isArray(project.content) ? project.content : [project.content].filter(Boolean);
-  // const contents = await resolveDirectory(project.content, false);
-  const isMultiContent = contents.length > 1;
   const hasUrl = !!project.url;
   const cleanTopics = (project.topics || []).map(topic => topic.replace(/^_+/, '').trim());
 
@@ -403,7 +401,7 @@ function buildProjectCard(project, cardId) {
       ${titleHtml}
       </div>
       <div class='card-btns'>
-        ${isMultiContent ? `
+        ${(contents.length > 1) ? `
           <button class='btn prev-btn header-slide-btn' id='prev-${cardId}'><i class='fa-solid fa-chevron-left'></i></button>
           <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
           <button class='btn next-btn header-slide-btn' id='next-${cardId}'><i class='fa-solid fa-chevron-right'></i></button>
@@ -451,7 +449,7 @@ function buildProjectCard(project, cardId) {
   const prevBtn = card.querySelector(`#prev-${cardId}`);
   const nextBtn = card.querySelector(`#next-${cardId}`);
 
-  if (isMultiContent) {
+  if (contents.length > 1) {
     const counter = card.querySelector(`#counter-${cardId}`);
     setContentSlider(container, contents, prevBtn, nextBtn, counter);
 

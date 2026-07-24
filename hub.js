@@ -2,29 +2,33 @@ let _configData  = {};
 let _currentTab  = 'feed';
 let _searchQuery = '';
 
-let _allFaq       = [];
-let _allFeed      = [];
-let _allGuestbook = [];
-
-let _faqHasMatches  = true;
 let _feedHasMatches = true;
-let _gbHasMatches   = true;
+let _allFeed = [];
+let _faqHasMatches = true;
+let _allFaq = [];
+let _gbHasMatches = true;
+let _allGB = [];
 
-let _gbToken    = null;
-let _gbEntries  = [];
-let _gbEndpoint = '';
+let _gbAPI = '';
+let _gbToken = null;
+let _gbEntries = [];
 let _gbIdentity = null;
 let _gbHasEntry = false;
 let _gbOwnEntry = null;
 let _gbEditMode = false;
+let _adminAvatar = null;
+let _otpCooldownUntil = 0;
+let _otpCooldownTimer = null;
+let _otpPhase = 'send';
+let _otpEmail = '';
 
-let _modalInitialized = false;
+let _isInitialized = false;
 
 // ───── State & Tab ────────────────────────────────────────
 
 function _saveHubState() {
-  sessionStorage.setItem(addresses.hubSearchQuery, _searchQuery);
   sessionStorage.setItem(addresses.hubActiveTab, _currentTab);
+  sessionStorage.setItem(addresses.hubSearchQuery, _searchQuery);
 }
 
 function loadHubState() {
@@ -32,8 +36,24 @@ function loadHubState() {
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
   const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
-  if (savedTab === 'faq' || savedTab === 'feed' || savedTab === 'guests') _currentTab = savedTab;
+  if (['faq', 'feed', 'guests'].includes(savedTab)) _currentTab = savedTab;
   _gbToken = localStorage.getItem(addresses.userToken);
+
+  const otpStartAt = parseInt(localStorage.getItem(addresses.hubOTPStartAt), 10);
+  if (otpStartAt) {
+    const elapsed = Date.now() - otpStartAt;
+    if (elapsed >= 0 && elapsed < 120000) {
+      _otpPhase = 'verify';
+      _otpEmail = localStorage.getItem(addresses.hubOTPEmail) || '';
+      if (!_otpEmail) {
+        _otpPhase = 'send';
+        localStorage.removeItem(addresses.hubOTPStartAt);
+      }
+    } else {
+      localStorage.removeItem(addresses.hubOTPStartAt);
+      localStorage.removeItem(addresses.hubOTPEmail);
+    }
+  }
 }
 
 function switchHubTab(targetTab) {
@@ -62,20 +82,61 @@ function switchHubTab(targetTab) {
     faqPanel.classList.remove('hub-hidden');
   }
 
-  updateModalTriggerVisibility();
   updateShareIconState();
 }
 
-function updateModalTriggerVisibility() {
-  const trigger = document.getElementById('modal-trigger');
-  if (!trigger) return;
-  trigger.classList.remove('hub-hidden');
+// ───── Utils ────────────────────────────────────────
+
+function initHubSearch() {
+  const searchInput = document.getElementById('hub-search-input');
+  if (!searchInput) return;
+  if (_searchQuery) searchInput.value = _searchQuery;
+
+  let _debounceTimer;
+  searchInput.addEventListener('input', (e) => {
+    _searchQuery = e.target.value.trim();
+    clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(() => {
+      _saveHubState();
+      
+      if (typeof renderFAQ === 'function') renderFAQ(_allFaq);
+      if (typeof renderFeed === 'function') renderFeed(_allFeed);
+      if (typeof renderGuestbook === 'function') renderGuestbook();
+      updateShareIconState();
+      
+    }, 300);
+  });
+}
+
+function updateShareIconState() {
+  const searchIcon = document.getElementById('nav-share-icon');
+  if (!searchIcon) return;
+  if (!_searchQuery) {
+    searchIcon.classList.remove('ui-disabled');
+  } else {
+    const hasMatches = _currentTab === 'faq'
+      ? _faqHasMatches
+      : (_currentTab === 'guests' ? _gbHasMatches : _feedHasMatches);
+    if (hasMatches) {
+      searchIcon.classList.remove('ui-disabled');
+    } else {
+      searchIcon.classList.add('ui-disabled');
+    }
+  }
+}
+
+function buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('tab', _currentTab);
+  if (_searchQuery) url.searchParams.set('search', _searchQuery);
+  return url.toString();
 }
 
 function ensureGuestbookLoaded() {
-  if (_modalInitialized) return;
-  _modalInitialized = true;
-  if (_gbEndpoint) {
+  if (_isInitialized) return;
+  _isInitialized = true;
+  if (_gbAPI) {
     loadGuestbook();
   } else {
     renderNoData('Guestbook Not Set Yet', 'guests-container', false);
@@ -107,7 +168,7 @@ function initFeedModal() {
   });
 }
 
-function updateModalTriggerIcon(state) {
+function updateModalTrigger(state) {
   const trigger = document.getElementById('modal-trigger');
   if (!trigger) return;
 
@@ -139,7 +200,6 @@ async function runHubApp() {
     document.getElementById('hub-panel-faq').classList.add('hub-hidden');
     document.getElementById(`hub-panel-${_currentTab}`).classList.remove('hub-hidden');
 
-    updateModalTriggerVisibility();
     updateShareIconState();
 
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
@@ -159,11 +219,11 @@ async function runHubApp() {
     }
 
     initHubSearch();
-    _gbEndpoint = configData?.hub?.guestbook || '';
+    _gbAPI = configData?.api || '';
     initFeedModal();
 
     const hasOauthCode = new URLSearchParams(window.location.search).has('code');
-    if (hasOauthCode) _modalInitialized = true;
+    if (hasOauthCode) _isInitialized = true;
     buildFooter();
     if (!hasOauthCode) ensureGuestbookLoaded();
 

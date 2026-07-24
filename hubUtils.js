@@ -1,49 +1,3 @@
-function initHubSearch() {
-  const searchInput = document.getElementById('hub-search-input');
-  if (!searchInput) return;
-  if (_searchQuery) searchInput.value = _searchQuery;
-
-  let _debounceTimer;
-  searchInput.addEventListener('input', (e) => {
-    _searchQuery = e.target.value.trim();
-    clearTimeout(_debounceTimer);
-    _debounceTimer = setTimeout(() => {
-      _saveHubState();
-      
-      if (typeof renderFAQ === 'function') renderFAQ(_allFaq);
-      if (typeof renderFeed === 'function') renderFeed(_allFeed);
-      if (typeof renderGuestbook === 'function') renderGuestbook();
-      if (typeof updateShareIconState === 'function') updateShareIconState();
-      
-    }, 300);
-  });
-}
-
-function updateShareIconState() {
-  const searchIcon = document.getElementById('nav-share-icon');
-  if (!searchIcon) return;
-  if (!_searchQuery) {
-    searchIcon.classList.remove('ui-disabled');
-  } else {
-    const hasMatches = _currentTab === 'faq'
-      ? _faqHasMatches
-      : (_currentTab === 'guests' ? _gbHasMatches : _feedHasMatches);
-    if (hasMatches) {
-      searchIcon.classList.remove('ui-disabled');
-    } else {
-      searchIcon.classList.add('ui-disabled');
-    }
-  }
-}
-
-function buildShareUrl() {
-  const url = new URL(window.location.href);
-  url.search = '';
-  url.searchParams.set('tab', _currentTab);
-  if (_searchQuery) url.searchParams.set('search', _searchQuery);
-  return url.toString();
-}
-
 function highlightText(text, query) {
   if (!query) return text;
   const words = query.trim().split(/\s+/).filter(Boolean);
@@ -52,7 +6,7 @@ function highlightText(text, query) {
   const regex = new RegExp(`<[^>]*>|${patternStr}`, 'gi');
   return text.replace(regex, (match, capture) => {
     if (!capture) return match;
-    return `<mark class='faq-highlight'>${capture}</mark>`;
+    return `<mark class='hub-highlight'>${capture}</mark>`;
   });
 }
 
@@ -233,7 +187,9 @@ function buildFeedCard(item) {
   msgPane.innerHTML = `
     <div class='feed-card-header'>
       <div class='feed-identity'>
-        ${`<div class='feed-card-avatar-fallback'><i class='feed-icon ${item.icon || ''}'></i></div>`}
+        ${_adminAvatar
+          ? `<img class='feed-card-avatar' src='${_adminAvatar}' alt='avatar' referrerpolicy='no-referrer' />`
+          : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`}
         <div class='feed-identity-info'>
           <span class='feed-name'>${highlightText(item.title || '', query)}</span>
           <span class='feed-date'>${dateLabel}</span>
@@ -243,11 +199,11 @@ function buildFeedCard(item) {
      <div class='feed-text'>${highlightText(parseMarkdown(Array.isArray(item.content) ? item.content.join('\n') : (item.content || '')), query)}</div>
   `;
 
-  if (item.gallery && item.gallery.length > 1) {
+  if (item.gallery && item.gallery.content.length > 1) {
     const row = document.createElement('div');
     row.className = 'feed-row';
     row.appendChild(msgPane);
-    row.appendChild(buildGalleryPane(item.gallery));
+    row.appendChild(buildGalleryPane(item.gallery.content, item.gallery.header));
     card.appendChild(row);
   } else {
     card.appendChild(msgPane);
@@ -256,14 +212,53 @@ function buildFeedCard(item) {
   return card;
 }
 
+function updateFeedAvatars() {
+  document.querySelectorAll('#feed-container .feed-identity').forEach((identity) => {
+    const existing = identity.querySelector('.feed-card-avatar, .feed-card-avatar-fallback');
+    if (!existing) return;
+
+    if (_adminAvatar) {
+      if (existing.tagName === 'IMG') {
+        if (existing.src !== _adminAvatar) {
+          existing.style.transition = 'opacity .2s ease';
+          existing.style.opacity = '0';
+          const swap = () => {
+            existing.src = _adminAvatar;
+            existing.style.opacity = '1';
+          };
+          existing.addEventListener('load', swap, { once: true });
+          existing.addEventListener('error', swap, { once: true });
+        }
+      } else {
+        const img = document.createElement('img');
+        img.className = 'feed-card-avatar';
+        img.src = _adminAvatar;
+        img.alt = 'avatar';
+        img.referrerPolicy = 'no-referrer';
+        img.style.opacity = '0';
+        img.style.transition = 'opacity .2s ease';
+        existing.replaceWith(img);
+        requestAnimationFrame(() => { img.style.opacity = '1'; });
+      }
+    } else if (existing.tagName === 'IMG') {
+      const fallback = document.createElement('div');
+      fallback.className = 'feed-card-avatar-fallback';
+      fallback.innerHTML = `<i class='fa-solid fa-user'></i>`;
+      existing.replaceWith(fallback);
+    }
+  });
+}
+
 // ───── Guestbook ────────────────────────────────────────
 
 async function fetchGuestbook(action, body = null) {
-  const url = `${_gbEndpoint}?action=${action}`;
-  const opts = { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  
-  const res = await fetch(url, opts);
+  const opts = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tag: 'hub', action, ...(body || {}) }),
+  };
+
+  const res = await fetch(_gbAPI, opts);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Guestbook Request Failed.');
   return data;
@@ -290,13 +285,15 @@ async function loadGuestbook() {
 
           if (check.isAdmin) {
             const adminId = check.adminId || '';
-            _allGuestbook = (check.allEntries || [])
+            _adminAvatar = check.image || null;
+            updateFeedAvatars();
+            _allGB = (check.allEntries || [])
               .filter((e) => e.id !== adminId)
               .map((e) => ({
                 id: e.id,
                 name: e.name || e.id.split('@')[0],
                 image: e.image || null,
-                msg: e.message || '',
+                message: e.message || '',
                 date: e.date,
                 status: e.status || 'pending',
                 like: e.like || false,
@@ -313,6 +310,10 @@ async function loadGuestbook() {
 
           const listData = await fetchGuestbook('list');
           _gbEntries = listData.entries || [];
+          if (listData.adminImage && listData.adminImage !== _adminAvatar) {
+            _adminAvatar = listData.adminImage;
+            updateFeedAvatars();
+          }
           renderGuestbook();
           setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
           return;
@@ -322,6 +323,10 @@ async function loadGuestbook() {
             localStorage.removeItem(addresses.userToken);
             const listData = await fetchGuestbook('list');
             _gbEntries = listData.entries || [];
+            if (listData.adminImage && listData.adminImage !== _adminAvatar) {
+              _adminAvatar = listData.adminImage;
+              updateFeedAvatars();
+            }
             _gbIdentity = null;
             renderGuestbook();
             setFooterPage('login');
@@ -340,6 +345,10 @@ async function loadGuestbook() {
 
     const listData = await fetchGuestbook('list');
     _gbEntries = listData.entries || [];
+    if (listData.adminImage && listData.adminImage !== _adminAvatar) {
+      _adminAvatar = listData.adminImage;
+      updateFeedAvatars();
+    }
     _gbIdentity = null;
     renderGuestbook();
     setFooterPage('login');
@@ -361,17 +370,17 @@ function renderGuestbook() {
   const matchesSearch = (e) => {
     if (words.length === 0) return true;
     const name = (e.name || e.id?.split('@')[0] || '').toLowerCase();
-    const msg = (e.msg || e.message || '').toLowerCase();
+    const message = (e.message || '').toLowerCase();
     const date = (e.date || '').toLowerCase();
     const duration = formatDuration(e.date).toLowerCase();
-    return words.every((w) => name.includes(w) || msg.includes(w) || date.includes(w) || duration.includes(w));
+    return words.every((w) => name.includes(w) || message.includes(w) || date.includes(w) || duration.includes(w));
   };
 
   let finalEntries = [];
   let finalBanned = [];
 
   if (isAdmin) {
-    const pool = _allGuestbook || [];
+    const pool = _allGB || [];
     const filteredPool = pool.filter((e) => {
       if (e.status === 'banned') {
         return words.length === 0 || (e.id && e.id.toLowerCase().includes(rawQuery.toLowerCase()));
@@ -404,19 +413,8 @@ function renderGuestbook() {
     sortedEntries.forEach((e) => container.appendChild(buildGuestbookCard(e, true)));
     finalBanned.forEach((e) => container.appendChild(buildBannedCard(e)));
   } else {
-    const pinned = finalEntries.filter((e) => e.pin).sort((a, b) => (b.date > a.date ? 1 : -1));
-    const rest = finalEntries.filter((e) => !e.pin).sort((a, b) => (b.date > a.date ? 1 : -1));
-    
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
-    [...pinned, ...rest].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
+    [...finalEntries.filter((e) => e.pin).sort((a, b) => (b.date > a.date ? 1 : -1)), ...finalEntries.filter((e) => !e.pin).sort((a, b) => (b.date > a.date ? 1 : -1))
+    ].forEach((e) => container.appendChild(buildGuestbookCard(e, false)));
   }
 
   observeCards();
@@ -446,7 +444,7 @@ function buildGuestbookCard(entry, isAdmin = false) {
     statusBadge = `<span class='${badgeClass}'>${entry.status.replace('deletedBy', 'Deleted By ').toUpperCase()}</span>`;
   }
 
-  const messageText = highlightText(entry.msg || entry.message || '', highlightQuery);
+  const messageText = highlightText(entry.message || '', highlightQuery);
   const displayName = highlightText(entry.name || entry.id.split('@')[0], highlightQuery);
 
   card.innerHTML = `
@@ -493,12 +491,12 @@ function buildGuestbookCard(entry, isAdmin = false) {
   `;
 
   if (isAdmin) {
-    card.querySelector('.feed-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',    entry.id, card));
-    card.querySelector('.feed-btn-heart').addEventListener('click', () =>    gbAdminAction('like',       entry.id, card));
-    card.querySelector('.feed-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',        entry.id, card));
-    card.querySelector('.feed-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_msg', entry.id, card));
-    card.querySelector('.feed-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',     entry.id, card));
-    card.querySelector('.feed-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',        entry.id, card));
+    card.querySelector('.feed-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',         entry.id, card));
+    card.querySelector('.feed-btn-heart').addEventListener('click', () =>    gbAdminAction('like',            entry.id, card));
+    card.querySelector('.feed-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',             entry.id, card));
+    card.querySelector('.feed-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_message', entry.id, card));
+    card.querySelector('.feed-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',          entry.id, card));
+    card.querySelector('.feed-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',             entry.id, card));
   }
 
   return card;
@@ -539,6 +537,57 @@ function syncFooter() {
   else footer.classList.add('feed-hidden');
 }
 
+function applySession(data) {
+  _gbToken = data.token;
+  localStorage.setItem(addresses.userToken, data.token);
+  _gbIdentity = {
+    name: data.name,
+    isAdmin: data.isAdmin,
+    image: data.image || null,
+    adminId: data.adminId || null,
+  };
+
+  if (data.isAdmin) {
+    const adminId = data.adminId || '';
+    _adminAvatar = data.image || null;
+    updateFeedAvatars();
+    _allGB = (data.allEntries || [])
+      .filter((e) => e.id !== adminId)
+      .map((e) => ({
+        id: e.id,
+        name: e.name || e.id.split('@')[0],
+        image: e.image || null,
+        message: e.message || '',
+        date: e.date,
+        status: e.status || 'pending',
+        like: e.like || false,
+        pin: e.pin || false,
+      }));
+    renderGuestbook();
+    setFooterPage('admin');
+    return;
+  }
+
+  _gbHasEntry = data.hasEntry;
+  _gbOwnEntry = data.entry;
+
+  fetchGuestbook('list')
+    .then((listData) => {
+      _gbEntries = listData.entries || [];
+      if (listData.adminImage && listData.adminImage !== _adminAvatar) {
+        _adminAvatar = listData.adminImage;
+        updateFeedAvatars();
+      }
+      renderGuestbook();
+      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+    })
+    .catch(() => {
+      _gbEntries = [];
+      renderGuestbook();
+      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+    });
+}
+
 function buildFooter() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
@@ -550,50 +599,7 @@ function buildFooter() {
   setFooterPage('loading');
 
   fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
-    .then((data) => {
-      _gbToken = data.token;
-      localStorage.setItem(addresses.userToken, data.token);
-      _gbIdentity = {
-        name: data.name,
-        isAdmin: data.isAdmin,
-        image: data.image || null,
-        adminId: data.adminId || null,
-      };
-
-      if (data.isAdmin) {
-        const adminId = data.adminId || '';
-        _allGuestbook = (data.allEntries || [])
-          .filter((e) => e.id !== adminId)
-          .map((e) => ({
-            id: e.id,
-            name: e.name || e.id.split('@')[0],
-            image: e.image || null,
-            msg: e.message || '',
-            date: e.date,
-            status: e.status || 'pending',
-            like: e.like || false,
-            pin: e.pin || false,
-          }));
-        renderGuestbook();
-        setFooterPage('admin');
-        return;
-      }
-
-      _gbHasEntry = data.hasEntry;
-      _gbOwnEntry = data.entry;
-
-      fetchGuestbook('list')
-        .then((listData) => {
-          _gbEntries = listData.entries || [];
-          renderGuestbook();
-          setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-        })
-        .catch(() => {
-          _gbEntries = [];
-          renderGuestbook();
-          setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-        });
-    })
+    .then(applySession)
     .catch((e) => {
       _gbToken = null;
       localStorage.removeItem(addresses.userToken);
@@ -619,20 +625,25 @@ function setFooterPage(state) {
   const innerFooter = document.getElementById('feed-modal-inner');
   if (!innerFooter) return;
 
-  updateModalTriggerIcon(state);
+  updateModalTrigger(state);
 
   if (state === 'login') {
+    const otpBtnLabel = _otpPhase === 'verify' ? 'Verify' : 'Send OTP';
+    const otpInputPlaceholder = _otpPhase === 'verify' ? 'Enter The Code' : 'Enter Your Email (Authorized Users Only)';
+    const otpInputValue = _otpPhase === 'verify' ? '' : '';
+
     innerFooter.innerHTML = `
       <div id='feed-state-login'>
         <div class='feed-login-title-row'>
-          <span class='feed-login-title'>Sign in to interact or leave a message — we'd love to hear from you!</span>
-          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+          <span class='feed-login-title'>Sign In To Interact Or Leave A Message, I'd Love To Hear From You!</span>
+          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
         <button class='action-btn' id='feed-verify-btn'> <i class='fa-brands fa-google'></i> Google Authentication </button>
         <div class='form-divider'><span>OR</span></div>
         <div class='feed-otp-row'>
-          <input type='email' id='feed-otp-email' class='form-input' placeholder='Enter your email' autocomplete='email' maxlength='120' />
-          <button class='btn feed-otp-btn' id='feed-otp-btn'>Send OTP</button>
+          <input type='${_otpPhase === 'verify' ? 'text' : 'email'}' id='feed-otp-email' class='form-input' placeholder='${otpInputPlaceholder}' autocomplete='${_otpPhase === 'verify' ? 'one-time-code' : 'email'}' maxlength='${_otpPhase === 'verify' ? 6 : 120}' value='${otpInputValue}' />
+          <button class='btn action-btn feed-otp-btn' id='feed-otp-btn'>${otpBtnLabel}</button>
+          ${_otpPhase === 'verify' ? `<button class='feed-icon-btn feed-icon-close' id='feed-otp-cancel-btn'><i class='fa-solid fa-xmark'></i></button>` : ''}
         </div>
       </div>
       <div id='feed-modal-status' class='subtitle feed-hidden'></div>
@@ -646,7 +657,7 @@ function setFooterPage(state) {
       <div id='feed-state-loading'>
         <div class='feed-login-row'>
           <span class='subtitle'><i class='fa-solid fa-circle-notch fa-spin'></i> Processing Authentication Request</span>
-          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
       <div id='feed-modal-status' class='subtitle feed-hidden'></div>
@@ -672,7 +683,7 @@ function setFooterPage(state) {
         <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
           <i class='fa-solid fa-right-from-bracket'></i>
         </button>
-        <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+        <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
       </div>
     `;
     footerHandlers('admin');
@@ -693,7 +704,7 @@ const isUserEdit = state === 'edit';
   const previewBlock = showPreview
     ? `
     <div id='feed-entry-preview'>
-      <p class='feed-preview-text'>${_gbOwnEntry?.msg || ''}</p>
+      <p class='feed-preview-text'>${_gbOwnEntry?.message || ''}</p>
       <div class='feed-entry-meta'>
         <span class='feed-preview-date'>${_gbOwnEntry?.date || ''}${_gbOwnEntry?.date ? ` · ${formatDuration(_gbOwnEntry.date)}` : ''}</span>
         <div class='feed-preview-indicators'>
@@ -706,7 +717,7 @@ const isUserEdit = state === 'edit';
     : '';
 
   const textareaBlock = showTextarea
-    ? `<textarea id='feed-textarea' class='feed-textarea' placeholder='Leave A Message...' maxlength='250'>${isUserEdit ? _gbOwnEntry?.msg || '' : ''}</textarea>`
+    ? `<textarea id='feed-textarea' class='feed-textarea' placeholder='Leave A Message...' maxlength='250'>${isUserEdit ? _gbOwnEntry?.message || '' : ''}</textarea>`
     : '';
 
   const rowBtns = (() => {
@@ -716,7 +727,7 @@ const isUserEdit = state === 'edit';
     if (isUserEdit) {
       return `
         <button class='feed-icon-btn feed-icon-save' id='feed-submit-btn'><i class='fa-solid fa-check'></i></button>
-        <button class='feed-icon-btn feed-icon-cancel' id='feed-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
+        <button class='feed-icon-btn feed-icon-close' id='feed-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
     }
     if (isUserHasEntry) {
       return `
@@ -742,7 +753,7 @@ const isUserEdit = state === 'edit';
           <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
             <i class='fa-solid fa-right-from-bracket'></i>
           </button>
-          <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
 
@@ -754,7 +765,7 @@ const isUserEdit = state === 'edit';
   if (showTextarea) {
     const ta = document.getElementById('feed-textarea');
     if (ta) {
-      if (isUserEdit) ta.value = _gbOwnEntry?.msg || '';
+      if (isUserEdit) ta.value = _gbOwnEntry?.message || '';
       ta.focus();
     }
   }
@@ -769,15 +780,15 @@ async function gbAdminAction(action, id, cardUI) {
     const data = await fetchGuestbook(action, { token: _gbToken, id });
 
     if (action === 'remove') {
-      if (_allGuestbook)
-        _allGuestbook = _allGuestbook.filter((e) => e.id !== id);
+      if (_allGB)
+        _allGB = _allGB.filter((e) => e.id !== id);
       cardUI.remove();
       return;
     }
 
     if (action === 'ban') {
-      if (_allGuestbook) {
-        const entry = _allGuestbook.find((e) => e.id === id);
+      if (_allGB) {
+        const entry = _allGB.find((e) => e.id === id);
         if (entry) entry.status = 'banned';
       }
       const bannedCard = buildBannedCard({ id });
@@ -786,17 +797,17 @@ async function gbAdminAction(action, id, cardUI) {
     }
 
     if (action === 'unban') {
-      if (_allGuestbook)
-        _allGuestbook = _allGuestbook.filter((e) => e.id !== id);
+      if (_allGB)
+        _allGB = _allGB.filter((e) => e.id !== id);
       cardUI.remove();
       return;
     }
 
-    if (action === 'delete_msg') {
-      if (_allGuestbook) {
-        const entry = _allGuestbook.find((e) => e.id === id);
+    if (action === 'delete_message') {
+      if (_allGB) {
+        const entry = _allGB.find((e) => e.id === id);
         if (entry) {
-          entry.msg = '';
+          entry.message = '';
           entry.status = 'deletedByAdmin';
         }
       }
@@ -811,8 +822,8 @@ async function gbAdminAction(action, id, cardUI) {
     }
 
     if (action === 'approve') {
-      if (_allGuestbook) {
-        const entry = _allGuestbook.find((e) => e.id === id);
+      if (_allGB) {
+        const entry = _allGB.find((e) => e.id === id);
         if (entry) entry.status = data.status;
       }
       const btn = cardUI.querySelector('.feed-btn-approve');
@@ -826,8 +837,8 @@ async function gbAdminAction(action, id, cardUI) {
     }
 
     if (action === 'like') {
-      if (_allGuestbook) {
-        const entry = _allGuestbook.find((e) => e.id === id);
+      if (_allGB) {
+        const entry = _allGB.find((e) => e.id === id);
         if (entry) entry.like = data.like;
       }
       const btn = cardUI.querySelector('.feed-btn-heart');
@@ -837,8 +848,8 @@ async function gbAdminAction(action, id, cardUI) {
     }
 
     if (action === 'pin') {
-      if (_allGuestbook) {
-        const entry = _allGuestbook.find((e) => e.id === id);
+      if (_allGB) {
+        const entry = _allGB.find((e) => e.id === id);
         if (entry) entry.pin = data.pin;
       }
       const btn = cardUI.querySelector('.feed-btn-pin');
@@ -851,6 +862,51 @@ async function gbAdminAction(action, id, cardUI) {
   }
 }
 
+function startOtpCooldown(seconds) {
+  clearInterval(_otpCooldownTimer);
+  _otpCooldownTimer = null;
+
+  if (typeof seconds === 'number') {
+    _otpCooldownUntil = Date.now() + seconds * 1000;
+  }
+
+  const tick = () => {
+    const left = Math.ceil((_otpCooldownUntil - Date.now()) / 1000);
+    if (left <= 0) {
+      clearInterval(_otpCooldownTimer);
+      _otpCooldownTimer = null;
+      _otpCooldownUntil = 0;
+      if (_otpPhase === 'verify') {
+        cancelOtpVerify();
+      } else {
+        setFooterStatus('');
+      }
+      return;
+    }
+    setFooterStatus(`Resend Available In ${left}s`);
+  };
+
+  const remaining = Math.ceil((_otpCooldownUntil - Date.now()) / 1000);
+  if (remaining <= 0) {
+    _otpCooldownUntil = 0;
+    return;
+  }
+
+  tick();
+  _otpCooldownTimer = setInterval(tick, 1000);
+}
+
+function cancelOtpVerify() {
+  clearInterval(_otpCooldownTimer);
+  _otpCooldownTimer = null;
+  _otpCooldownUntil = 0;
+  _otpPhase = 'send';
+  _otpEmail = '';
+  localStorage.removeItem(addresses.hubOTPStartAt);
+  localStorage.removeItem(addresses.hubOTPEmail);
+  setFooterPage('login');
+}
+
 function footerHandlers(state) {
   document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeFeedModal);
 
@@ -860,10 +916,7 @@ function footerHandlers(state) {
         const currentPagePath =
           window.location.origin + window.location.pathname;
         try {
-          const response = await fetch(
-            `${_gbEndpoint}?action=login_url&context=${encodeURIComponent(currentPagePath)}`,
-          );
-          const data = await response.json();
+          const data = await fetchGuestbook('login_url', { context: currentPagePath });
           if (data.url) {
             window.location.href = data.url;
           } else {
@@ -875,6 +928,85 @@ function footerHandlers(state) {
           setFooterStatus('Authentication Backend Unreachable', true);
         }
       });
+
+    document.getElementById('feed-otp-btn')?.addEventListener('click', async () => {
+      const emailInput = document.getElementById('feed-otp-email');
+      const otpBtn = document.getElementById('feed-otp-btn');
+      const value = emailInput?.value.trim();
+
+      if (_otpPhase === 'send') {
+        if (!value) {
+          setFooterStatus('Enter Your Email First', true);
+          return;
+        }
+
+        if (otpBtn) otpBtn.disabled = true;
+        setFooterStatus('Sending Code');
+
+        try {
+          const res = await fetch(_gbAPI, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tag: 'mailOTP', payload: { userMail: value } }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) throw new Error(data.error || 'Failed To Send Code.');
+
+          _otpEmail = value;
+          _otpPhase = 'verify';
+          localStorage.setItem(addresses.hubOTPStartAt, Date.now());
+          localStorage.setItem(addresses.hubOTPEmail, value);
+          setFooterPage('login');
+          startOtpCooldown(120);
+        } catch (e) {
+          if (otpBtn) otpBtn.disabled = false;
+          setFooterStatus(e.message, true);
+        }
+        return;
+      }
+
+      if (!value) {
+        setFooterStatus('Enter The Code Sent To Your Email', true);
+        return;
+      }
+
+      if (otpBtn) otpBtn.disabled = true;
+      setFooterStatus('Verifying');
+
+      try {
+        const data = await fetchGuestbook('otp_verify', { userMail: _otpEmail, otp: value });
+        _otpPhase = 'send';
+        _otpEmail = '';
+        clearInterval(_otpCooldownTimer);
+        _otpCooldownTimer = null;
+        _otpCooldownUntil = 0;
+        localStorage.removeItem(addresses.hubOTPStartAt);
+        localStorage.removeItem(addresses.hubOTPEmail);
+        applySession(data);
+      } catch (e) {
+        if (otpBtn) otpBtn.disabled = false;
+        setFooterStatus(e.message, true);
+      }
+    });
+
+    document.getElementById('feed-otp-cancel-btn')?.addEventListener('click', () => {
+      cancelOtpVerify();
+    });
+
+    if (_otpPhase === 'verify') {
+      const otpStartAt = parseInt(localStorage.getItem(addresses.hubOTPStartAt), 10);
+      if (otpStartAt) {
+        const remainingMs = 120000 - (Date.now() - otpStartAt);
+        if (remainingMs > 0) {
+          _otpCooldownUntil = Date.now() + remainingMs;
+          startOtpCooldown();
+        } else {
+          cancelOtpVerify();
+        }
+      } else {
+        cancelOtpVerify();
+      }
+    }
     return;
   }
 
@@ -884,10 +1016,8 @@ function footerHandlers(state) {
     _gbHasEntry = false;
     _gbOwnEntry = null;
     _gbEditMode = false;
-    _allGuestbook = null;
     localStorage.removeItem(addresses.userToken);
     setFooterPage('login');
-    loadGuestbook();
   });
 
   if (state === 'admin') return;

@@ -88,7 +88,10 @@
       "type": "120 Credit Hours",
       "location": "Egypt",
       "markdown": "Data/Files/Edu_0/mufai.md",
-      "gallery": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"],
+      "gallery": {
+        "header": "",
+        "content": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"]
+      },
       "summary": [
         "BSc in Artificial Intelligence from Menoufia University, specializing in the Cyber Security Department.",
         "Graduated with an A-Excellent Standing and a cumulative GPA of 3.45 / 4.0.",
@@ -112,7 +115,10 @@
       "from_date": "02/2025",
       "to_date": "12/2025",
       "markdown": "Data/Files/Exp_0/deci.md",
-      "gallery": [],
+      "gallery": {
+        "header": "aaa",
+        "content": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"]
+      },
       "summary": [
         "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
         "Designed applied exercises to successfully bridge theory and practice."

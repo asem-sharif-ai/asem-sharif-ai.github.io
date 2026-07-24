@@ -79,7 +79,9 @@ const addresses = {
   projectsStarredOnly: _address('projects-starred-only'),
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
-  hubActiveTab:        _address('hub-active-tab')
+  hubActiveTab:        _address('hub-active-tab'),
+  hubOTPEmail:         _address('hub-otp-email-at'),
+  hubOTPStartAt:       _address('hub-otp-start-at'),
 };
 
 // ───── Viewport ────────────────────────────────────────
@@ -91,17 +93,20 @@ function isMobile() {
 // ───── Content Helpers ────────────────────────────────────────
 
 async function loadContent(path, elementId) {
+  const el = document.getElementById(elementId);
   if (!path) {
-    document.getElementById(elementId).innerText = 'Resource Path Missing.';
+    if (el) el.innerText = 'Resource Path Missing.';
     return;
   }
   try {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
     const text = await res.text();
-    document.getElementById(elementId).innerHTML = parseMarkdown(text);
+    const target = document.getElementById(elementId);
+    if (target) target.innerHTML = parseMarkdown(text);
   } catch (e) {
-    document.getElementById(elementId).innerText = 'Failed To Sync Content.';
+    const target = document.getElementById(elementId);
+    if (target) target.innerText = 'Failed To Sync Content.';
     console.error(e);
   }
 }
@@ -125,13 +130,6 @@ function parseMarkdown(text) {
       .replace(/^(?!<h|<li|<ul|<hr|<p|<a)(.*)$/gim, '<p>$1</p>');
   }
   return DOMPurify.sanitize(marked.parse(text));
-}
-
-function isDirectoryPath(path) {
-  if (typeof path !== 'string') return false;
-  const cleanPath = path.trim().split('?')[0].split('#')[0];
-  if (cleanPath.endsWith('/')) return true;
-  return !isImagePath(cleanPath) && !isVideoPath(cleanPath) && !isMarkdownPath(cleanPath);
 }
 
 function isMarkdownPath(path) {
@@ -161,71 +159,9 @@ function getVideoMimeType(path) {
   return types[ext] || 'video/mp4';
 }
 
-async function resolveDirectory(configInput, mediaOnly = false) {
-  if (!configInput) return [];
-
-  if (Array.isArray(configInput)) {
-    return configInput.filter(src => isImagePath(src) || isVideoPath(src) || (!mediaOnly && isMarkdownPath(src)));
-  }
-
-  if (typeof configInput === 'string') {
-    const path = configInput.trim();
-
-    if (isImagePath(path) || isVideoPath(path) || (!mediaOnly && isMarkdownPath(path))) {
-      return [path];
-    }
-
-    if (isDirectoryPath(path)) {
-      try {
-        const normalizedPath = path.endsWith('/') ? path : `${path}/`;
-        const baseUrl = new URL(normalizedPath, window.location.origin);
-
-        const response = await fetch(baseUrl.href);
-        if (!response.ok) return [];
-
-        const contentType = response.headers.get('content-type') || '';
-        const resolvedFiles = [];
-
-        if (contentType.includes('application/json')) {
-          const files = await response.json();
-          if (Array.isArray(files)) {
-            return files.filter(src => isImagePath(src) || isVideoPath(src) || (!mediaOnly && isMarkdownPath(src)));
-          }
-          return [];
-        }
-
-        const htmlText = await response.text();
-        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-        const links = doc.querySelectorAll('a');
-
-        links.forEach(link => {
-          const href = link.getAttribute('href');
-          if (!href || href === '#' || href.startsWith('?')) return;
-          if (href.startsWith('/') && normalizedPath.indexOf(href) === 0) return;
-
-          const cleanHref = href.split('?')[0].split('#')[0];
-
-          if (isImagePath(cleanHref) || isVideoPath(cleanHref) || (!mediaOnly && isMarkdownPath(cleanHref))) {
-            const absoluteFileUrl = new URL(cleanHref, baseUrl);
-            const relativePath = absoluteFileUrl.pathname.replace(/^\//, '');
-            resolvedFiles.push(relativePath);
-          }
-        });
-
-        return resolvedFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-
-      } catch (e) {
-        return [];
-      }
-    }
-  }
-
-  return [];
-}
-
 // ───── Content Render (Projects / Log) ────────────────────────────────────────
 
-function buildGalleryPane(gallery) {
+function buildGalleryPane(galleryList, galleryHeader) {
   const pane = document.createElement('div');
   pane.className = 'gallery-pane';
 
@@ -235,7 +171,7 @@ function buildGalleryPane(gallery) {
   const track = document.createElement('div');
   track.className = 'gallery-track';
 
-  gallery.forEach(src => {
+  galleryList.forEach(src => {
     const slide = document.createElement('div');
     slide.className = 'gallery-slide';
     slide.innerHTML = renderContentItem(src);
@@ -243,10 +179,18 @@ function buildGalleryPane(gallery) {
   });
 
   viewport.appendChild(track);
-  pane.appendChild(viewport);
+
+  const header = document.createElement('div');
+  header.className = 'gallery-sub gallery-header';
+
+  const headerEl = document.createElement('span');
+  headerEl.className = 'slide-counter gallery-counter';
+  headerEl.textContent = galleryHeader || '';
+
+  header.appendChild(headerEl);
 
   const controls = document.createElement('div');
-  controls.className = 'gallery-controls';
+  controls.className = 'gallery-sub gallery-controls';
 
   const prevBtn = document.createElement('button');
   prevBtn.className = 'btn prev-btn gallery-btn';
@@ -256,10 +200,10 @@ function buildGalleryPane(gallery) {
 
   const counter = document.createElement('span');
   counter.className = 'slide-counter gallery-counter';
-  counter.textContent = `1/${gallery.length}`;
+  counter.textContent = `1/${galleryList.length}`;
 
   const nextBtn = document.createElement('button');
-  const isSingleItem = gallery.length <= 1;
+  const isSingleItem = galleryList.length <= 1;
   nextBtn.className = 'btn next-btn gallery-btn';
   nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
   nextBtn.style.opacity = isSingleItem ? '0.35' : '1';
@@ -268,17 +212,17 @@ function buildGalleryPane(gallery) {
   let current = 0;
 
   function goTo(idx) {
-    current = Math.max(0, Math.min(idx, gallery.length - 1));
+    current = Math.max(0, Math.min(idx, galleryList.length - 1));
     track.style.transform = `translateX(-${current * 100}%)`;
-    counter.textContent = `${current + 1}/${gallery.length}`;
+    counter.textContent = `${current + 1}/${galleryList.length}`;
 
     if (prevBtn) {
       prevBtn.style.opacity = current === 0 ? '0.35' : '1';
       prevBtn.style.pointerEvents = current === 0 ? 'none' : 'auto';
     }
     if (nextBtn) {
-      nextBtn.style.opacity = current === gallery.length - 1 ? '0.35' : '1';
-      nextBtn.style.pointerEvents = current === gallery.length - 1 ? 'none' : 'auto';
+      nextBtn.style.opacity = current === galleryList.length - 1 ? '0.35' : '1';
+      nextBtn.style.pointerEvents = current === galleryList.length - 1 ? 'none' : 'auto';
     }
   }
 
@@ -290,6 +234,9 @@ function buildGalleryPane(gallery) {
   controls.appendChild(prevBtn);
   controls.appendChild(counter);
   controls.appendChild(nextBtn);
+
+  pane.appendChild(header);
+  pane.appendChild(viewport);
   pane.appendChild(controls);
 
   return pane;
