@@ -1367,7 +1367,7 @@ footer a { border-bottom: none; text-decoration: none;}
   
   .separator { display: none; }
   
-  #latest-hero { margin-top: 0px; }
+  #latest-hero { margin-top: 0px; margin-bottom: -60px; }
 }
 
 /* ---------- ---------- [CONTAINERS] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
@@ -1421,6 +1421,10 @@ footer a { border-bottom: none; text-decoration: none;}
     grid-column: span 1 !important;
   }
 
+  #projects-container {
+    margin-top: 0px;
+  }
+  
   #feed-container, #guests-container {
     margin-top: 0;
   }
