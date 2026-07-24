@@ -397,7 +397,7 @@ function buildProjectCard(project, cardId) {
   }
 
   card.innerHTML = `
-    <div class='card-header project-card-header' id='header-${cardId}'>
+    <div class='card-header idle-header' id='header-${cardId}'>
       <div class='project-title-container'>
       ${project.star ? `<span class='star-icon'></span>` : ''}
       ${titleHtml}

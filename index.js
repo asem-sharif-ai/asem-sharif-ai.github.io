@@ -141,7 +141,7 @@ function buildForm(section, cardId, api, adminTimezone) {
   const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
 
   card.innerHTML = `
-    <div class='card-header' id='header-${cardId}'>
+    <div class='card-header idle-header' id='header-${cardId}'>
       <div class='card-title'>${section.title || 'Get In Touch'} <span class='log-subtitle' style='margin-left: 4px; '> ${section.subtitle || 'Reach Out For Collaborations'} </span></div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
@@ -829,7 +829,7 @@ function buildHero(data, getTheme, setTheme) {
       const entries = Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0);
       entries.forEach(([key, doc], i) => {
         const btn = document.createElement('button');
-        btn.className = `cta-trigger has-fast-glow ${key === 'main' ? 'inverse' : ''}`;
+        btn.className = `cta-trigger has-fast-glow`;   // ${key === 'main' ? 'inverse' : ''}
         btn.id = `cta-trigger-${key}`;
         btn.dataset.index = i;
         btn.dataset.total = entries.length;
