@@ -1036,7 +1036,6 @@ footer a { border-bottom: none; text-decoration: none;}
   gap: 12px;
   margin-left: auto;
   margin-right: auto;
-  /* margin-top: 60px; */
   max-width: calc(100% - 80px);
   text-align: center;
   width: 100%;
@@ -1051,7 +1050,6 @@ footer a { border-bottom: none; text-decoration: none;}
   margin: 0px;
   margin-top: 12px;
 }
-
 
 .subtitle {
   color: var(--text-deep-muted);
@@ -1320,13 +1318,9 @@ footer a { border-bottom: none; text-decoration: none;}
   }
   
   .hero-right { display: none; }
-  .hero-left { align-items: center; }
+  .hero-left { align-items: center; width: 100% !important; }
 
-  .hero-left .socials {
-    justify-content: center;
-    margin-left: 20px;
-    margin-right: 20px;
-  }
+  .hero-left .socials { justify-content: center; }
 
   #user-role {
     align-items: center;
