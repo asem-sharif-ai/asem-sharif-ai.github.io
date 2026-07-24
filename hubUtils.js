@@ -533,7 +533,7 @@ function buildBannedCard(entry) {
 // ───── Guestbook Footer ────────────────────────────────────────
 
 function syncFooter() {
-  const footer = document.getElementById('feed-footer');
+  const footer = document.getElementById('feed-modal');
   if (!footer) return;
   if (_currentTab === 'guests') footer.classList.remove('feed-hidden');
   else footer.classList.add('feed-hidden');
@@ -603,7 +603,7 @@ function buildFooter() {
 }
 
 function setFooterStatus(msg, isError = false) {
-  const el = document.getElementById('feed-footer-status');
+  const el = document.getElementById('feed-modal-status');
   if (!el) return;
   if (!msg) {
     el.textContent = '';
@@ -616,7 +616,7 @@ function setFooterStatus(msg, isError = false) {
 }
 
 function setFooterPage(state) {
-  const innerFooter = document.getElementById('feed-footer-inner');
+  const innerFooter = document.getElementById('feed-modal-inner');
   if (!innerFooter) return;
 
   updateModalTriggerIcon(state);
@@ -635,7 +635,7 @@ function setFooterPage(state) {
           <button class='btn feed-otp-btn' id='feed-otp-btn'>Send OTP</button>
         </div>
       </div>
-      <div id='feed-footer-status' class='subtitle feed-hidden'></div>
+      <div id='feed-modal-status' class='subtitle feed-hidden'></div>
       `;
     footerHandlers('login');
     return;
@@ -649,7 +649,7 @@ function setFooterPage(state) {
           <button class='feed-icon-btn feed-icon-cancel' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
-      <div id='feed-footer-status' class='subtitle feed-hidden'></div>
+      <div id='feed-modal-status' class='subtitle feed-hidden'></div>
     `;
     footerHandlers('loading');
     return;
@@ -737,7 +737,7 @@ const isUserEdit = state === 'edit';
           </div>
         </div>
         <div class='feed-identity-right'>
-          <div id='feed-footer-status' class='post-detail feed-hidden'></div>
+          <div id='feed-modal-status' class='post-detail feed-hidden'></div>
           ${rowBtns}
           <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
             <i class='fa-solid fa-right-from-bracket'></i>

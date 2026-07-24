@@ -2817,7 +2817,7 @@ code {
   pointer-events: auto;
 }
 
-.feed-footer {
+.feed-modal {
   flex-shrink: 0;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
@@ -2836,11 +2836,11 @@ code {
   max-width: 420px;
 }
 
-.feed-modal-overlay.open .feed-footer {
+.feed-modal-overlay.open .feed-modal {
   transform: scale(1);
 }
 
-#feed-footer-inner {
+#feed-modal-inner {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -2929,23 +2929,23 @@ code {
   width: 100%;
 }
 
-.feed-footer .action-btn {
+.feed-modal .action-btn {
   margin: 0;
   width: 100%;
 }
 
-.feed-footer .action-btn i {
+.feed-modal .action-btn i {
   margin: 0px 12px 0px 0px;
 }
 
-.feed-footer .subtitle:not(.feed-hidden) {
+.feed-modal .subtitle:not(.feed-hidden) {
   align-self: center;
   margin-top: 10px;
   text-align: center;
   width: 100%;
 }
 
-.feed-footer .subtitle i {
+.feed-modal .subtitle i {
   margin-right: 4px;
 }
 
@@ -2986,6 +2986,7 @@ code {
 }
 
 .feed-name {
+  text-transform: capitalize;
   color: var(--text-bright);
   font-size: 0.9rem;
   font-weight: 600;
