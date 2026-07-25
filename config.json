@@ -8,7 +8,7 @@
   "role": ["AI & Computer Vision Engineer", "PyQt Developer"],
   "bio": "I build full-pipeline computer vision systems and the interfaces around them, delivering AI solutions with real-time inference through production-grade desktop applications.",
   "location": "Cairo, Egypt.",
-  "timezone": "Asia/Tokyo",
+  "timezone": "Africa/Cairo",
   "status": {
     "daily": [
       { "from": "06:00", "to": "12:00", "label": "Open For Business" },
@@ -35,7 +35,7 @@
     "fallback": "https://asem-sharif-ai.github.io",
     "qr_code": true
   },
-  
+
   "assistant": {
     "name":"Twin",
     "role": "Digital Assistant",
@@ -53,9 +53,9 @@
     "main": [
       [
         { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
-        { "site": "github", "url": "https://github.com/asem-sharif-ai" },
-        { "site": "medium",  "url": "https://medium.com/@asem-sharif-ai" },
-        { "site": "mailto", "url": "mailto:asem.sharif.ai@gmail.com" },
+        { "site": "github",   "url": "https://github.com/asem-sharif-ai" },
+        { "site": "medium",   "url": "https://medium.com/@asem-sharif-ai" },
+        { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" },
         { "site": "telegram", "url": "https://t.me/notasem" }
       ]
     ],
