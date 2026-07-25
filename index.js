@@ -381,12 +381,10 @@ function buildForm(section, cardId, api, adminTimezone) {
           const existingIndex = findSlotIndex(dateISO, slotIndex);
 
           if (existingIndex !== -1) {
-            // same slot clicked again -> deselect
             selectedSlots.splice(existingIndex, 1);
             part.classList.remove('selected');
             updateTzLabel(null);
           } else {
-            // remove any other selection for this day (one per day), not blocked by max
             const dayIndex = findDaySlotIndex(dateISO);
             if (dayIndex !== -1) {
               const prevSlotIndex = selectedSlots[dayIndex].slotIndex;
@@ -573,7 +571,6 @@ function buildForm(section, cardId, api, adminTimezone) {
       message: messageInput.value.trim(),
       preferredTime: selectedSlots.length ? formatSelectedTimesFull() : null,
       preferredTimezone: selectedSlots.length ? viewerTimezone : null,
-      token: localStorage.getItem(addresses.userToken)
     };
 
     submitBtn.disabled = true;
@@ -581,6 +578,7 @@ function buildForm(section, cardId, api, adminTimezone) {
       const res = await fetch(api, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ tag: 'mailForm', payload: payload}),
       });
 
@@ -838,7 +836,7 @@ function buildHero(data, getTheme, setTheme) {
       const entries = Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0);
       entries.forEach(([key, doc], i) => {
         const btn = document.createElement('button');
-        btn.className = `cta-trigger has-fast-glow`;   // ${key === 'main' ? 'inverse' : ''}
+        btn.className = `cta-trigger has-fast-glow`; // ${key === 'main' ? 'inverse' : ''}
         btn.id = `cta-trigger-${key}`;
         btn.dataset.index = i;
         btn.dataset.total = entries.length;

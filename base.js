@@ -69,8 +69,8 @@ function _address(key) {
 
 const addresses = {
   userTheme:           _address('user-theme'),
-  userToken:           _address('user-token'),
-  chatToken:           _address('chat-token'),
+  // userToken:           _address('user-token'),
+  // chatToken:           _address('chat-token'),
   chatHistory:         _address('chat-history'),
   mailFormData:        _address('mail-form-data'),
   indexScrollY:        _address('index-scroll-y'),
