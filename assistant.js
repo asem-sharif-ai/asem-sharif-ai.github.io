@@ -11,12 +11,11 @@ async function getModelResponse(configData = {}, newMessage = '') {
   try {
     response = await fetch(configData.api, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tag: 'chat',
         message: newMessage,
-        token: localStorage.getItem(addresses.userToken),
-        chatToken: localStorage.getItem(addresses.chatToken),
         newWindow: newWindow,
       }),
     });
@@ -43,10 +42,6 @@ async function getModelResponse(configData = {}, newMessage = '') {
     err.httpStatus = response.status;
     err.isWorkerError = true;
     throw err;
-  }
-
-  if (data.token) {
-    localStorage.setItem(addresses.chatToken, data.token);
   }
 
   const systemAlerts = Array.isArray(data?.systemAlerts) ? data.systemAlerts : null;

@@ -610,19 +610,16 @@ function buildForm(section, cardId, api, adminTimezone) {
 // ───── Hero Setup ────────────────────────────────────────
 
 function buildHero(data, getTheme, setTheme) {
+  document.querySelector('.hero-logo').insertAdjacentHTML('afterend', `
+    <h2 id='user-name'> </h2>
+    <p class='subtitle' id='user-role'></p>
+    <p class='subtitle' id='user-location'></p>
+    <p class='subtitle' id='user-bio'></p>
+    <div class='socials' id='social-icons'></div>
+    <div id='cta-panel'></div>
+  `);
+    
   const currentTheme = getTheme();
-
-  const heroLogo = document.querySelector('.hero-logo');
-  if (heroLogo && !document.getElementById('user-name')) {
-    heroLogo.insertAdjacentHTML('afterend', `
-      <h2 id='user-name'> </h2>
-      <p class='subtitle' id='user-role'></p>
-      <p class='subtitle' id='user-location'></p>
-      <p class='subtitle' id='user-bio'></p>
-      <div class='socials' id='social-icons'></div>
-      <div id='cta-panel'></div>
-    `);
-  }
 
   if (data.symbol) {
     const logoContainer = document.querySelector('.hero-logo');
@@ -912,8 +909,7 @@ function runScrollSpy(spyTargets) {
 
 async function runProfileApp() {
   try {
-    const res = await fetch('config.json');
-    const data = await res.json();
+    const data = await loadConfig();
 
     const navItems = document.getElementById('nav-items');
     const homeHero = document.getElementById('home-hero');
@@ -1097,6 +1093,9 @@ async function runProfileApp() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  handleOffline();
+  if (!navigator.onLine) return;
+
   await runProfileApp();
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);

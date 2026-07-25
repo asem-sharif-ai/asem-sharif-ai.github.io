@@ -291,13 +291,14 @@ async function runLogRouter() {
     
     if (!['education', 'experience', 'skills'].includes(page)) {
       document.title = 'SlateMP - Invalid Request'
+      document.getElementById('nav-user-name').innerText = 'Invalid Request';
+      renderRoles('nav-user-role', 'Routing Options: Education, Experience, and Skills.')
+
       console.warn(`Routing Fallback: Invalid OR Missing Parameter: '${page}'`);
-      renderNoData('Invalid Request', 'list-container', false)
       return;
     }
 
-    const cfgRes = await fetch('config.json');
-    const configData = await cfgRes.json();
+    const configData = await loadConfig();
     const data = configData[page];
 
     const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
@@ -319,4 +320,8 @@ async function runLogRouter() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', runLogRouter);
+document.addEventListener('DOMContentLoaded', async () => {
+  handleOffline();
+  if (!navigator.onLine) return;
+  runLogRouter()
+});

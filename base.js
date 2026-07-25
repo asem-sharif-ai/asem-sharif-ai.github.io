@@ -82,6 +82,8 @@ const addresses = {
   hubActiveTab:        _address('hub-active-tab'),
   hubOTPEmail:         _address('hub-otp-email-at'),
   hubOTPStartAt:       _address('hub-otp-start-at'),
+  precachedOffline:    'slatemp-offline-v3',
+  precachedHosts:      'hosts.json',
 };
 
 // ───── Viewport ────────────────────────────────────────
@@ -90,7 +92,147 @@ function isMobile() {
   return window.innerWidth <= 840;
 }
 
-// ───── Content Helpers ────────────────────────────────────────
+// ───── Offline & Host Failure Cases ────────────────────────────────────────
+
+function handleOffline() {
+  function showPage() {
+    document.open();
+    document.write(`
+      <!DOCTYPE html>
+      <html lang='en'>
+        <head>
+          <meta charset='UTF-8' />
+          <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+          <title>SlateMP - Offline</title>
+          <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' />
+          <link rel='preconnect' href='https://fonts.googleapis.com'>
+          <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+          <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rubik+Mono+One&display=swap' rel='stylesheet'>
+          <link href='https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;600;700&display=swap' rel='stylesheet'>
+          <link rel='stylesheet' href='style.css' />
+        </head>
+        <body>
+          <div class='hero hero-card'>
+            <div class='hero-logo idle-header'>&lt;/&gt;</div>
+            <h2 class='user-name' id='offline-title'>YOU ARE OFFLINE</h2>
+            <p class='subtitle' id='offline-subtitle'>Check Your Internet Connection And Try Again</p>
+          </div>
+          <footer class='template-footer' id='template-footer' style='position: absolute; bottom: 0; left: 0; right: 0;'>
+            <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev/' target='_blank'>Asem Sharif</a></span>
+          </footer>
+          <script>
+            window.addEventListener('online', () => {
+              document.getElementById('offline-title').textContent = 'Back Online';
+              document.getElementById('offline-subtitle').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 4px;"></i> Reloading, Please Wait.';
+              setTimeout(() => window.location.reload(), 1000);
+            });
+          </script>
+        </body>
+      </html>`
+    );
+    document.close();
+    return true;
+  }
+
+  async function precacheAssets() {
+    if (!('caches' in window)) return;
+    try {
+      const cache = await caches.open(addresses.precachedOffline);
+      await Promise.all(
+        [
+          'style.css',
+          'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rubik+Mono+One&display=swap',
+          'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;600;700&display=swap',
+        ].map(async (url) => {
+          try {
+            const fetchUrl = url.startsWith('http') ? url : `${url}?v=${Date.now()}`;
+            const response = await fetch(fetchUrl, { mode: url.startsWith('http') ? 'cors' : 'same-origin', cache: 'no-store' });
+            if (response && response.ok) await cache.put(url, response.clone());
+          } catch (e) {
+            console.error(`Offline precache failed for ${url}:`, e);
+          }
+        })
+      );
+    } catch (e) {
+      console.error('Offline cache open failed:', e);
+    }
+  }
+
+  if (!navigator.onLine) {
+    showPage();
+    return;
+  }
+
+  precacheAssets();
+  window.addEventListener('offline', () => { showPage(); });
+}
+
+async function redirectToFallback() {
+  async function readHosts() {
+    if (!('caches' in window)) return null;
+    try {
+      const cache = await caches.open(addresses.precachedOffline);
+      const cached = await cache.match(addresses.precachedHosts);
+      if (!cached) return null;
+      return await cached.json();
+    } catch (e) {
+      console.error('Failed To Read Hosts:', e);
+      return null;
+    }
+  }
+
+  const host = await readHosts();
+  if (!host || !host.original || !host.fallback) return false;
+
+  const url = new URL((window.location.origin === new URL(host.original).origin) ? host.fallback : host.original);
+  url.pathname = window.location.pathname;
+  url.search = 'redirected=true';
+  url.hash = window.location.hash;
+  window.location.href = url.toString();
+  return true;
+}
+
+// ───── Loaders ────────────────────────────────────────
+
+async function loadConfig() {
+  async function fetchOnce() {
+    const res = await fetch('config.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    return res.json();
+  }
+
+  async function saveHosts(host) {
+    if (!('caches' in window) || !host || !host.original || !host.fallback) return;
+    try {
+      const cache = await caches.open(addresses.precachedOffline);
+      const response = new Response(JSON.stringify(host), { headers: { 'Content-Type': 'application/json' } });
+      await cache.put(addresses.precachedHosts, response);
+    } catch (e) {
+      console.error('Failed To Save Hosts:', e);
+    }
+  }
+
+  try {
+    const data = await fetchOnce();
+    if (data && data.host) saveHosts(data.host);
+    return data;
+  } catch (e) {
+    if (!navigator.onLine) throw e; 
+
+    try {
+      const data = await fetchOnce();
+      if (data && data.host) saveHosts(data.host);
+      return data;
+    } catch (e2) {
+      if (!new URLSearchParams(window.location.search).get('redirected')) {
+        const redirected = await redirectToFallback();
+        if (redirected) return new Promise(() => {});
+      }
+      throw e2;
+    }
+  }
+}
 
 async function loadContent(path, elementId) {
   const el = document.getElementById(elementId);
@@ -110,6 +252,8 @@ async function loadContent(path, elementId) {
     console.error(e);
   }
 }
+
+// ───── Utils ────────────────────────────────────────
 
 function parseMarkdown(text) {
   if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {

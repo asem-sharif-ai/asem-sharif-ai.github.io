@@ -25,7 +25,7 @@
     </section>
     <main class='container' id='sections-container'></main>
     <footer class='template-footer' id='template-footer'>
-      <span>Built with <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.2.10)</span></span>
+      <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev/' target='_blank'>Asem Sharif</a></span>
     </footer>
     <script src='https://cdn.jsdelivr.net/npm/marked/marked.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'></script>
@@ -33,12 +33,5 @@
     <script src='base.js'></script>
     <script src='assistant.js'></script>
     <script src='index.js'></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('offline.js').catch((e) => console.error('SW Registration Failed:', e));
-        });
-      }
-    </script>
   </body>
 </html>

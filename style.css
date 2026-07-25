@@ -2921,11 +2921,7 @@ code {
   width: 100%;
 }
 
-.feed-otp-row .form-input {
-  flex: 3;
-  width: auto;
-}
-
+.feed-otp-row .form-input { flex: 3; }
 .feed-otp-row .feed-otp-btn {
   flex: 1;
   padding: 10px !important;

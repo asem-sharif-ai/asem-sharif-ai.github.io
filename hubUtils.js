@@ -255,6 +255,7 @@ async function fetchGuestbook(action, body = null) {
   const opts = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ tag: 'hub', action, ...(body || {}) }),
   };
 
@@ -271,76 +272,50 @@ async function loadGuestbook() {
   renderNoData('Loading Guestbook', 'guests-container', false);
 
   try {
-    if (_gbToken) {
-      try {
-        const check = await fetchGuestbook('session_check', { token: _gbToken });
+    const check = await fetchGuestbook('whoami');
 
-        if (check.verified) {
-          _gbIdentity = {
-            name: check.name,
-            isAdmin: check.isAdmin,
-            image: check.image || null,
-            adminId: check.adminId || null,
-          };
+    if (check.verified) {
+      _gbIdentity = {
+        name: check.name,
+        isAdmin: check.isAdmin,
+        image: check.image || null,
+        adminId: check.adminId || null,
+      };
 
-          if (check.isAdmin) {
-            const adminId = check.adminId || '';
-            _adminAvatar = check.image || null;
-            updateFeedAvatars();
-            _allGB = (check.allEntries || [])
-              .filter((e) => e.id !== adminId)
-              .map((e) => ({
-                id: e.id,
-                name: e.name || e.id.split('@')[0],
-                image: e.image || null,
-                message: e.message || '',
-                date: e.date,
-                status: e.status || 'pending',
-                like: e.like || false,
-                pin: e.pin || false,
-              }));
-              
-            renderGuestbook();
-            setFooterPage('admin');
-            return;
-          }
+      if (check.isAdmin) {
+        const adminId = check.adminId || '';
+        _adminAvatar = check.image || null;
+        updateFeedAvatars();
+        _allGB = (check.allEntries || [])
+          .filter((e) => e.id !== adminId)
+          .map((e) => ({
+            id: e.id,
+            name: e.name || e.id.split('@')[0],
+            image: e.image || null,
+            message: e.message || '',
+            date: e.date,
+            status: e.status || 'pending',
+            like: e.like || false,
+            pin: e.pin || false,
+          }));
 
-          _gbHasEntry = check.hasEntry;
-          _gbOwnEntry = check.entry;
-
-          const listData = await fetchGuestbook('list');
-          _gbEntries = listData.entries || [];
-          if (listData.adminImage && listData.adminImage !== _adminAvatar) {
-            _adminAvatar = listData.adminImage;
-            updateFeedAvatars();
-          }
-          renderGuestbook();
-          setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
-          return;
-        } else {
-          if (check.error) {
-            _gbToken = null;
-            localStorage.removeItem(addresses.userToken);
-            const listData = await fetchGuestbook('list');
-            _gbEntries = listData.entries || [];
-            if (listData.adminImage && listData.adminImage !== _adminAvatar) {
-              _adminAvatar = listData.adminImage;
-              updateFeedAvatars();
-            }
-            _gbIdentity = null;
-            renderGuestbook();
-            setFooterPage('login');
-            setFooterStatus(check.error, true);
-            return;
-          }
-          _gbToken = null;
-          localStorage.removeItem(addresses.userToken);
-        }
-      } catch (sessionErr) {
-        console.error('Session Check Failed:', sessionErr);
-        _gbToken = null;
-        localStorage.removeItem(addresses.userToken);
+        renderGuestbook();
+        setFooterPage('admin');
+        return;
       }
+
+      _gbHasEntry = check.hasEntry;
+      _gbOwnEntry = check.entry;
+
+      const listData = await fetchGuestbook('list');
+      _gbEntries = listData.entries || [];
+      if (listData.adminImage && listData.adminImage !== _adminAvatar) {
+        _adminAvatar = listData.adminImage;
+        updateFeedAvatars();
+      }
+      renderGuestbook();
+      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+      return;
     }
 
     const listData = await fetchGuestbook('list');
@@ -352,6 +327,7 @@ async function loadGuestbook() {
     _gbIdentity = null;
     renderGuestbook();
     setFooterPage('login');
+    if (check.error) setFooterStatus(check.error, true);
   } catch (e) {
     renderNoData('Failed To Load Guestbook', 'guests-container', false);
     console.error(e);
@@ -538,8 +514,6 @@ function syncFooter() {
 }
 
 function applySession(data) {
-  _gbToken = data.token;
-  localStorage.setItem(addresses.userToken, data.token);
   _gbIdentity = {
     name: data.name,
     isAdmin: data.isAdmin,
@@ -601,8 +575,6 @@ function buildFooter() {
   fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
     .then(applySession)
     .catch((e) => {
-      _gbToken = null;
-      localStorage.removeItem(addresses.userToken);
       setFooterPage('login');
       setFooterStatus(e.message, true);
     });
@@ -629,7 +601,7 @@ function setFooterPage(state) {
 
   if (state === 'login') {
     const otpBtnLabel = _otpPhase === 'verify' ? 'Verify' : 'Send OTP';
-    const otpInputPlaceholder = _otpPhase === 'verify' ? 'Enter The Code' : 'Enter Your Email (Authorized Users Only)';
+    const otpInputPlaceholder = _otpPhase === 'verify' ? 'Enter The Code' : 'Authorized Users ONLY';
     const otpInputValue = _otpPhase === 'verify' ? '' : '';
 
     innerFooter.innerHTML = `
@@ -647,7 +619,7 @@ function setFooterPage(state) {
         </div>
       </div>
       <div id='feed-modal-status' class='subtitle feed-hidden'></div>
-      `;
+    `;
     footerHandlers('login');
     return;
   }
@@ -777,7 +749,7 @@ const isUserEdit = state === 'edit';
 
 async function gbAdminAction(action, id, cardUI) {
   try {
-    const data = await fetchGuestbook(action, { token: _gbToken, id });
+    const data = await fetchGuestbook(action, { id });
 
     if (action === 'remove') {
       if (_allGB)
@@ -975,6 +947,7 @@ function footerHandlers(state) {
 
       try {
         const data = await fetchGuestbook('otp_verify', { userMail: _otpEmail, otp: value });
+        // cookie is set server-side via Set-Cookie; nothing to store client-side
         _otpPhase = 'send';
         _otpEmail = '';
         clearInterval(_otpCooldownTimer);
@@ -1010,13 +983,16 @@ function footerHandlers(state) {
     return;
   }
 
-  document.getElementById('feed-unlink-btn')?.addEventListener('click', () => {
-    _gbToken = null;
+  document.getElementById('feed-unlink-btn')?.addEventListener('click', async () => {
+    try {
+      await fetchGuestbook('logout');
+    } catch (e) {
+      console.error('Logout Failed:', e);
+    }
     _gbIdentity = null;
     _gbHasEntry = false;
     _gbOwnEntry = null;
     _gbEditMode = false;
-    localStorage.removeItem(addresses.userToken);
     setFooterPage('login');
   });
 
@@ -1031,7 +1007,7 @@ function footerHandlers(state) {
     setFooterStatus('Saving');
     try {
       const action = _gbHasEntry ? 'edit' : 'submit';
-      const data = await fetchGuestbook(action, { token: _gbToken, message: msg });
+      const data = await fetchGuestbook(action, { message: msg });
       if (data.ok) {
         _gbOwnEntry = {
           msg,
@@ -1056,7 +1032,7 @@ function footerHandlers(state) {
   document.getElementById('feed-delete-btn')?.addEventListener('click', async () => {
     setFooterStatus('Deleting');
     try {
-      await fetchGuestbook('delete', { token: _gbToken });
+      await fetchGuestbook('delete');
       _gbHasEntry = false;
       _gbOwnEntry = null;
       setFooterPage('no-entry');

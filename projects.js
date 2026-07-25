@@ -634,9 +634,8 @@ function renderProjectsGrid(projectRows) {
 
 async function runProjectsApp() {
   try {
-    const cfgRes = await fetch('config.json');
-    const configData = await cfgRes.json();
-    const projectsData = configData.projects || { content: [], layout: 4 };
+    const configData = await loadConfig();
+    const projectsData = configData.projects;
 
     _configData = configData;
     _allProjects = projectsData.content || [];
@@ -725,4 +724,8 @@ async function runProjectsApp() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', runProjectsApp);
+document.addEventListener('DOMContentLoaded', async () => {
+  handleOffline();
+  if (!navigator.onLine) return;
+  runProjectsApp()
+});

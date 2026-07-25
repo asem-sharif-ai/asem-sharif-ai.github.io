@@ -10,7 +10,6 @@ let _gbHasMatches = true;
 let _allGB = [];
 
 let _gbAPI = '';
-let _gbToken = null;
 let _gbEntries = [];
 let _gbIdentity = null;
 let _gbHasEntry = false;
@@ -37,7 +36,6 @@ function loadHubState() {
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
   const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
   if (['faq', 'feed', 'guests'].includes(savedTab)) _currentTab = savedTab;
-  _gbToken = localStorage.getItem(addresses.userToken);
 
   const otpStartAt = parseInt(localStorage.getItem(addresses.hubOTPStartAt), 10);
   if (otpStartAt) {
@@ -185,8 +183,8 @@ function updateModalTrigger(state) {
 
 async function runHubApp() {
   try {
-    const cfgRes = await fetch('config.json');
-    const configData = await cfgRes.json();
+    const configData = await loadConfig();
+
     _configData = configData;
 
     applyBaseSetup(configData, 'Hub', []);
@@ -257,4 +255,8 @@ async function runHubApp() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', runHubApp);
+document.addEventListener('DOMContentLoaded', async () => {
+  handleOffline();
+  if (!navigator.onLine) return;
+  runHubApp()
+});
