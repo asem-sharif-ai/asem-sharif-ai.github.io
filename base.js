@@ -118,7 +118,7 @@ function handleOffline() {
             <p class='subtitle' id='offline-subtitle'>Check Your Internet Connection And Try Again</p>
           </div>
           <footer class='template-footer' id='template-footer' style='position: absolute; bottom: 0; left: 0; right: 0;'>
-            <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev/' target='_blank'>Asem Sharif</a></span>
+            <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev' target='_blank'>Asem Sharif</a></span>
           </footer>
           <script>
             window.addEventListener('online', () => {

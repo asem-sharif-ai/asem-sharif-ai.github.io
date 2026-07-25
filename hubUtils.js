@@ -437,6 +437,7 @@ function buildGuestbookCard(entry, isAdmin = false) {
         ${
           isAdmin 
             ? `
+          ${entry.status === 'deletedByGuest' || entry.status === 'deletedByAdmin' ? '' : `
           <button class='btn feed-btn feed-btn-approve ${entry.status === 'approved' ? 'feed-btn-active' : ''}'>
             <i class='fa-solid fa-check'></i>
           </button>
@@ -449,6 +450,7 @@ function buildGuestbookCard(entry, isAdmin = false) {
           <button class='btn feed-btn feed-btn-delete'>
             <i class='fa-solid fa-eraser'></i>
           </button>
+          `}
           <button class='btn feed-btn feed-btn-remove'>
             <i class='fa-solid fa-trash'></i>
           </button>
@@ -467,10 +469,10 @@ function buildGuestbookCard(entry, isAdmin = false) {
   `;
 
   if (isAdmin) {
-    card.querySelector('.feed-btn-approve').addEventListener('click', () =>  gbAdminAction('approve',         entry.id, card));
-    card.querySelector('.feed-btn-heart').addEventListener('click', () =>    gbAdminAction('like',            entry.id, card));
-    card.querySelector('.feed-btn-pin').addEventListener('click', () =>      gbAdminAction('pin',             entry.id, card));
-    card.querySelector('.feed-btn-delete').addEventListener('click', () =>   gbAdminAction('delete_message', entry.id, card));
+    card.querySelector('.feed-btn-approve')?.addEventListener('click', () =>  gbAdminAction('approve',         entry.id, card));
+    card.querySelector('.feed-btn-heart')?.addEventListener('click', () =>    gbAdminAction('like',            entry.id, card));
+    card.querySelector('.feed-btn-pin')?.addEventListener('click', () =>      gbAdminAction('pin',             entry.id, card));
+    card.querySelector('.feed-btn-delete')?.addEventListener('click', () =>   gbAdminAction('delete_message', entry.id, card));
     card.querySelector('.feed-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',          entry.id, card));
     card.querySelector('.feed-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',             entry.id, card));
   }
@@ -567,16 +569,17 @@ function buildFooter() {
   const code = urlParams.get('code');
   const currentPagePath = window.location.origin + window.location.pathname;
 
-  if (!code) return;
+  if (!code) return Promise.resolve();
 
   window.history.replaceState({}, document.title, window.location.pathname);
   setFooterPage('loading');
 
-  fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
+  return fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
     .then(applySession)
     .catch((e) => {
       setFooterPage('login');
       setFooterStatus(e.message, true);
+      throw e;
     });
 }
 
@@ -790,6 +793,10 @@ async function gbAdminAction(action, id, cardUI) {
         badge.textContent = 'DELETED BY ADMIN';
         badge.className = 'keyword feed-badge feed-badge-banned';
       }
+      cardUI.querySelector('.feed-btn-approve')?.remove();
+      cardUI.querySelector('.feed-btn-heart')?.remove();
+      cardUI.querySelector('.feed-btn-pin')?.remove();
+      cardUI.querySelector('.feed-btn-delete')?.remove();
       return;
     }
 
@@ -984,6 +991,7 @@ function footerHandlers(state) {
   }
 
   document.getElementById('feed-unlink-btn')?.addEventListener('click', async () => {
+    const wasAdmin = _gbIdentity?.isAdmin === true;
     try {
       await fetchGuestbook('logout');
     } catch (e) {
@@ -993,7 +1001,12 @@ function footerHandlers(state) {
     _gbHasEntry = false;
     _gbOwnEntry = null;
     _gbEditMode = false;
-    setFooterPage('login');
+    if (wasAdmin) {
+      _allGB = [];
+      loadGuestbook();
+    } else {
+      setFooterPage('login');
+    }
   });
 
   if (state === 'admin') return;

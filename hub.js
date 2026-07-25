@@ -221,9 +221,18 @@ async function runHubApp() {
     initFeedModal();
 
     const hasOauthCode = new URLSearchParams(window.location.search).has('code');
-    if (hasOauthCode) _isInitialized = true;
-    buildFooter();
-    if (!hasOauthCode) ensureGuestbookLoaded();
+    if (hasOauthCode) {
+      _isInitialized = true;
+      buildFooter().catch(() => {}).finally(() => {
+        if (!_gbIdentity) {
+          _isInitialized = false;
+          ensureGuestbookLoaded();
+        }
+      });
+    } else {
+      buildFooter();
+      ensureGuestbookLoaded();
+    }
 
     if (configData?.hub?.faq) {
       try {
