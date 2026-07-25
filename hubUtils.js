@@ -704,7 +704,7 @@ const isUserEdit = state === 'edit';
     if (isUserEdit) {
       return `
         <button class='feed-icon-btn feed-icon-save' id='feed-submit-btn'><i class='fa-solid fa-check'></i></button>
-        <button class='feed-icon-btn feed-icon-close' id='feed-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
+        <button class='feed-icon-btn feed-icon-cancel' id='feed-cancel-btn'><i class='fa-solid fa-xmark'></i></button>`;
     }
     if (isUserHasEntry) {
       return `
@@ -843,7 +843,7 @@ async function gbAdminAction(action, id, cardUI) {
   }
 }
 
-function startOtpCooldown(seconds) {
+function startOTPCooldown(seconds) {
   clearInterval(_otpCooldownTimer);
   _otpCooldownTimer = null;
 
@@ -858,7 +858,7 @@ function startOtpCooldown(seconds) {
       _otpCooldownTimer = null;
       _otpCooldownUntil = 0;
       if (_otpPhase === 'verify') {
-        cancelOtpVerify();
+        cancelOTPVerify();
       } else {
         setModalStatus('');
       }
@@ -877,7 +877,7 @@ function startOtpCooldown(seconds) {
   _otpCooldownTimer = setInterval(tick, 1000);
 }
 
-function cancelOtpVerify() {
+function cancelOTPVerify() {
   clearInterval(_otpCooldownTimer);
   _otpCooldownTimer = null;
   _otpCooldownUntil = 0;
@@ -941,7 +941,7 @@ function modalHandlers(state) {
           localStorage.setItem(addresses.hubOTPStartAt, Date.now());
           localStorage.setItem(addresses.hubOTPEmail, value);
           setModalPage('login');
-          startOtpCooldown(120);
+          startOTPCooldown(120);
         } catch (e) {
           if (otpBtn) otpBtn.disabled = false;
           setModalStatus(e.message, true);
@@ -974,7 +974,7 @@ function modalHandlers(state) {
     });
 
     document.getElementById('feed-otp-cancel-btn')?.addEventListener('click', () => {
-      cancelOtpVerify();
+      cancelOTPVerify();
     });
 
     if (_otpPhase === 'verify') {
@@ -983,12 +983,12 @@ function modalHandlers(state) {
         const remainingMs = 120000 - (Date.now() - otpStartAt);
         if (remainingMs > 0) {
           _otpCooldownUntil = Date.now() + remainingMs;
-          startOtpCooldown();
+          startOTPCooldown();
         } else {
-          cancelOtpVerify();
+          cancelOTPVerify();
         }
       } else {
-        cancelOtpVerify();
+        cancelOTPVerify();
       }
     }
     return;
