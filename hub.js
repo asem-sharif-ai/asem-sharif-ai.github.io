@@ -75,6 +75,9 @@ function switchHubTab(targetTab) {
     feedPanel.classList.remove('hub-hidden');
   } else if (targetTab === 'guests') {
     guestsPanel.classList.remove('hub-hidden');
+    if (document.getElementById('feed-state-loading') && !_gbIdentity) {
+      setModalPage('login');
+    }
     ensureGuestbookLoaded();
   } else {
     faqPanel.classList.remove('hub-hidden');
@@ -138,7 +141,7 @@ function ensureGuestbookLoaded() {
     loadGuestbook();
   } else {
     renderNoData('Guestbook Not Set Yet', 'guests-container', false);
-    setFooterPage('login');
+    setModalPage('login');
   }
 }
 
@@ -147,6 +150,9 @@ function ensureGuestbookLoaded() {
 function openFeedModal() {
   const overlay = document.getElementById('feed-modal-overlay');
   if (!overlay) return;
+  if (document.getElementById('feed-state-loading') && !_gbIdentity) {
+    setModalPage('login');
+  }
   overlay.classList.add('open');
 }
 
@@ -223,14 +229,14 @@ async function runHubApp() {
     const hasOauthCode = new URLSearchParams(window.location.search).has('code');
     if (hasOauthCode) {
       _isInitialized = true;
-      buildFooter().catch(() => {}).finally(() => {
+      buildModal().catch(() => {}).finally(() => {
         if (!_gbIdentity) {
           _isInitialized = false;
           ensureGuestbookLoaded();
         }
       });
     } else {
-      buildFooter();
+      buildModal();
       ensureGuestbookLoaded();
     }
 

@@ -123,7 +123,7 @@ function handleOffline() {
           <script>
             window.addEventListener('online', () => {
               document.getElementById('offline-title').textContent = 'Back Online';
-              document.getElementById('offline-subtitle').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 4px;"></i> Reloading, Please Wait.';
+              document.getElementById('offline-subtitle').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 4px;"></i> Reloading, Please Wait.';
               setTimeout(() => window.location.reload(), 1000);
             });
           </script>

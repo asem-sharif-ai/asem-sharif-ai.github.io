@@ -300,7 +300,7 @@ async function loadGuestbook() {
           }));
 
         renderGuestbook();
-        setFooterPage('admin');
+        setModalPage('admin');
         return;
       }
 
@@ -314,7 +314,7 @@ async function loadGuestbook() {
         updateFeedAvatars();
       }
       renderGuestbook();
-      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+      setModalPage(_gbHasEntry ? 'has-entry' : 'no-entry');
       return;
     }
 
@@ -326,8 +326,8 @@ async function loadGuestbook() {
     }
     _gbIdentity = null;
     renderGuestbook();
-    setFooterPage('login');
-    if (check.error) setFooterStatus(check.error, true);
+    setModalPage('login');
+    if (check.error) setModalStatus(check.error, true);
   } catch (e) {
     renderNoData('Failed To Load Guestbook', 'guests-container', false);
     console.error(e);
@@ -506,13 +506,13 @@ function buildBannedCard(entry) {
   return card;
 }
 
-// ───── Guestbook Footer ────────────────────────────────────────
+// ───── Guestbook Modal ────────────────────────────────────────
 
-function syncFooter() {
-  const footer = document.getElementById('feed-modal');
-  if (!footer) return;
-  if (_currentTab === 'guests') footer.classList.remove('feed-hidden');
-  else footer.classList.add('feed-hidden');
+function syncModal() {
+  const modal = document.getElementById('feed-modal');
+  if (!modal) return;
+  if (_currentTab === 'guests') modal.classList.remove('feed-hidden');
+  else modal.classList.add('feed-hidden');
 }
 
 function applySession(data) {
@@ -540,7 +540,7 @@ function applySession(data) {
         pin: e.pin || false,
       }));
     renderGuestbook();
-    setFooterPage('admin');
+    setModalPage('admin');
     return;
   }
 
@@ -555,16 +555,16 @@ function applySession(data) {
         updateFeedAvatars();
       }
       renderGuestbook();
-      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+      setModalPage(_gbHasEntry ? 'has-entry' : 'no-entry');
     })
     .catch(() => {
       _gbEntries = [];
       renderGuestbook();
-      setFooterPage(_gbHasEntry ? 'has-entry' : 'no-entry');
+      setModalPage(_gbHasEntry ? 'has-entry' : 'no-entry');
     });
 }
 
-function buildFooter() {
+function buildModal() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
   const currentPagePath = window.location.origin + window.location.pathname;
@@ -572,18 +572,21 @@ function buildFooter() {
   if (!code) return Promise.resolve();
 
   window.history.replaceState({}, document.title, window.location.pathname);
-  setFooterPage('loading');
+  setModalPage('loading');
 
-  return fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath })
+  return Promise.race([
+    fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Request Timed Out')), 15000)),
+  ])
     .then(applySession)
     .catch((e) => {
-      setFooterPage('login');
-      setFooterStatus(e.message, true);
+      setModalPage('login');
+      setModalStatus(e.message, true);
       throw e;
     });
 }
 
-function setFooterStatus(msg, isError = false) {
+function setModalStatus(msg, isError = false) {
   const el = document.getElementById('feed-modal-status');
   if (!el) return;
   if (!msg) {
@@ -596,9 +599,9 @@ function setFooterStatus(msg, isError = false) {
   el.style.color = isError ? 'var(--heart-color)' : 'var(--text-deep-muted)';
 }
 
-function setFooterPage(state) {
-  const innerFooter = document.getElementById('feed-modal-inner');
-  if (!innerFooter) return;
+function setModalPage(state) {
+  const innerModal = document.getElementById('feed-modal-inner');
+  if (!innerModal) return;
 
   updateModalTrigger(state);
 
@@ -607,7 +610,7 @@ function setFooterPage(state) {
     const otpInputPlaceholder = _otpPhase === 'verify' ? 'Enter The Code' : 'Authorized Users ONLY';
     const otpInputValue = _otpPhase === 'verify' ? '' : '';
 
-    innerFooter.innerHTML = `
+    innerModal.innerHTML = `
       <div id='feed-state-login'>
         <div class='feed-login-title-row'>
           <span class='feed-login-title'>Sign In To Interact Or Leave A Message, I'd Love To Hear From You!</span>
@@ -623,21 +626,20 @@ function setFooterPage(state) {
       </div>
       <div id='feed-modal-status' class='subtitle feed-hidden'></div>
     `;
-    footerHandlers('login');
+    modalHandlers('login');
     return;
   }
 
   if (state === 'loading') {
-    innerFooter.innerHTML = `
+    innerModal.innerHTML = `
       <div id='feed-state-loading'>
         <div class='feed-login-row'>
           <span class='subtitle'><i class='fa-solid fa-circle-notch fa-spin'></i> Processing Authentication Request</span>
-          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
       <div id='feed-modal-status' class='subtitle feed-hidden'></div>
     `;
-    footerHandlers('loading');
+    modalHandlers('loading');
     return;
   }
 
@@ -646,7 +648,7 @@ function setFooterPage(state) {
       ? `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
       : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
 
-    innerFooter.innerHTML = `
+    innerModal.innerHTML = `
       <div id='feed-state-admin'>
         <div class='feed-state-admin-row'>
           ${avatarMarkup}
@@ -661,7 +663,7 @@ function setFooterPage(state) {
         <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
       </div>
     `;
-    footerHandlers('admin');
+    modalHandlers('admin');
     return;
   }
 
@@ -712,7 +714,7 @@ const isUserEdit = state === 'edit';
     return '';
   })();
 
-  innerFooter.innerHTML = `
+  innerModal.innerHTML = `
     <div id='feed-state-user'>
       <div class='feed-identity-row'>
         <div class='feed-identity-left'>
@@ -745,7 +747,7 @@ const isUserEdit = state === 'edit';
     }
   }
 
-  footerHandlers(state);
+  modalHandlers(state);
 }
 
 // ───── Guestbook Calls ────────────────────────────────────────
@@ -837,7 +839,7 @@ async function gbAdminAction(action, id, cardUI) {
       icon.className = `fa-${data.pin ? 'solid' : 'regular'} fa-bookmark`;
     }
   } catch (e) {
-    setFooterStatus(e.message, true);
+    setModalStatus(e.message, true);
   }
 }
 
@@ -858,11 +860,11 @@ function startOtpCooldown(seconds) {
       if (_otpPhase === 'verify') {
         cancelOtpVerify();
       } else {
-        setFooterStatus('');
+        setModalStatus('');
       }
       return;
     }
-    setFooterStatus(`Resend Available In ${left}s`);
+    setModalStatus(`Resend Available In ${left}s`);
   };
 
   const remaining = Math.ceil((_otpCooldownUntil - Date.now()) / 1000);
@@ -883,28 +885,31 @@ function cancelOtpVerify() {
   _otpEmail = '';
   localStorage.removeItem(addresses.hubOTPStartAt);
   localStorage.removeItem(addresses.hubOTPEmail);
-  setFooterPage('login');
+  setModalPage('login');
 }
 
-function footerHandlers(state) {
+function modalHandlers(state) {
   document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeFeedModal);
 
   if (state === 'login') {
     document.getElementById('feed-verify-btn')?.addEventListener('click', async () => {
-        setFooterPage('loading');
+        setModalPage('loading');
         const currentPagePath =
           window.location.origin + window.location.pathname;
         try {
-          const data = await fetchGuestbook('login_url', { context: currentPagePath });
+          const data = await Promise.race([
+            fetchGuestbook('login_url', { context: currentPagePath }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request Timed Out')), 15000)),
+          ]);
           if (data.url) {
             window.location.href = data.url;
           } else {
-            setFooterPage('login');
-            setFooterStatus(data.error || 'Failed To Get Login URL', true);
+            setModalPage('login');
+            setModalStatus(data.error || 'Failed To Get Login URL', true);
           }
-        } catch {
-          setFooterPage('login');
-          setFooterStatus('Authentication Backend Unreachable', true);
+        } catch (e) {
+          setModalPage('login');
+          setModalStatus(e.message === 'Request Timed Out' ? e.message : 'Authentication Backend Unreachable', true);
         }
       });
 
@@ -915,12 +920,12 @@ function footerHandlers(state) {
 
       if (_otpPhase === 'send') {
         if (!value) {
-          setFooterStatus('Enter Your Email First', true);
+          setModalStatus('Enter Your Email First', true);
           return;
         }
 
         if (otpBtn) otpBtn.disabled = true;
-        setFooterStatus('Sending Code');
+        setModalStatus('Sending Code');
 
         try {
           const res = await fetch(_gbAPI, {
@@ -935,22 +940,22 @@ function footerHandlers(state) {
           _otpPhase = 'verify';
           localStorage.setItem(addresses.hubOTPStartAt, Date.now());
           localStorage.setItem(addresses.hubOTPEmail, value);
-          setFooterPage('login');
+          setModalPage('login');
           startOtpCooldown(120);
         } catch (e) {
           if (otpBtn) otpBtn.disabled = false;
-          setFooterStatus(e.message, true);
+          setModalStatus(e.message, true);
         }
         return;
       }
 
       if (!value) {
-        setFooterStatus('Enter The Code Sent To Your Email', true);
+        setModalStatus('Enter The Code Sent To Your Email', true);
         return;
       }
 
       if (otpBtn) otpBtn.disabled = true;
-      setFooterStatus('Verifying');
+      setModalStatus('Verifying');
 
       try {
         const data = await fetchGuestbook('otp_verify', { userMail: _otpEmail, otp: value });
@@ -964,7 +969,7 @@ function footerHandlers(state) {
         applySession(data);
       } catch (e) {
         if (otpBtn) otpBtn.disabled = false;
-        setFooterStatus(e.message, true);
+        setModalStatus(e.message, true);
       }
     });
 
@@ -990,12 +995,13 @@ function footerHandlers(state) {
   }
 
   document.getElementById('feed-unlink-btn')?.addEventListener('click', async () => {
-    const wasAdmin = _gbIdentity?.isAdmin === true;
     try {
       await fetchGuestbook('logout');
     } catch (e) {
       console.error('Logout Failed:', e);
     }
+
+    const wasAdmin = _gbIdentity?.isAdmin === true;
     _gbIdentity = null;
     _gbHasEntry = false;
     _gbOwnEntry = null;
@@ -1004,7 +1010,7 @@ function footerHandlers(state) {
       _allGB = [];
       loadGuestbook();
     } else {
-      setFooterPage('login');
+      setModalPage('login');
     }
   });
 
@@ -1013,10 +1019,10 @@ function footerHandlers(state) {
   document.getElementById('feed-submit-btn')?.addEventListener('click', async () => {
     const msg = document.getElementById('feed-textarea')?.value.trim();
     if (!msg) {
-      setFooterStatus('Write Something First', true);
+      setModalStatus('Write Something First', true);
       return;
     }
-    setFooterStatus('Saving');
+    setModalStatus('Saving');
     try {
       const action = _gbHasEntry ? 'edit' : 'submit';
       const data = await fetchGuestbook(action, { message: msg });
@@ -1029,29 +1035,29 @@ function footerHandlers(state) {
           pin: false,
         };
         _gbHasEntry = true;
-        setFooterPage('has-entry');
-        setFooterStatus('Saved - Pending Approval');
+        setModalPage('has-entry');
+        setModalStatus('Saved - Pending Approval');
         loadGuestbook();
       }
     } catch (e) {
-      setFooterStatus(e.message, true);
+      setModalStatus(e.message, true);
     }
   });
 
-  document.getElementById('feed-edit-btn')?.addEventListener('click', () => { setFooterPage('edit'); });
-  document.getElementById('feed-cancel-btn')?.addEventListener('click', () => { setFooterPage('has-entry'); });
+  document.getElementById('feed-edit-btn')?.addEventListener('click', () => { setModalPage('edit'); });
+  document.getElementById('feed-cancel-btn')?.addEventListener('click', () => { setModalPage('has-entry'); });
 
   document.getElementById('feed-delete-btn')?.addEventListener('click', async () => {
-    setFooterStatus('Deleting');
+    setModalStatus('Deleting');
     try {
       await fetchGuestbook('delete');
       _gbHasEntry = false;
       _gbOwnEntry = null;
-      setFooterPage('no-entry');
-      setFooterStatus('');
+      setModalPage('no-entry');
+      setModalStatus('');
       loadGuestbook();
     } catch (e) {
-      setFooterStatus(e.message, true);
+      setModalStatus(e.message, true);
     }
   });
 }
