@@ -21,12 +21,6 @@
     <section class='hero' id='home-hero'>
       <div class='hero-card container'>
         <div class='hero-logo'>&lt;/&gt;</div>
-        <h2 id='user-name'> </h2>
-        <p class='subtitle' id='user-role'></p>
-        <p class='subtitle' id='user-location'></p>
-        <p class='subtitle' id='user-bio'></p>
-        <div class='socials' id='social-icons'></div>
-        <div id='cta-panel'></div>
       </div>
     </section>
     <main class='container' id='sections-container'></main>
@@ -39,5 +33,12 @@
     <script src='base.js'></script>
     <script src='assistant.js'></script>
     <script src='index.js'></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('offline.js').catch((e) => console.error('SW Registration Failed:', e));
+        });
+      }
+    </script>
   </body>
 </html>

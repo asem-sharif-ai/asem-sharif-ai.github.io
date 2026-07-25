@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>You're Offline - SlateMP</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' />
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rubik+Mono+One&display=swap' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;600;700&display=swap' rel='stylesheet'>
+    <link rel='stylesheet' href='style.css' />
+    <style>
+      .offline-wrap {
+        align-items: center;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: calc(100% - 80px);
+        min-height: 100vh;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+      }
+
+      .offline-logo {
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: oceanFlow 10s ease infinite;
+        background: linear-gradient(
+          135deg,
+          var(--text-deep-muted) 0%,
+          var(--text-deep-muted) 35%,
+          var(--text-muted) 50%,
+          var(--text-deep-muted) 65%,
+          var(--text-deep-muted) 100%
+        );
+        background-clip: text;
+        background-size: 400% 100%;
+        display: inline-block;
+        font-family: 'Rubik Mono One', sans-serif;
+        font-size: 5.1rem;
+        letter-spacing: -14px;
+        line-height: 1;
+        margin-left: -14px;
+        overflow: visible;
+        padding-right: 14px;
+        transition: var(--default-transition);
+        user-select: none;
+      }
+
+      .offline-title {
+        color: var(--text-bright);
+        font-size: 2.15rem;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+        margin: 12px 0 0;
+        transition: var(--default-transition);
+      }
+
+      .offline-subtitle {
+        color: var(--text-deep-muted);
+        font-size: 0.95rem;
+        letter-spacing: -0.1px;
+        margin: 0;
+        max-width: 380px;
+        line-height: 1.5;
+        transition: var(--default-transition);
+      }
+
+      .offline-status {
+        align-items: center;
+        color: var(--text-muted);
+        display: flex;
+        font-size: 0.85rem;
+        gap: 8px;
+        margin-top: 6px;
+        transition: var(--default-transition);
+      }
+
+      .offline-dot {
+        background-color: var(--heart-color);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--heart-color-sub);
+        height: 8px;
+        width: 8px;
+        animation: offlinePulse 1.8s ease-in-out infinite;
+      }
+
+      @keyframes offlinePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+
+      .offline-retry {
+        align-items: center;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-bright);
+        cursor: pointer;
+        display: flex;
+        font-family: 'Ubuntu', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        gap: 8px;
+        margin-top: 18px;
+        padding: 10px 20px;
+        transition: var(--default-transition);
+      }
+
+      .offline-retry:hover {
+        border-color: var(--text-deep-muted);
+        box-shadow: 0 0 15px var(--focus-shadow);
+      }
+
+      .offline-retry i {
+        transition: transform 0.4s ease;
+      }
+
+      .offline-retry.checking i {
+        animation: offlineSpin 0.8s linear infinite;
+      }
+
+      @keyframes offlineSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class='offline-wrap has-glow'>
+      <div class='offline-logo'>&lt;/&gt;</div>
+      <h2 class='offline-title'>You're Offline</h2>
+      <p class='offline-subtitle'>This page couldn't load because there's no internet connection. Check your network and try again.</p>
+      <div class='offline-status'><span class='offline-dot'></span><span id='offline-status-text'>No connection</span></div>
+      <button class='offline-retry' id='offline-retry-btn'><i class='fa-solid fa-arrows-rotate'></i>Retry</button>
+    </div>
+
+    <script>
+      const retryBtn = document.getElementById('offline-retry-btn');
+      const statusText = document.getElementById('offline-status-text');
+
+      function attemptReload() {
+        retryBtn.classList.add('checking');
+        fetch(window.location.href, { cache: 'no-store', mode: 'same-origin' })
+          .then(() => window.location.reload())
+          .catch(() => {
+            retryBtn.classList.remove('checking');
+            statusText.textContent = 'Still no connection';
+          });
+      }
+
+      retryBtn.addEventListener('click', attemptReload);
+
+      window.addEventListener('online', () => {
+        statusText.textContent = 'Back Online, Reloading...';
+        setTimeout(() => window.location.reload(), 400);
+      });
+    </script>
+  </body>
+</html>

@@ -368,7 +368,7 @@ function observeCards() {
 
 // ───── QR Trigger ────────────────────────────────────────
 
-function createQRCodeModal(qrData) {
+function createQRCodeModal(data) {
   const qrBtn = document.createElement('button');
   qrBtn.title = `Scan QRCode`
   qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
@@ -383,7 +383,7 @@ function createQRCodeModal(qrData) {
   modalContent.classList.add('qr-modal-content');
   modalContent.innerHTML = `
     <div class='qr-modal-header'>
-      <span class='item-card-title'>${qrData.title || 'Scan QR Code'}</span>
+      <span class='item-card-title'>${data.name || 'SlateMP'} Portfolio</span>
       <i class='fa-solid fa-xmark close-qr-modal'></i>
     </div>
     <div class='qr-image-wrapper'></div>
@@ -391,7 +391,7 @@ function createQRCodeModal(qrData) {
   modalOverlay.appendChild(modalContent);
   document.body.appendChild(modalOverlay);
 
-  const encodedUrl = encodeURIComponent(qrData.url);
+  const encodedUrl = encodeURIComponent(data.host.original);
   const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
   
   qrWrapper.innerHTML = `
@@ -489,8 +489,8 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
     applyCustomTheme(data.theme);
   }
 
-  if (triggers.includes('qr_code') && data.qr_code?.url) {
-    createQRCodeModal(data.qr_code);
+  if (triggers.includes('qr_code') && data.host?.qr_code) {
+    createQRCodeModal(data);
   }
 
   if (triggers.includes('assistant') && data.assistant?.name) {

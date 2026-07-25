@@ -612,6 +612,18 @@ function buildForm(section, cardId, api, adminTimezone) {
 function buildHero(data, getTheme, setTheme) {
   const currentTheme = getTheme();
 
+  const heroLogo = document.querySelector('.hero-logo');
+  if (heroLogo && !document.getElementById('user-name')) {
+    heroLogo.insertAdjacentHTML('afterend', `
+      <h2 id='user-name'> </h2>
+      <p class='subtitle' id='user-role'></p>
+      <p class='subtitle' id='user-location'></p>
+      <p class='subtitle' id='user-bio'></p>
+      <div class='socials' id='social-icons'></div>
+      <div id='cta-panel'></div>
+    `);
+  }
+
   if (data.symbol) {
     const logoContainer = document.querySelector('.hero-logo');
     if (logoContainer) {
@@ -998,7 +1010,7 @@ async function runProfileApp() {
       }
     }
 
-    if (data.form && sectionsContainer) {
+    if (data.form && data.api && sectionsContainer) {
       const formCardId = data.form.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
       const formRowId = `row-${formCardId}`;
 

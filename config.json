@@ -29,9 +29,13 @@
   },
 
   "api": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
-  
-  "qr_code": { "title": "Asem E. Sharif - Portfolio", "url": "https://asem-sharif-ai.github.io" },
 
+  "host": {
+    "original": "https://asem-sharif-ai.pages.dev",
+    "fallback": "https://asem-sharif-ai.github.io",
+    "qr_code": true
+  },
+  
   "assistant": {
     "name":"Twin",
     "role": "Digital Assistant",
