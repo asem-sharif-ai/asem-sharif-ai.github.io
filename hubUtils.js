@@ -954,7 +954,6 @@ function footerHandlers(state) {
 
       try {
         const data = await fetchGuestbook('otp_verify', { userMail: _otpEmail, otp: value });
-        // cookie is set server-side via Set-Cookie; nothing to store client-side
         _otpPhase = 'send';
         _otpEmail = '';
         clearInterval(_otpCooldownTimer);
