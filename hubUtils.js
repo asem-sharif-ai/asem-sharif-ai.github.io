@@ -577,13 +577,11 @@ function buildModal() {
   return Promise.race([
     fetchGuestbook('oauth_callback', { code, redirect_uri: currentPagePath }),
     new Promise((_, reject) => setTimeout(() => reject(new Error('Request Timed Out')), 15000)),
-  ])
-    .then(applySession)
-    .catch((e) => {
-      setModalPage('login');
-      setModalStatus(e.message, true);
-      throw e;
-    });
+  ]).then(applySession).catch((e) => {
+    setModalPage('login');
+    setModalStatus(e.message, true);
+    throw e;
+  });
 }
 
 function setModalStatus(msg, isError = false) {
@@ -894,8 +892,7 @@ function modalHandlers(state) {
   if (state === 'login') {
     document.getElementById('feed-verify-btn')?.addEventListener('click', async () => {
         setModalPage('loading');
-        const currentPagePath =
-          window.location.origin + window.location.pathname;
+        const currentPagePath = window.location.origin + window.location.pathname;
         try {
           const data = await Promise.race([
             fetchGuestbook('login_url', { context: currentPagePath }),
