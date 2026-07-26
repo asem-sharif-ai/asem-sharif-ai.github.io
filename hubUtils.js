@@ -202,7 +202,7 @@ function buildFeedCard(item) {
      <div class='feed-text'>${highlightText(parseMarkdown(Array.isArray(item.content) ? item.content.join('\n') : (item.content || '')), query)}</div>
   `;
 
-  if (item.gallery && item.gallery.content.length > 1) {
+  if (item.gallery && item.gallery.content.length > 0) {
     const row = document.createElement('div');
     row.className = 'feed-row';
     row.appendChild(msgPane);
