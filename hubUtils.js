@@ -119,11 +119,14 @@ function buildFaqCard(item, index) {
 
 // ───── Feed ────────────────────────────────────────
 
-async function loadFeed(configData) {
-  const feedPath = configData?.hub?.feed;
-  if (feedPath) {
-    const res = await fetch(feedPath);
-    _allFeed = await res.json();
+async function loadFeed() {
+  if (_gbAPI) {
+    try {
+      const data = await fetchGuestbook('feed');
+      _allFeed = data.posts || [];
+    } catch {
+      _allFeed = [];
+    }
   } else {
     _allFeed = [];
   }
@@ -642,23 +645,22 @@ function setModalPage(state) {
   }
 
   if (state === 'admin') {
-    const avatarMarkup = _gbIdentity?.image
-      ? `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-      : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
-
     innerModal.innerHTML = `
       <div id='feed-state-admin'>
-        <div class='feed-state-admin-row'>
-          ${avatarMarkup}
-          <div class='feed-identity-meta'>
-            <span class='feed-name '>${_gbIdentity?.name || 'Admin'}</span>
-            <span class='feed-date'>Administrator</span>
-          </div>
+        <div class='feed-login-title-row'>
+          <span class='feed-login-title'>New Post</span>
+          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
-        <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
-          <i class='fa-solid fa-right-from-bracket'></i>
-        </button>
-        <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+        <input type='text' id='feed-admin-title' class='form-input' placeholder='Title' maxlength='120' />
+        <textarea id='feed-admin-content' class='feed-textarea' placeholder='Content...' maxlength='2000'></textarea>
+        <input type='file' id='feed-admin-gallery-input' accept='image/*' multiple class='feed-hidden' />
+        <button class='btn' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i> Add Images</button>
+        <div id='feed-admin-gallery-preview' class='feed-admin-gallery-preview'></div>
+        <div id='feed-modal-status' class='subtitle feed-hidden'></div>
+        <div class='feed-admin-form-btns'>
+          <button class='btn action-btn' id='feed-admin-save-btn'>Save</button>
+          <button class='btn' id='feed-admin-cancel-btn'>Cancel</button>
+        </div>
       </div>
     `;
     modalHandlers('admin');
@@ -888,6 +890,89 @@ function cancelOTPVerify() {
 
 function modalHandlers(state) {
   document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeFeedModal);
+
+  if (state === 'admin') {
+    let pendingGallery = [];
+
+    const galleryInput = document.getElementById('feed-admin-gallery-input');
+    const galleryBtn = document.getElementById('feed-admin-gallery-btn');
+    const galleryPreview = document.getElementById('feed-admin-gallery-preview');
+
+    const renderGalleryPreview = () => {
+      if (!galleryPreview) return;
+      galleryPreview.innerHTML = pendingGallery
+        .map((g, i) => `<div class='feed-admin-gallery-thumb'><img src='${g.previewUrl}' alt='' /><button type='button' class='feed-icon-btn feed-icon-close' data-idx='${i}'><i class='fa-solid fa-xmark'></i></button></div>`)
+        .join('');
+      galleryPreview.querySelectorAll('button[data-idx]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx, 10);
+          pendingGallery.splice(idx, 1);
+          renderGalleryPreview();
+        });
+      });
+    };
+
+    galleryBtn?.addEventListener('click', () => galleryInput?.click());
+
+    galleryInput?.addEventListener('change', () => {
+      const files = Array.from(galleryInput.files || []);
+      files.forEach((file) => {
+        pendingGallery.push({ file, previewUrl: URL.createObjectURL(file) });
+      });
+      galleryInput.value = '';
+      renderGalleryPreview();
+    });
+
+    document.getElementById('feed-admin-cancel-btn')?.addEventListener('click', () => {
+      pendingGallery = [];
+      setModalPage('admin');
+    });
+
+    document.getElementById('feed-admin-save-btn')?.addEventListener('click', async () => {
+      const title = document.getElementById('feed-admin-title')?.value.trim();
+      const content = document.getElementById('feed-admin-content')?.value.trim();
+      const saveBtn = document.getElementById('feed-admin-save-btn');
+
+      if (!title) {
+        setModalStatus('Title Is Required', true);
+        return;
+      }
+
+      if (saveBtn) saveBtn.disabled = true;
+      setModalStatus('Saving');
+
+      try {
+        const uploadedImages = [];
+        for (const item of pendingGallery) {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(item.file);
+          });
+          const base64 = dataUrl.split(',')[1];
+          const res = await fetchGuestbook('gallery_upload', { data: base64, mimeType: item.file.type });
+          uploadedImages.push({ id: res.id, url: res.url });
+        }
+
+        const gallery = uploadedImages.length > 0 ? { header: '', content: uploadedImages } : null;
+        await fetchGuestbook('feed_save', { title, content, gallery });
+
+        pendingGallery = [];
+        setModalStatus('Post Saved');
+        if (typeof loadFeed === 'function') {
+          await loadFeed();
+          if (typeof renderFeed === 'function') renderFeed(_allFeed);
+        }
+        setModalPage('admin');
+      } catch (e) {
+        if (saveBtn) saveBtn.disabled = false;
+        setModalStatus(e.message, true);
+      }
+    });
+
+    return;
+  }
 
   if (state === 'login') {
     document.getElementById('feed-verify-btn')?.addEventListener('click', async () => {

@@ -303,7 +303,7 @@ function getVideoMimeType(path) {
   return types[ext] || 'video/mp4';
 }
 
-// ───── Content Render (Projects / Log) ────────────────────────────────────────
+// ───── Content Render (Projects / Log / Hub) ────────────────────────────────────────
 
 function buildGalleryPane(galleryList, galleryHeader) {
   const pane = document.createElement('div');
@@ -315,9 +315,10 @@ function buildGalleryPane(galleryList, galleryHeader) {
   const track = document.createElement('div');
   track.className = 'gallery-track';
 
-  galleryList.forEach(src => {
+  galleryList.forEach(item => {
     const slide = document.createElement('div');
     slide.className = 'gallery-slide';
+    const src = typeof item === 'string' ? item : item?.url;
     slide.innerHTML = renderContentItem(src);
     track.appendChild(slide);
   });

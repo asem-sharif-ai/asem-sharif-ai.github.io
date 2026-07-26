@@ -254,10 +254,10 @@ async function runHubApp() {
         renderNoData('FAQ Not Set Yet', 'list-container', false);
     }
 
-    if (configData?.hub?.feed) {
+    if (_gbAPI) {
       try {
-        const feedRes = await fetch(configData.hub.feed);
-        _allFeed = await feedRes.json();
+        const feedData = await fetchGuestbook('feed');
+        _allFeed = feedData.posts || [];
         renderFeed(_allFeed);
       } catch {
         renderNoData('Undefined Error Occurred While Loading Feed', 'feed-container', false);
