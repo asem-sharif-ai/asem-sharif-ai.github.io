@@ -560,6 +560,7 @@ function setModalPage(state, editingPost = null) {
             <button class='feed-icon-btn feed-icon-add' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i></button>
             ${isEditing ? `<button class='feed-icon-btn feed-icon-delete' id='feed-admin-delete-btn'><i class='fa-solid fa-trash'></i></button>` : ''}
             <button class='feed-icon-btn feed-icon-save' id='feed-admin-save-btn'><i class='fa-solid fa-paper-plane'></i></button>
+            <button class='btn feed-unlink-btn' id='feed-unlink-btn'><i class='fa-solid fa-right-from-bracket'></i></button>
             <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
           </div>
         </div>
@@ -577,7 +578,7 @@ function setModalPage(state, editingPost = null) {
     return;
   }
 
-const isUserEdit = state === 'edit';
+  const isUserEdit = state === 'edit';
   const isUserHasEntry = state === 'has-entry';
   const isUserNoEntry = state === 'no-entry';
 
@@ -637,9 +638,7 @@ const isUserEdit = state === 'edit';
         <div class='feed-identity-right'>
           <div id='feed-modal-status' class='post-detail hub-hidden'></div>
           ${rowBtns}
-          <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
-            <i class='fa-solid fa-right-from-bracket'></i>
-          </button>
+          <button class='btn feed-unlink-btn' id='feed-unlink-btn'><i class='fa-solid fa-right-from-bracket'></i></button>
           <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
         </div>
       </div>
@@ -809,6 +808,14 @@ function modalHandlers(state) {
     const galleryBtn = document.getElementById('feed-admin-gallery-btn');
     const galleryHeaderInput = document.getElementById('feed-admin-gallery-header');
     const galleryPreview = document.getElementById('feed-admin-gallery-preview');
+
+    document.getElementById('feed-unlink-btn')?.addEventListener('click', async () => {
+      try {
+        await fetchGuestbook('logout');
+      } catch (e) {
+        console.error('Logout Failed:', e);
+      }
+    });
 
     const renderGalleryPreview = () => {
       if (!galleryPreview) return;

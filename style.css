@@ -2800,6 +2800,7 @@ code {
 .feed-row { display: flex; justify-content: space-between; }
 .feed-row .feed-msg { flex-shrink: 0; width: 65%; }
 .feed-row .gallery-pane { border-left: 1px solid var(--border-color); flex-shrink: 0; width: 35%; }
+.feed-row .feed-msg-pane { width: 65%; }
 
 .feed-modal-overlay {
   align-items: center;
