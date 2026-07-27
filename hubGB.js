@@ -815,6 +815,18 @@ function modalHandlers(state) {
       } catch (e) {
         console.error('Logout Failed:', e);
       }
+
+      const wasAdmin = _gbIdentity?.isAdmin === true;
+      _gbIdentity = null;
+      _gbState.hasEntry = false;
+      _gbState.ownEntry = null;
+      _gbState.editMode = false;
+      if (wasAdmin) {
+        _allGB = [];
+        loadGuestbook();
+      } else {
+        setModalPage('login');
+      }
     });
 
     const renderGalleryPreview = () => {
