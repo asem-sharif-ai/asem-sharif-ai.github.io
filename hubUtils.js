@@ -184,6 +184,7 @@ function buildFeedCard(item) {
   const duration = formatDuration(item.date);
   const query = _searchQuery;
   const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
+  const isAdmin = _gbIdentity?.isAdmin === true;
 
   const msgPane = document.createElement('div');
   msgPane.className = 'feed-msg-pane';
@@ -198,9 +199,24 @@ function buildFeedCard(item) {
           <span class='feed-date'>${dateLabel}</span>
         </div>
       </div>
+      ${isAdmin ? `
+      <div class='feed-card-icons'>
+        <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
+          <i class='fa-solid fa-pen'></i>
+        </button>
+        <button class='btn feed-btn feed-btn-remove' data-post-id='${item.id}'>
+          <i class='fa-solid fa-trash'></i>
+        </button>
+      </div>
+      ` : ''}
     </div>
      <div class='feed-text'>${highlightText(parseMarkdown(Array.isArray(item.content) ? item.content.join('\n') : (item.content || '')), query)}</div>
   `;
+
+  if (isAdmin) {
+    msgPane.querySelector('.feed-btn-remove')?.addEventListener('click', () => feedAdminDelete(item.id, card));
+    msgPane.querySelector('.feed-btn-edit')?.addEventListener('click', () => openAdminEditModal(item));
+  }
 
   if (item.gallery && item.gallery.content.length > 0) {
     const row = document.createElement('div');
@@ -213,6 +229,23 @@ function buildFeedCard(item) {
   }
 
   return card;
+}
+
+function openAdminEditModal(item) {
+  const overlay = document.getElementById('feed-modal-overlay');
+  if (!overlay) return;
+  setModalPage('admin', item);
+  overlay.classList.add('open');
+}
+
+async function feedAdminDelete(postId, cardUI) {
+  try {
+    await fetchGuestbook('feed_delete', { id: postId });
+    _allFeed = _allFeed.filter((p) => p.id !== postId);
+    cardUI.remove();
+  } catch (e) {
+    console.error('Feed Delete Failed:', e);
+  }
 }
 
 function updateFeedAvatars() {
@@ -514,8 +547,8 @@ function buildBannedCard(entry) {
 function syncModal() {
   const modal = document.getElementById('feed-modal');
   if (!modal) return;
-  if (_currentTab === 'guests') modal.classList.remove('feed-hidden');
-  else modal.classList.add('feed-hidden');
+  if (_currentTab === 'guests') modal.classList.remove('hub-hidden');
+  else modal.classList.add('hub-hidden');
 }
 
 function applySession(data) {
@@ -592,15 +625,15 @@ function setModalStatus(msg, isError = false) {
   if (!el) return;
   if (!msg) {
     el.textContent = '';
-    el.classList.add('feed-hidden');
+    el.classList.add('hub-hidden');
     return;
   }
   el.textContent = msg;
-  el.classList.remove('feed-hidden');
+  el.classList.remove('hub-hidden');
   el.style.color = isError ? 'var(--heart-color)' : 'var(--text-deep-muted)';
 }
 
-function setModalPage(state) {
+function setModalPage(state, editingPost = null) {
   const innerModal = document.getElementById('feed-modal-inner');
   if (!innerModal) return;
 
@@ -625,7 +658,7 @@ function setModalPage(state) {
           ${_otpPhase === 'verify' ? `<button class='feed-icon-btn feed-icon-close' id='feed-otp-cancel-btn'><i class='fa-solid fa-xmark'></i></button>` : ''}
         </div>
       </div>
-      <div id='feed-modal-status' class='subtitle feed-hidden'></div>
+      <div id='feed-modal-status' class='subtitle hub-hidden'></div>
     `;
     modalHandlers('login');
     return;
@@ -638,29 +671,36 @@ function setModalPage(state) {
           <span class='subtitle'><i class='fa-solid fa-circle-notch fa-spin'></i> Processing Authentication Request</span>
         </div>
       </div>
-      <div id='feed-modal-status' class='subtitle feed-hidden'></div>
+      <div id='feed-modal-status' class='subtitle hub-hidden'></div>
     `;
     modalHandlers('loading');
     return;
   }
 
   if (state === 'admin') {
+    const isEditing = !!editingPost;
+    const galleryImages = isEditing && editingPost.gallery?.content ? editingPost.gallery.content : [];
+
     innerModal.innerHTML = `
       <div id='feed-state-admin'>
         <div class='feed-login-title-row'>
-          <span class='feed-login-title'>New Post</span>
-          <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+          <span class='feed-login-title'>${isEditing ? 'Edit Post' : 'New Post'}</span>
+          <div class='feed-identity-right'>
+            <button class='feed-icon-btn feed-icon-cancel' id='feed-admin-cancel-btn'><i class='fa-solid fa-eraser'></i></button>
+            <button class='feed-icon-btn feed-icon-add' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i></button>
+            ${isEditing ? `<button class='feed-icon-btn feed-icon-delete' id='feed-admin-delete-btn'><i class='fa-solid fa-trash'></i></button>` : ''}
+            <button class='feed-icon-btn feed-icon-save' id='feed-admin-save-btn'><i class='fa-solid fa-paper-plane'></i></button>
+            <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
+          </div>
         </div>
-        <input type='text' id='feed-admin-title' class='form-input' placeholder='Title' maxlength='120' />
-        <textarea id='feed-admin-content' class='feed-textarea' placeholder='Content...' maxlength='2000'></textarea>
-        <input type='file' id='feed-admin-gallery-input' accept='image/*' multiple class='feed-hidden' />
-        <button class='btn' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i> Add Images</button>
-        <div id='feed-admin-gallery-preview' class='feed-admin-gallery-preview'></div>
-        <div id='feed-modal-status' class='subtitle feed-hidden'></div>
-        <div class='feed-admin-form-btns'>
-          <button class='btn action-btn' id='feed-admin-save-btn'>Save</button>
-          <button class='btn' id='feed-admin-cancel-btn'>Cancel</button>
+        <input type='text' id='feed-admin-title' class='form-input' placeholder='Title' maxlength='120' value='${isEditing ? (editingPost.title || '').replace(/'/g, '&#39;') : ''}' />
+        <textarea id='feed-admin-content' class='feed-textarea' placeholder='Content...' maxlength='2000'>${isEditing ? (Array.isArray(editingPost.content) ? editingPost.content.join('\n') : (editingPost.content || '')) : ''}</textarea>
+        <input type='file' id='feed-admin-gallery-input' accept='image/*' multiple class='hub-hidden' />
+        <input type='text' id='feed-admin-gallery-header' class='form-input ${galleryImages.length === 0 ? 'hub-hidden' : ''}' placeholder='Gallery Header' maxlength='80' value='${isEditing ? (editingPost.gallery?.header || '').replace(/'/g, '&#39;') : ''}' />
+        <div class='feed-admin-gallery-preview' id='feed-admin-gallery-preview'>
+          ${galleryImages.map((g) => `<div class='feed-admin-gallery-thumb'><img src='${g.url}' alt='' /><button type='button' class='feed-icon-btn feed-icon-close'><i class='fa-solid fa-xmark'></i></button></div>`).join('')}
         </div>
+        <div id='feed-modal-status' class='subtitle hub-hidden'></div>
       </div>
     `;
     modalHandlers('admin');
@@ -725,7 +765,7 @@ const isUserEdit = state === 'edit';
           </div>
         </div>
         <div class='feed-identity-right'>
-          <div id='feed-modal-status' class='post-detail feed-hidden'></div>
+          <div id='feed-modal-status' class='post-detail hub-hidden'></div>
           ${rowBtns}
           <button class='btn feed-unlink-btn' id='feed-unlink-btn'>
             <i class='fa-solid fa-right-from-bracket'></i>
@@ -894,8 +934,11 @@ function modalHandlers(state) {
   if (state === 'admin') {
     let pendingGallery = [];
 
+    const titleInput = document.getElementById('feed-admin-title');
+    const contentInput = document.getElementById('feed-admin-content');
     const galleryInput = document.getElementById('feed-admin-gallery-input');
     const galleryBtn = document.getElementById('feed-admin-gallery-btn');
+    const galleryHeaderInput = document.getElementById('feed-admin-gallery-header');
     const galleryPreview = document.getElementById('feed-admin-gallery-preview');
 
     const renderGalleryPreview = () => {
@@ -910,6 +953,7 @@ function modalHandlers(state) {
           renderGalleryPreview();
         });
       });
+      galleryHeaderInput?.classList.toggle('hub-hidden', pendingGallery.length === 0);
     };
 
     galleryBtn?.addEventListener('click', () => galleryInput?.click());
@@ -925,12 +969,20 @@ function modalHandlers(state) {
 
     document.getElementById('feed-admin-cancel-btn')?.addEventListener('click', () => {
       pendingGallery = [];
-      setModalPage('admin');
+      if (titleInput) titleInput.value = '';
+      if (contentInput) contentInput.value = '';
+      if (galleryHeaderInput) {
+        galleryHeaderInput.value = '';
+        galleryHeaderInput.classList.add('hub-hidden');
+      }
+      renderGalleryPreview();
+      setModalStatus('');
     });
 
     document.getElementById('feed-admin-save-btn')?.addEventListener('click', async () => {
-      const title = document.getElementById('feed-admin-title')?.value.trim();
-      const content = document.getElementById('feed-admin-content')?.value.trim();
+      const title = titleInput?.value.trim();
+      const content = contentInput?.value.trim();
+      const galleryHeader = galleryHeaderInput?.value.trim() || '';
       const saveBtn = document.getElementById('feed-admin-save-btn');
 
       if (!title) {
@@ -955,7 +1007,7 @@ function modalHandlers(state) {
           uploadedImages.push({ id: res.id, url: res.url });
         }
 
-        const gallery = uploadedImages.length > 0 ? { header: '', content: uploadedImages } : null;
+        const gallery = uploadedImages.length > 0 ? { header: galleryHeader, content: uploadedImages } : null;
         await fetchGuestbook('feed_save', { title, content, gallery });
 
         pendingGallery = [];

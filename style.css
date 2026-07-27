@@ -2802,8 +2802,8 @@ code {
 
 .log-subtitle p, .faq-question p, .faq-answer p, .feed-text p { margin: 0 !important; }
 
-.feed-row { display: flex; }
-.feed-row .feed-msgc { flex-shrink: 0; width: 65%; }
+.feed-row { display: flex; justify-content: space-between; }
+.feed-row .feed-msg { flex-shrink: 0; width: 65%; }
 .feed-row .gallery-pane { border-left: 1px solid var(--border-color); flex-shrink: 0; width: 35%; }
 
 .feed-modal-overlay {
@@ -2821,7 +2821,6 @@ code {
   transition: opacity 0.3s ease;
   width: 100vw;
   z-index: 9999;
-  /* align-items: end; */
 }
 
 .feed-modal-overlay.open {
@@ -2844,9 +2843,9 @@ code {
   position: relative;
   transform: scale(0.95);
   transition: transform 0.3s ease;
-  /* margin-bottom: 10vh; */
   width: calc(100% - 80px);
   max-width: 840px;
+  scrollbar-width: none;
 }
 
 .feed-modal-overlay.open .feed-modal {
@@ -2945,7 +2944,7 @@ code {
   margin: 0px 12px 0px 0px;
 }
 
-.feed-modal .subtitle:not(.feed-hidden) {
+.feed-modal .subtitle:not(.hub-hidden) {
   align-self: center;
   margin-top: 10px;
   text-align: center;
@@ -3077,12 +3076,49 @@ code {
 }
 
 #feed-state-admin {
-  align-items: center;
+  align-items: stretch;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 14px;
   width: 100%;
 }
+
+.feed-admin-gallery-preview {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  width: 100%;
+}
+
+.feed-admin-gallery-preview:empty {
+  display: none;
+}
+
+.feed-admin-gallery-thumb {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.feed-admin-gallery-thumb img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.feed-admin-gallery-thumb .feed-icon-close {
+  background-color: var(--card-header);
+  height: 22px;
+  width: 22px;
+  padding: 4px;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+.feed-admin-gallery-thumb .feed-icon-close i { font-size: 0.7rem; }
 
 .feed-state-admin-row {
   align-items: center;
@@ -3239,7 +3275,7 @@ code {
  
 
 .feed-icon-btn:hover { color: var(--text-bright); }
-.feed-icon-save, .feed-icon-cancel, .feed-icon-close { font-size: 1.05rem; }
+.feed-icon-save, .feed-icon-cancel, .feed-icon-add, .feed-icon-close { font-size: 1.05rem; }
 .feed-icon-save:hover { color: var(--approved-color); }
 .feed-icon-cancel:hover, .feed-icon-delete:hover { color: var(--pending-color); }
 
