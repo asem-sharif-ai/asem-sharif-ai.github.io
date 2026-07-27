@@ -22,7 +22,7 @@
           <i class='fa-solid fa-house'></i>
           <span class='nav-label'>Home</span>
         </a>
-        <a class='hub-tab active' id='hub-tab-feed'>
+        <a class='hub-tab' id='hub-tab-feed'>
           <i class='fa-solid fa-user'></i>
           <span class='nav-label'>Feed</span>
         </a>
@@ -43,7 +43,7 @@
     </nav>
     <main class='hub-main'>
       <div class='floating-trigger has-glow feed-action-trigger' id='modal-trigger'><i class='fa-brands fa-google'></i>  </div>
-      <div class='container'            id='hub-panel-feed'>   <div id='feed-container'></div>   </div>
+      <div class='container hub-hidden' id='hub-panel-feed'>   <div id='feed-container'></div>   </div>
       <div class='container hub-hidden' id='hub-panel-guests'> <div id='guests-container'></div> </div>
       <div class='container hub-hidden' id='hub-panel-faq'>    <div id='list-container'></div>   </div>
     </main>
@@ -56,6 +56,8 @@
     <script src='https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'></script>
     <script src='base.js'></script>
     <script src='hubUtils.js'></script>
+    <script src='hubFAQ.js'></script>
+    <script src='hubGB.js'></script>
     <script src='hub.js'></script>
   </body>
 </html>

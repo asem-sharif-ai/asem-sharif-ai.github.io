@@ -1977,20 +1977,15 @@ footer a { border-bottom: none; text-decoration: none;}
   gap: 8px;
 }
 
-.card-url-btn {
-  font-size: 0.9rem;
-}
+.card-url-btn { font-size: 0.9rem; }
+.prev-btn, .next-btn { transition: opacity 0.2s ease; }
 
-.prev-btn,
-.next-btn {
-  transition: opacity 0.2s ease;
-}
+.card-toggle-btn { transform: rotate(0deg); transition: transform 0.3s ease; }
+.card-toggle-btn.rotated { transform: rotate(180deg); }
 
 @media (max-width: 840px) {
-  .url-action-btn,
-  .header-slide-btn {
-    display: none !important;
-  }
+  .url-action-btn, .header-slide-btn { display: none !important; }
+  .faq-btns { flex-direction: column; gap: 4px;}
 }
 
 /* ---------- [HEADER_BUTTONS] ---------- ---------- ---------- ---------- */
@@ -3180,7 +3175,7 @@ code {
   color: var(--text-deep-muted);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   margin-left: auto;
   padding: 4px 6px;
   transition: color 0.3s ease;

@@ -69,8 +69,6 @@ function _address(key) {
 
 const addresses = {
   userTheme:           _address('user-theme'),
-  // userToken:           _address('user-token'),
-  // chatToken:           _address('chat-token'),
   chatHistory:         _address('chat-history'),
   mailFormData:        _address('mail-form-data'),
   indexScrollY:        _address('index-scroll-y'),
@@ -80,8 +78,7 @@ const addresses = {
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
   hubActiveTab:        _address('hub-active-tab'),
-  hubOTPEmail:         _address('hub-otp-email-at'),
-  hubOTPStartAt:       _address('hub-otp-start-at'),
+  hubLiveOTP:          _address('hub-live-otp'),
   precachedOffline:    'slatemp-offline-v3',
   precachedHosts:      'hosts.json',
 };
@@ -483,10 +480,10 @@ function toggleCard(cardId, collapseId) {
 
   if (collapse.classList.contains('closed')) {
     collapse.classList.remove('closed');
-    icons.forEach(icon => icon.className = 'fa-solid fa-chevron-up card-toggle-btn');
+    icons.forEach(icon => icon.classList.remove('rotated'));
   } else {
     collapse.classList.add('closed');
-    icons.forEach(icon => icon.className = 'fa-solid fa-chevron-down card-toggle-btn');
+    icons.forEach(icon => icon.classList.add('rotated'));
   }
 }
 
