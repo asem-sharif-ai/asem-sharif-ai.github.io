@@ -19,7 +19,7 @@ You don't need to rewrite the core JavaScript logic or alter the HTML structure.
 1. **Check the Mapping Dictionaries (`base.js`)**:
    At the very beginning of `base.js`, you'll find three maps:
    * `symbolMap`: For controlling the primary text/symbol logo in the navigation header.
-   * `sectionMap`: Maps card icons using standard FontAwesome classes.
+   * `iconMap`: Maps card icons using standard FontAwesome classes.
    * `iconMap`: Maps social media platform identifiers to their respective FontAwesome brand/solid icons.
    
    Feel free to look over these keys to see what identifiers are supported out of the box!

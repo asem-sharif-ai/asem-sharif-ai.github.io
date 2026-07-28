@@ -389,25 +389,17 @@ function buildProjectCard(project, cardId) {
   const hasUrl = !!project.url;
   const cleanTopics = (project.topics || []).map(topic => topic.replace(/^_+/, '').trim());
 
-  let titleHtml = `<div class='card-title'>${project.title || 'Untitled'}</div>`;
-  if (hasUrl) {
-    titleHtml = `<a href='${project.url}' target='_blank' rel='noopener noreferrer' class='card-title-link'><div class='card-title'>${project.title || 'Untitled'}</div></a>`;
-  }
-
   card.innerHTML = `
     <div class='card-header idle-header' id='header-${cardId}'>
       <div class='project-title-container'>
       ${project.star ? `<span class='star-icon'></span>` : ''}
-      ${titleHtml}
+      <div class='card-title ${project.url ? 'card-title-link' : ''}'>${project.title || 'Untitled'}</div>
       </div>
       <div class='card-btns'>
         ${(contents.length > 1) ? `
           <button class='btn prev-btn header-slide-btn' id='prev-${cardId}'><i class='fa-solid fa-chevron-left'></i></button>
           <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
           <button class='btn next-btn header-slide-btn' id='next-${cardId}'><i class='fa-solid fa-chevron-right'></i></button>
-        ` : ''}
-        ${hasUrl ?
-          `<button class='btn url-action-btn' id='url-${cardId}'><i class='fa-solid fa-arrow-up-right-from-square card-url-btn'></i></button>
         ` : ''}
         <button class='btn toggle-btn' id='toggle-btn-${cardId}'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
@@ -430,6 +422,31 @@ function buildProjectCard(project, cardId) {
     toggleProjectCard(cardId);
   });
 
+  requestAnimationFrame(() => {
+    const toggleBtn = card.querySelector('.toggle-btn');
+    const nextBtnEl = card.querySelector('.next-btn');
+    const prevBtnEl = card.querySelector('.prev-btn');
+    if (toggleBtn && nextBtnEl) {
+      const toggleRect = toggleBtn.getBoundingClientRect();
+      const nextRect = nextBtnEl.getBoundingClientRect();
+      const nextGap = (toggleRect.left + toggleRect.width / 2) - (nextRect.left + nextRect.width / 2);
+      nextBtnEl.style.setProperty('--stack-x', `${nextGap}px`);
+    }
+    if (toggleBtn && prevBtnEl) {
+      const toggleRect = toggleBtn.getBoundingClientRect();
+      const prevRect = prevBtnEl.getBoundingClientRect();
+      const prevGap = (toggleRect.left + toggleRect.width / 2) - (prevRect.left + prevRect.width / 2);
+      prevBtnEl.style.setProperty('--stack-x', `${prevGap}px`);
+    }
+    const counterEl = card.querySelector('.slide-counter');
+    if (nextBtnEl && counterEl && nextBtnEl.offsetParent !== null) {
+      const nextRect = nextBtnEl.getBoundingClientRect();
+      const counterRect = counterEl.getBoundingClientRect();
+      const counterGap = (nextRect.left + nextRect.width / 2) - (counterRect.left + counterRect.width / 2);
+      counterEl.style.setProperty('--counter-stack-x', `${counterGap}px`);
+    }
+  });
+
   const footer = card.querySelector(`#footer-${cardId}`);
   if (footer) {
     footer.addEventListener('click', (e) => {
@@ -439,7 +456,7 @@ function buildProjectCard(project, cardId) {
   }
 
   if (hasUrl) {
-    card.querySelector(`#url-${cardId}`).addEventListener('click', (e) => {
+    card.querySelector(`.card-title`).addEventListener('click', (e) => {
       e.stopPropagation();
       window.open(project.url, '_blank', 'noopener noreferrer');
     });
@@ -489,13 +506,6 @@ function toggleProjectCard(cardId, forceState) {
   
   const isOpen = !collapse.classList.contains('closed');
   const prevBtn = card.querySelector('.prev-btn');
-  const nextBtn = card.querySelector('.next-btn');
-  const urlBtn = card.querySelector('.url-action-btn');
-
-  const display = isOpen ? 'inline-block' : 'none';
-  if (prevBtn) prevBtn.style.display = display;
-  if (nextBtn) nextBtn.style.display = display;
-  if (urlBtn) urlBtn.style.display  = display;
 
   if (isOpen && prevBtn && prevBtn.style.opacity === '0.35') {
     prevBtn.style.pointerEvents = 'none';

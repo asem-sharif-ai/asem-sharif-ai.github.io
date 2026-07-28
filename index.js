@@ -11,13 +11,17 @@ function buildCard(section, cardId) {
   const isVideo = isVideoPath(section.path);
   const isMedia = isImage || isVideo;
 
-  card.innerHTML = `
-    <div class='card-header' id='header-${cardId}'>
-      <div class='card-title'>${section.title}</div>
+  card.innerHTML = /*html*/ `
+    <div class='card-header idle-header' id='header-${cardId}'>
+      <div class='card-title card-title-link' id='${shareId}'>${section.title}</div>
       <div class='card-btns'>
-        <button class='btn' id='${copyId}'><i class='${isMedia ? 'fa-solid fa-download download-icon' : 'fa-regular fa-copy copy-icon'}'></i></button>
-        <button class='btn' id='${shareId}'><i class='fa-solid fa-link share-icon'></i></button>
-        <button class='btn'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+        <button class='btn' id='${copyId}'><i class='${isMedia ? 'fa-regular fa-circle-down download-icon' : 'fa-regular fa-copy copy-icon'}'></i></button>
+        <button class='btn' id='toggle-btn-${cardId}'>
+          <svg class='card-toggle-btn' id='toggle-${cardId}' style='width: 1.05em; height: 1.05em;' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+            <path class='toggle-arm-left' d='M4 15 L12 7' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/>
+            <path class='toggle-arm-right' d='M12 7 L20 15' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/>
+          </svg>
+        </button>
       </div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
@@ -27,35 +31,28 @@ function buildCard(section, cardId) {
     </div>
   `;
 
-  card.querySelector(`#header-${cardId}`).addEventListener('click', () => toggleCard(cardId, collapseId));
+  card.querySelector(`#toggle-btn-${cardId}`).addEventListener('click', (e) => { e.stopPropagation(); if (card.dataset.toggleLocked) return; toggleCard(cardId, collapseId); });
   card.querySelector(`#${copyId}`).addEventListener('click', (e) => { e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);});
-  card.querySelector(`#${shareId}`).addEventListener('click', (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
-      .then(() => { showSuccessFeedback(`${shareId}`); })
-      .catch(err => console.error('Share Failed: ', err));
-  });
+  card.querySelector(`#${shareId}`).addEventListener('click', (e) => { e.stopPropagation(); copyCardURL(cardId, shareId)});
 
   const container = card.querySelector(`#${textId}`);
 
   if (isImage) {
-    container.innerHTML = `
+    container.innerHTML = /*html*/ `
       <div class='media-container image-container'>
         <img src='${section.path}' alt='${section.title}' class='media-element image-element' />
       </div>
     `;
   } else if (isVideo) {
-    const mime = getVideoMimeType(section.path);
-    container.innerHTML = `
+    container.innerHTML = /*html*/ `
       <div class='media-container video-container'>
         <video controls class='media-element video-element' preload='metadata'>
-          <source src='${section.path}' type='${mime}'>
-          Your browser does not support the video tag.
+          <source src='${section.path}' type='${getVideoMimeType(section.path)}'>
+          Your Browser Does Not Support The Video Tag.
         </video>
       </div>
     `;
   } else {
-    container.innerHTML = 'Loading...';
     loadContent(section.path, textId);
   }
 
@@ -76,8 +73,61 @@ function highlightCard(cardId) {
 
 function copyCardText(cardId) {
   const card = document.getElementById(cardId);
+  if (card && card.dataset.copyInProgress) return;
   const scrollArea = card.querySelector('.scroll-area');
-  navigator.clipboard.writeText(scrollArea.innerText).then(() => { showSuccessFeedback(`copy-${cardId}`) }).catch(err => console.error('Copy Failed: ', err));
+  navigator.clipboard.writeText(scrollArea.innerText).then(() => { hideCopyIconAndPulseToggle(cardId) }).catch(err => console.error('Copy Failed: ', err));
+}
+
+function copyCardURL(cardId, shareId) {
+  const card = document.getElementById(cardId);
+  if (card && card.dataset.copyInProgress) return;
+
+  navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
+    .then(() => { pulseToggleIcon(cardId); })
+    .catch(err => console.error('Share Failed: ', err));
+}
+
+function pulseToggleIcon(cardId) {
+  const icon = document.getElementById(`toggle-${cardId}`);
+  const card = document.getElementById(cardId);
+  if (!icon || !card) return;
+
+  const left = icon.querySelector('.toggle-arm-left');
+  const right = icon.querySelector('.toggle-arm-right');
+  if (!left || !right) return;
+
+  const wasChecked = left.getAttribute('d') === 'M4 12 L10 18';
+
+  card.dataset.toggleLocked = 'true';
+  card.dataset.copyInProgress = 'true';
+  icon.classList.add('checked');
+  left.setAttribute('d', 'M4 12 L10 18');
+  right.setAttribute('d', 'M10 18 L20 6');
+  right.animate(
+    [{ strokeWidth: 2.5 }, { strokeWidth: 3.2 }, { strokeWidth: 2.5 }],
+    { duration: 400, easing: 'ease' }
+  );
+
+  clearTimeout(icon._unrotateTimeout);
+  icon._unrotateTimeout = setTimeout(() => {
+    if (!wasChecked) {
+      left.setAttribute('d', 'M4 15 L12 7');
+      right.setAttribute('d', 'M12 7 L20 15');
+      icon.classList.remove('checked');
+    }
+    delete card.dataset.toggleLocked;
+    delete card.dataset.copyInProgress;
+  }, 1000);
+}
+
+function hideCopyIconAndPulseToggle(cardId) {
+  const copyIcon = document.querySelector(`#copy-${cardId} i`);
+  if (copyIcon) {
+    copyIcon.classList.add('copy-icon-hidden');
+    clearTimeout(copyIcon._showTimeout);
+    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
+  }
+  pulseToggleIcon(cardId);
 }
 
 function downloadCardMedia(cardId) {
@@ -100,7 +150,7 @@ function downloadCardMedia(cardId) {
   anchor.click();
   document.body.removeChild(anchor);
 
-  showSuccessFeedback(`copy-${cardId}`)
+  hideCopyIconAndPulseToggle(cardId)
 }
 
 function jumpToCard(targetId, targetCardId) {
@@ -140,14 +190,13 @@ function buildForm(section, cardId, api, adminTimezone) {
 
   const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
 
-  card.innerHTML = `
+  card.innerHTML = /*html*/ `
     <div class='card-header idle-header' id='header-${cardId}'>
       <div class='card-title'>${section.title || 'Get In Touch'} <span class='log-subtitle' style='margin-left: 4px; '> ${section.subtitle || 'Reach Out For Collaborations'} </span></div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
       <div class='card-body' id='form-card-body'>
         <div class='form-stack' id='${stackId}'>
-
           <div class='form-screen active' id='${mailScreenId}'>
             <form class='mail-form' id='${formId}' novalidate>
               <div class='form-row-top'>
@@ -184,11 +233,9 @@ function buildForm(section, cardId, api, adminTimezone) {
               </div>
             </form>
           </div>
-
           <div class='form-screen' id='${timeScreenId}'>
             <div class='time-grid' id='${timeGridId}'></div>
           </div>
-
         </div>
         <p class='form-divider form-label form-last' id='${changeFormId}'>Prefer A Specific Time? (Optional)</p>
       </div>
@@ -350,7 +397,7 @@ function buildForm(section, cardId, api, adminTimezone) {
 
       const dayHeader = document.createElement('div');
       dayHeader.className = 'time-day-label';
-      dayHeader.innerHTML = `<span class='form-label'>${dayNameFmt.format(date)}</span><span class='form-label'>${dayDateFmt.format(date)}</span>`;
+      dayHeader.innerHTML = /*html*/ `<span class='form-label'>${dayNameFmt.format(date)}</span><span class='form-label'>${dayDateFmt.format(date)}</span>`;
       dayCell.appendChild(dayHeader);
 
       const bar = document.createElement('div');
@@ -373,7 +420,7 @@ function buildForm(section, cardId, api, adminTimezone) {
         const part = document.createElement('button');
         part.type = 'button';
         part.className = 'time-slot-part has-glow';
-        part.innerHTML = `<span class='time-slot-from'>${hourLabel(def.hours[0])}</span><span class='time-slot-to'>${hourLabel(def.hours[def.hours.length - 1])}</span>`;
+        part.innerHTML = /*html*/ `<span class='time-slot-from'>${hourLabel(def.hours[0])}</span><span class='time-slot-to'>${hourLabel(def.hours[def.hours.length - 1])}</span>`;
 
         if (findSlotIndex(dateISO, slotIndex) !== -1) part.classList.add('selected');
 
@@ -711,7 +758,7 @@ function buildHero(data, getTheme, setTheme) {
         }
       };
 
-      userLocation.innerHTML = `${data.location}
+      userLocation.innerHTML = /*html*/ `${data.location}
         ${timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : ''}
         ${data.timezone ? `<span class='post-detail' id='clock'></span>` : ''}
         ${data.status && data.timezone ? `<span class='post-detail' id='status'></span>` : ''}
@@ -833,15 +880,20 @@ function buildHero(data, getTheme, setTheme) {
   if (data.cta) {
     const panel = document.getElementById('cta-panel');
     if (panel) {
-      const entries = Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0);
-      entries.forEach(([key, doc], i) => {
+      Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0).forEach(([key, doc], i) => {
         const btn = document.createElement('button');
-        btn.className = `cta-trigger has-fast-glow`; // ${key === 'main' ? 'inverse' : ''}
+        btn.className = `cta-trigger cta-${key}`;
         btn.id = `cta-trigger-${key}`;
-        btn.dataset.index = i;
-        btn.dataset.total = entries.length;
-        btn.innerHTML = `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-title'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
-        btn.addEventListener('click', () => window.open(doc.link, '_blank', 'noopener,noreferrer'));
+        btn.innerHTML = /*html*/ `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-text'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
+        btn.addEventListener('click', () => {
+          if (doc.section) {
+            const navBtn = document.getElementById(`nav-${doc.section}`);
+            if (navBtn) { navBtn.click(); return; }
+            const target = document.getElementById(doc.section);
+            if (target) { target.scrollIntoView({ behavior: 'smooth' }); return; }
+          }
+          if (doc.link) window.open(doc.link, '_blank', 'noopener,noreferrer');
+        });
         panel.appendChild(btn);
       });
     }
@@ -870,7 +922,7 @@ function buildHero(data, getTheme, setTheme) {
 
       const heroRight = document.createElement('div');
       heroRight.className = 'hero-right';
-      heroRight.innerHTML = `<div class='hero-picture-wrapper'><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false fetchpriority='high' /></div>`;
+      heroRight.innerHTML = /*html*/ `<div class='hero-picture-wrapper'><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false fetchpriority='high' /></div>`;
 
       heroCard.appendChild(heroLeft);
       heroCard.appendChild(heroRight);
@@ -924,7 +976,7 @@ async function runProfileApp() {
         const btn = document.createElement('a');
         btn.id = item.id;
         btn.className = 'home-nav-home';
-        btn.innerHTML = `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
+        btn.innerHTML = /*html*/ `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
         btn.onclick = () => jumpToCard(item.target, item.cardId);
         navItems.appendChild(btn);
       });
@@ -955,11 +1007,11 @@ async function runProfileApp() {
           wrapper.appendChild(card);
 
           if (section.key) {
-            const sectionIcon = sectionMap[section.icon?.toLowerCase()] ?? sectionMap['default'];
+            const sectionIcon = iconMap[section.icon?.toLowerCase()] ?? iconMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
             navBtn.className = 'home-nav-file';
-            navBtn.innerHTML = `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
+            navBtn.innerHTML = /*html*/ `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);
           }
@@ -989,12 +1041,12 @@ async function runProfileApp() {
 
       orderedQuickKeys.forEach(key => {
         const { label, href } = quickLinksMap[key];
-        const icon = sectionMap[key] ?? sectionMap['default'];
+        const icon = iconMap[key] ?? iconMap['default'];
 
         const link = document.createElement('a');
         link.className = 'quick-link-item has-glow';
         link.href = href;
-        link.innerHTML = `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
+        link.innerHTML = /*html*/ `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
         quickLinksRow.appendChild(link);
       });
 
@@ -1016,11 +1068,11 @@ async function runProfileApp() {
       spyTargets.push({ id: formRowId, navIds: [`nav-${formCardId}`] });
 
       if (data.form.key && navItems) {
-        const formIcon = sectionMap[data.form.icon?.toLowerCase()] ?? sectionMap['default'];
+        const formIcon = iconMap[data.form.icon?.toLowerCase()] ?? iconMap['default'];
         const navBtn = document.createElement('a');
         navBtn.id = `nav-${formCardId}`;
         navBtn.className = 'home-nav-file';
-        navBtn.innerHTML = `<i class='${formIcon}'></i><span class='nav-label'> ${data.form.key}</span>`;
+        navBtn.innerHTML = /*html*/ `<i class='${formIcon}'></i><span class='nav-label'> ${data.form.key}</span>`;
         navBtn.onclick = () => jumpToCard(formRowId, formCardId);
         navItems.appendChild(navBtn);
       }
@@ -1044,7 +1096,7 @@ async function runProfileApp() {
         const btn = document.createElement('a');
         btn.id = `nav-${key}`;
         const label = key.charAt(0).toUpperCase() + key.slice(1);
-        btn.innerHTML = `<i class='${sectionMap[key]}'></i><span class='nav-label'> ${label}</span>`;
+        btn.innerHTML = /*html*/ `<i class='${iconMap[key]}'></i><span class='nav-label'> ${label}</span>`;
         btn.href = allowedKeys[key];
         navItems.appendChild(btn);
       });
@@ -1081,6 +1133,10 @@ async function runProfileApp() {
 
     observeCards();
     runScrollSpy(spyTargets);
+    
+    const footer = document.createElement('div');
+    footer.innerHTML = homeFooter();
+    document.body.appendChild(footer);
 
     return true;
 

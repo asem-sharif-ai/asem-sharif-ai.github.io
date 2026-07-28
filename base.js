@@ -1,4 +1,4 @@
-// ───── Symbol & Icon Maps ────────────────────────────────────────
+// ───── Maps & Addresses ────────────────────────────────────────
 
 const symbolMap = {
   '</>': '&lt;/&gt;',
@@ -8,7 +8,7 @@ const symbolMap = {
   '<<':  '&lt;&lt;',
 };
 
-const sectionMap = {
+const iconMap = {
   home:         'fa-solid fa-house',
   search:       'fa-solid fa-magnifying-glass',
   user:         'fa-solid fa-user',
@@ -34,9 +34,7 @@ const sectionMap = {
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
   default:      'fa-solid fa-layer-group',
-};
 
-const iconMap = {
   facebook:     'fa-brands fa-facebook-f',
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
@@ -83,18 +81,20 @@ const addresses = {
   precachedHosts:      'hosts.json',
 };
 
-// ───── Viewport ────────────────────────────────────────
+// ───── Footer, Offline & Host Failure Cases ────────────────────────────────────────
 
-function isMobile() {
-  return window.innerWidth <= 840;
+function homeFooter(offlineStyle = false) {
+  return /*html*/ `
+  <footer class='template-footer' id='template-footer' ${offlineStyle ? `style='position: absolute; bottom: 0; left: 0; right: 0;'` : ``} >
+    <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev' target='_blank'>Asem Sharif</a></span>
+  </footer>
+  `;
 }
-
-// ───── Offline & Host Failure Cases ────────────────────────────────────────
 
 function handleOffline() {
   function showPage() {
     document.open();
-    document.write(`
+    document.write( /*html*/ `
       <!DOCTYPE html>
       <html lang='en'>
         <head>
@@ -114,9 +114,7 @@ function handleOffline() {
             <h2 class='user-name' id='offline-title'>YOU ARE OFFLINE</h2>
             <p class='subtitle' id='offline-subtitle'>Check Your Internet Connection And Try Again</p>
           </div>
-          <footer class='template-footer' id='template-footer' style='position: absolute; bottom: 0; left: 0; right: 0;'>
-            <span>Driven By <a href='https://github.com/asem-sharif-ai/SlateMP' target='_blank'>SlateMP</a> <span class='post-detail'>(V.5.10)</span> • By <a href='https://asem-sharif-ai.pages.dev' target='_blank'>Asem Sharif</a></span>
-          </footer>
+          ${homeFooter(true)}
           <script>
             window.addEventListener('online', () => {
               document.getElementById('offline-title').textContent = 'Back Online';
@@ -289,15 +287,11 @@ function isVideoPath(path) {
 }
 
 function getVideoMimeType(path) {
-  const ext = path.split('?')[0].split('#')[0].split('.').pop().toLowerCase();
-  const types = {
-    mp4:  'video/mp4',
-    webm: 'video/webm',
-    ogg:  'video/ogg',
-    mov:  'video/quicktime',
-    m4v:  'video/mp4',
-  };
-  return types[ext] || 'video/mp4';
+  return {
+    mp4: 'video/mp4', webm: 'video/webm',
+    ogg: 'video/ogg', m4v:  'video/mp4',
+    mov: 'video/quicktime'
+  } [path.split('?')[0].split('#')[0].split('.').pop().toLowerCase()] || 'video/mp4';
 }
 
 // ───── Content Render (Projects / Log / Hub) ────────────────────────────────────────
@@ -317,6 +311,7 @@ function buildGalleryPane(galleryList, galleryHeader) {
     slide.className = 'gallery-slide';
     const src = typeof item === 'string' ? item : item?.url;
     slide.innerHTML = renderContentItem(src);
+    slide.dataset.src = src;
     track.appendChild(slide);
   });
 
@@ -335,10 +330,8 @@ function buildGalleryPane(galleryList, galleryHeader) {
   controls.className = 'gallery-sub gallery-controls';
 
   const prevBtn = document.createElement('button');
-  prevBtn.className = 'btn prev-btn gallery-btn';
+  prevBtn.className = 'btn prev-btn gallery-btn is-disabled';
   prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-  prevBtn.style.opacity = '0.35';
-  prevBtn.style.pointerEvents = 'none';
 
   const counter = document.createElement('span');
   counter.className = 'slide-counter gallery-counter';
@@ -346,10 +339,8 @@ function buildGalleryPane(galleryList, galleryHeader) {
 
   const nextBtn = document.createElement('button');
   const isSingleItem = galleryList.length <= 1;
-  nextBtn.className = 'btn next-btn gallery-btn';
+  nextBtn.className = 'btn next-btn gallery-btn' + (isSingleItem ? ' is-disabled' : '');
   nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-  nextBtn.style.opacity = isSingleItem ? '0.35' : '1';
-  nextBtn.style.pointerEvents = isSingleItem ? 'none' : 'auto';
 
   let current = 0;
 
@@ -359,29 +350,81 @@ function buildGalleryPane(galleryList, galleryHeader) {
     counter.textContent = `${current + 1}/${galleryList.length}`;
 
     if (prevBtn) {
-      prevBtn.style.opacity = current === 0 ? '0.35' : '1';
-      prevBtn.style.pointerEvents = current === 0 ? 'none' : 'auto';
+      prevBtn.classList.toggle('is-disabled', current === 0);
     }
     if (nextBtn) {
-      nextBtn.style.opacity = current === galleryList.length - 1 ? '0.35' : '1';
-      nextBtn.style.pointerEvents = current === galleryList.length - 1 ? 'none' : 'auto';
+      nextBtn.classList.toggle('is-disabled', current === galleryList.length - 1);
     }
   }
 
   prevBtn.addEventListener('click', () => goTo(current - 1));
   nextBtn.addEventListener('click', () => goTo(current + 1));
 
-  setupSwipeNavigation(viewport, () => goTo(current + 1), () => goTo(current - 1));
+  const startDragCursor = () => document.body.classList.add('is-dragging');
+  const endDragCursor = () => document.body.classList.remove('is-dragging');
+
+  viewport.addEventListener('mousedown', startDragCursor);
+  viewport.addEventListener('touchstart', startDragCursor, { passive: true });
+  window.addEventListener('mouseup', endDragCursor);
+  window.addEventListener('touchend', endDragCursor);
+  window.addEventListener('touchcancel', endDragCursor);
+
+  setupSwipeNavigation(
+    viewport,
+    () => goTo(current + 1),
+    () => goTo(current - 1),
+    (tapTarget) => {
+      const slideEl = tapTarget.closest('.gallery-slide');
+      if (slideEl && slideEl.dataset.src) {
+        openGalleryLightbox(slideEl.dataset.src);
+      }
+    }
+  );
 
   controls.appendChild(prevBtn);
   controls.appendChild(counter);
   controls.appendChild(nextBtn);
 
-  pane.appendChild(header);
+  if (galleryHeader) pane.appendChild(header);
   pane.appendChild(viewport);
-  pane.appendChild(controls);
+  if (galleryList.length > 1) pane.appendChild(controls);
 
   return pane;
+}
+
+function openGalleryLightbox(src) {
+  const overlay = document.createElement('div');
+  overlay.className = 'gallery-lightbox-overlay';
+
+  const img = document.createElement('img');
+  img.src = src;
+  img.addEventListener('click', (e) => e.stopPropagation());
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'gallery-lightbox-close';
+  closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+
+  function close() {
+    overlay.classList.remove('is-visible');
+    setTimeout(() => overlay.remove(), 200);
+    document.removeEventListener('keydown', onKeydown);
+  }
+
+  function onKeydown(e) {
+    if (e.key === 'Escape') close();
+  }
+
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', onKeydown);
+
+  overlay.appendChild(img);
+  overlay.appendChild(closeBtn);
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => {
+    overlay.classList.add('is-visible');
+  });
 }
 
 // ───── Content Render (Projects / Log) ────────────────────────────────────────
@@ -390,7 +433,7 @@ function renderContentItem(contentItem, containerId) {
   if (!contentItem) return '';
 
   if (isImagePath(contentItem)) {
-    return `
+    return /*html*/ `
       <div class='image-container'>
         <img src='${contentItem}' alt='' draggable='false' />
       </div>
@@ -398,11 +441,10 @@ function renderContentItem(contentItem, containerId) {
   }
 
   if (isVideoPath(contentItem)) {
-    const mime = getVideoMimeType(contentItem);
-    return `
+    return /*html*/ `
       <div class='video-container'>
         <video controls preload='metadata' draggable='false'>
-          <source src='${contentItem}' type='${mime}'>
+          <source src='${contentItem}' type='${getVideoMimeType(contentItem)}'>
           Your browser does not support the video tag.
         </video>
       </div>
@@ -417,27 +459,30 @@ function renderContentItem(contentItem, containerId) {
   return `<p>${contentItem}</p>`;
 }
 
-function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight) {
+function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight, onTap) {
   let pointerStartX = 0;
   let pointerEndX = 0;
   let pointerStartY = 0;
+  let pointerEndY = 0;
   let isDragging = false;
+  let startTarget = null;
 
   element.addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    
+
     const targetTag = e.target.tagName.toLowerCase();
     if (targetTag === 'input' || targetTag === 'textarea' || e.target.isContentEditable) return;
 
     isDragging = true;
     pointerStartX = e.clientX;
     pointerStartY = e.clientY;
+    startTarget = e.target;
     element.setPointerCapture(e.pointerId);
   });
 
   element.addEventListener('pointermove', (e) => {
     if (!isDragging) return;
-    
+
     const currentX = e.clientX;
     const currentY = e.clientY;
     const diffX = Math.abs(currentX - pointerStartX);
@@ -452,16 +497,22 @@ function setupSwipeNavigation(element, onSwipeLeft, onSwipeRight) {
     if (!isDragging) return;
     isDragging = false;
     pointerEndX = e.clientX;
+    pointerEndY = e.clientY;
     element.releasePointerCapture(e.pointerId);
 
     const selection = window.getSelection().toString();
     if (e.pointerType === 'mouse' && selection.length > 0) return;
 
+    const diffX = Math.abs(pointerEndX - pointerStartX);
+    const diffY = Math.abs(pointerEndY - pointerStartY);
     const swipeDistance = pointerEndX - pointerStartX;
-    if (swipeDistance < -40) {
+
+    if (swipeDistance < -40 && diffX > diffY) {
       onSwipeLeft();
-    } else if (swipeDistance > 40) {
+    } else if (swipeDistance > 40 && diffX > diffY) {
       onSwipeRight();
+    } else if (diffX < 10 && diffY < 10 && onTap) {
+      onTap(startTarget);
     }
   });
 
@@ -515,7 +566,7 @@ function createQRCodeModal(data) {
   qrBtn.title = `Scan QRCode`
   qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
   qrBtn.id = 'qr-trigger';
-  qrBtn.innerHTML = `<i class='fa-solid fa-qrcode'></i>`;
+  qrBtn.innerHTML = '<i class="fa-solid fa-qrcode"></i>';
   document.body.appendChild(qrBtn);
 
   const modalOverlay = document.createElement('div');
@@ -523,7 +574,7 @@ function createQRCodeModal(data) {
 
   const modalContent = document.createElement('div');
   modalContent.classList.add('qr-modal-content');
-  modalContent.innerHTML = `
+  modalContent.innerHTML = /*html*/ `
     <div class='qr-modal-header'>
       <span class='item-card-title'>${data.name || 'SlateMP'} Portfolio</span>
       <i class='fa-solid fa-xmark close-qr-modal'></i>
@@ -536,7 +587,7 @@ function createQRCodeModal(data) {
   const encodedUrl = encodeURIComponent(data.host.original);
   const qrWrapper = modalOverlay.querySelector('.qr-image-wrapper');
   
-  qrWrapper.innerHTML = `
+  qrWrapper.innerHTML = /*html*/ `
     <img id='qr-light' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=000000&bgcolor=f5f5f7' alt='QR Code Light' class='qr-code-img' />
     <img id='qr-dark' src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodedUrl}&color=ffffff&bgcolor=111113' alt='QR Code Dark' class='qr-code-img' />
   `;
@@ -576,7 +627,7 @@ async function applyCustomTheme(theme) {
     
     const mapVars = (vars) => vars ? Object.entries(vars).map(([k, v]) => `--${k}: ${v};`).join('\n        ') : '';
     
-    styleUI.innerHTML = `
+    styleUI.innerHTML = /*html*/ `
       :root {
         ${mapVars(themeObj.root)}
         ${mapVars(themeObj.dark)}
@@ -685,5 +736,5 @@ function renderRoles(containerId, role) {
 function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
   const c = document.getElementById(containerId);
   if (!c) return;
-  c.innerHTML = `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
+  c.innerHTML = /*html*/ `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
 }

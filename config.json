@@ -24,8 +24,8 @@
   "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
   "cta": {
-    "main": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    "side": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf"}
+    "main": { "icon": "paper", "title": "Resume", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "side": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
   },
 
   "api": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
@@ -272,7 +272,8 @@
           ],
           "url": "https://github.com/asem-sharif-ai",
           "topics": ["Python", "Computer Vision", "Embedded AI", "PyQt6", "PyTorch", "TensorFlow", "MediaPipe", "Raspberry Pi 5", "Hailo-8L NPU"],
-          "summary": "",
+          "cover": "./Data/Files/Pro_0/image_1.png",
+          "summary": "this is the project summary",
           "star": true,
           "size": 2
         },
@@ -288,6 +289,7 @@
           ],
           "url": "https://github.com/asem-sharif-ai/DMD-Dataset",
           "topics": [],
+          "cover": "",
           "summary": "",
           "star": false,
           "size": 1
