@@ -73,8 +73,7 @@
       { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "summary": "" }
     ],
     [
-      { "title": "Current Status", "icon": "experience", "path": "./Data/MDs/status.md", "summary": "", "size": 2 },
-      { "title": "Recent Updates", "icon": "update",     "path": "./Data/MDs/update.md", "summary": "", "size": 1 }
+      { "title": "Current Status", "path": "./Data/MDs/status.md", "summary": "" }
     ]
   ],
 
@@ -116,10 +115,6 @@
       "from_date": "02/2025",
       "to_date": "12/2025",
       "markdown": "Data/Files/Exp_0/deci.md",
-      "gallery": {
-        "header": "aaa",
-        "content": ["Data/Files/Edu_0/fai.png", "Data/Files/Edu_0/mu.png"]
-      },
       "summary": [
         "Delivered foundational computer science and digital technology sessions for youth audiences as part of the national DECI initiative.",
         "Designed applied exercises to successfully bridge theory and practice."
@@ -391,7 +386,7 @@
     "key": "Connect",
     "icon": "connect",
     "title": "Let's Connect",
-    "subtitle": "I'm always open to new conversations regarding ventures, career opportunities, or strategic challenges.",
+    "subtitle": "I'm always available to discuss ventures, career opportunities, and strategic challenges.",
     "subjects": [
       "Job Opportunity",
       "Internship Opportunity",

@@ -25,8 +25,8 @@
   --pin-color-sub: #9aa0aa;
   --star-color: #f5c842;
   --star-color-sub: #d4a020;
-  --url-color: #2563eb;
-  --url-color-sub: #1d4ed8;
+  --url-color: #2560eb;
+  --url-color-sub: #9e148c;
 
   --default-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
   --filter-transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
@@ -1179,15 +1179,21 @@ footer a { border-bottom: none; text-decoration: none;}
   transform: scale(1.025);
   border-color: var(--text-deep-muted);
   background-color: var(--bg-card);
-  box-shadow: var(--focus-shadow) 0px 4px 24px;
+  box-shadow: var(--focus-shadow) 0px 4px 12px;
  }
 
 .cta-trigger:active { transform: scale(0.975);
   background-color: var(--navbar-bg);
-  box-shadow: var(--focus-shadow) 0px 2px 12px;
+  box-shadow: var(--focus-shadow) 0px 2px 6px;
 }
 
-/* .cta-main {} */
+.cta-main {
+  border-radius: 0px 8px 0px 8px;
+}
+
+.cta-side {
+  border-radius: 8px 0px 8px 0px;
+}
 
 .cta-text {
   font-family: 'Ubuntu', sans-serif;
@@ -1469,7 +1475,9 @@ footer a { border-bottom: none; text-decoration: none;}
 }
 
 .card:has(.mail-form) .card-collapse,
-.card:has(.mail-form) .card-body {
+.card:has(.mail-form) .card-body,
+.card:has(.home-card) .card-collapse,
+.card:has(.home-card) .card-body {
   overflow: visible !important;
   max-height: none !important;
 }
@@ -2333,24 +2341,25 @@ h1, h2, h3 {
   transition: color 0.3s ease;
 }
 h1:first-child, h2:first-child, h3:first-child { margin-top: 0; }
+
 p { margin: 0 0 4px 0px; }
 p:last-child { margin-bottom: 0px; }
 
-a {
-  border-bottom: 1px solid var(--url-color);
-  color: var(--url-color);
-  text-decoration: none;
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-a:hover { border-color: var(--url-color-sub); color: var(--url-color-sub); }
+a { font-weight: 600; color: var(--url-color); transition: color 0.3s ease, border-color 0.3s ease; }
+a:hover { color: var(--url-color-sub); }
 
 ul { margin: 0 6px 6px 0; padding-left: 24px; }
 li { margin-top: 4px; margin-bottom: 4px; }
 li:first-child { margin-top: 0px; }
 li:last-child { margin-bottom: 8px; }
 
+em { text-transform: capitalize; font-size: smaller; color: var(--text-muted); padding-right: 2px; }
+
 hr { border: none; border-top: 1px solid var(--border-color); margin: 16px 0; }
 strong { color: var(--text-bright); font-weight: 600; }
+
+table { width: 100%; table-layout: fixed; text-align: center; }
+table a { color: var(--text-bright) !important; text-decoration: none !important; }
 
 code {
   background: var(--bg-primary);
@@ -2359,8 +2368,12 @@ code {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-weight: 600;
   font-size: 0.8rem;
-  padding: 4px 6px;
+  padding: 6px 8px;
+  transition: all 0.3s ease;
 }
+code:hover { background-color: var(--card-header); color: var(--text-bright); border-color: var(--scrollbar-thumb); }
+code:active { background-color: var(--navbar-bg); color: var(--text-body); border-color: var(--border-color); }
+
 
 .media-container {
   align-items: center;

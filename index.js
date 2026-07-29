@@ -25,7 +25,7 @@ function buildCard(section, cardId) {
       </div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
-      <div class='card-body'>
+      <div class='card-body home-card'>
         <div class='scroll-area' id='${textId}'>Loading...</div>
       </div>
     </div>
