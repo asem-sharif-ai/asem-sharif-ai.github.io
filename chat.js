@@ -246,6 +246,15 @@ function initChatAssistant(configData) {
   document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
 }
 
+function openChatWindow(attemptsLeft = 5) {
+  const win = document.getElementById('chat-assistant-window');
+  if (win) {
+    if (!win.classList.contains('open')) toggleChatWindow();
+  } else if (attemptsLeft > 0) {
+    setTimeout(() => openChatWindow(attemptsLeft - 1), 150);
+  }
+}
+
 function toggleChatWindow() {
   const win = document.getElementById('chat-assistant-window');
   if (win) {
@@ -254,6 +263,7 @@ function toggleChatWindow() {
       const input = document.getElementById('chat-user-input');
       if (input && !input.disabled) input.focus();
     }
+    history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 }
 

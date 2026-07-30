@@ -178,8 +178,8 @@ async function redirectToFallback() {
   }
 
   const host = await readHosts();
-  if (!host || !host.original || !host.fallback) return false;
-
+  if (!host || !host.original || !host.fallback || !host.redirect) return false;
+  
   const url = new URL((window.location.origin === new URL(host.original).origin) ? host.fallback : host.original);
   url.pathname = window.location.pathname;
   url.search = 'redirected=true';
@@ -701,7 +701,22 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
       syncObserver.observe(chatWin, { attributes: true, attributeFilter: ['class'] });
     }
   }
+
+  document.querySelectorAll('tbody tr[data-href]').forEach(row => {
+    row.addEventListener('click', () => window.location.href = row.dataset.href);
+  });
+
   return appliedTheme;
+}
+
+function applyFinalSetup(){
+  document.addEventListener('click', (e) => {
+    const row = e.target.closest('table tbody tr');
+    if (!row) return;
+    if (e.target.closest('a')) return;
+    const link = row.querySelector('a[href]');
+    if (link) window.location.href = link.getAttribute('href');
+  });
 }
 
 function makeSeparator(extraClass = '') {

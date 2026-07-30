@@ -33,6 +33,7 @@
   "host": {
     "original": "https://asem-sharif-ai.pages.dev",
     "fallback": "https://asem-sharif-ai.github.io",
+    "redirect": false,
     "qr_code": true
   },
 
@@ -69,12 +70,8 @@
   },
 
   "sections": [
-    [
-      { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/MDs/about.md", "summary": "" }
-    ],
-    [
-      { "title": "Current Status", "path": "./Data/MDs/status.md", "summary": "" }
-    ]
+    [ { "key": "About", "title": "About Me", "icon": "user", "path": "./Data/about.md", "summary": "" } ],
+    [ { "title": "Current Status", "path": "./Data/status.md", "summary": "" } ]
   ],
 
   "education": [

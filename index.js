@@ -1138,6 +1138,8 @@ async function runProfileApp() {
     footer.innerHTML = homeFooter();
     document.body.appendChild(footer);
 
+    applyFinalSetup()
+
     return true;
 
   } catch (error) {
@@ -1153,9 +1155,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   await runProfileApp();
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);
-    setTimeout(() => { jumpToCard(targetId, targetId); }, 150);
+
+    if (targetId === 'chat-with-assistant') {
+      setTimeout(() => openChatWindow(), 150);
+    } else {
+      setTimeout(() => { jumpToCard(targetId, targetId); }, 150);
+    }
   } else {
     const savedY = sessionStorage.getItem(addresses.indexScrollY);
     if (savedY !== null) requestAnimationFrame(() => window.scrollTo(0, parseInt(savedY, 10)));
+  }
+});
+
+window.addEventListener('hashchange', () => {
+  const targetId = window.location.hash.substring(1);
+  if (targetId === 'chat-with-assistant') {
+    openChatWindow();
   }
 });
