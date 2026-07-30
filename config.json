@@ -24,8 +24,8 @@
   "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
   "cta": {
-    "main": { "icon": "paper", "title": "Resume", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
-    "side": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" }
+    "main": { "icon": "paper", "title": "CV", "date": "04/2026", "link": "./Data/Files/[CV]-Asem-Sharif.pdf" },
+    "side": { "icon": "connect", "title": "Connect", "section": "connect" }
   },
 
   "api": "https://minimal-portfolio.asem-sharif-ai.workers.dev",
@@ -52,7 +52,6 @@
       [
         { "site": "linkedin", "url": "https://www.linkedin.com/in/asem-sharif" },
         { "site": "github",   "url": "https://github.com/asem-sharif-ai" },
-        { "site": "medium",   "url": "https://medium.com/@asem-sharif-ai" },
         { "site": "mailto",   "url": "mailto:asem.sharif.ai@gmail.com" },
         { "site": "telegram", "url": "https://t.me/notasem" }
       ]
@@ -64,8 +63,9 @@
       { "site": "youtube",     "url": "https://www.youtube.com/@AsemSharif-AI" },
       { "site": "whatsapp",    "url": "https://wa.me/+201010057162" },
       { "site": "discord",     "url": "https://discord.com/users/asem.sharif.ai" },
-      { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" },
-      { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" }
+      { "site": "medium",      "url": "https://medium.com/@asem-sharif-ai" },
+      { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" },
+      { "site": "huggingface", "url": "https://huggingface.co/asem-sharif-ai" }
     ]
   },
 

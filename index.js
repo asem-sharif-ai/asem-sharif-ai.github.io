@@ -83,11 +83,18 @@ function copyCardURL(cardId, shareId) {
   if (card && card.dataset.copyInProgress) return;
 
   navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
-    .then(() => { pulseToggleIcon(cardId); })
+    .then(() => { hideCopyIconAndPulseToggle(cardId); })
     .catch(err => console.error('Share Failed: ', err));
 }
 
-function pulseToggleIcon(cardId) {
+function hideCopyIconAndPulseToggle(cardId) {
+  const copyIcon = document.querySelector(`#copy-${cardId} i`);
+  if (copyIcon) {
+    copyIcon.classList.add('copy-icon-hidden');
+    clearTimeout(copyIcon._showTimeout);
+    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
+  }
+
   const icon = document.getElementById(`toggle-${cardId}`);
   const card = document.getElementById(cardId);
   if (!icon || !card) return;
@@ -118,16 +125,6 @@ function pulseToggleIcon(cardId) {
     delete card.dataset.toggleLocked;
     delete card.dataset.copyInProgress;
   }, 1000);
-}
-
-function hideCopyIconAndPulseToggle(cardId) {
-  const copyIcon = document.querySelector(`#copy-${cardId} i`);
-  if (copyIcon) {
-    copyIcon.classList.add('copy-icon-hidden');
-    clearTimeout(copyIcon._showTimeout);
-    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
-  }
-  pulseToggleIcon(cardId);
 }
 
 function downloadCardMedia(cardId) {
@@ -237,7 +234,7 @@ function buildForm(section, cardId, api, adminTimezone) {
             <div class='time-grid' id='${timeGridId}'></div>
           </div>
         </div>
-        <p class='form-divider form-label form-last' id='${changeFormId}'>Prefer A Specific Time? (Optional)</p>
+        <p class='form-divider form-label form-last' id='${changeFormId}'>Prefer A Specific Time?</p>
       </div>
     </div>
   `;
@@ -477,7 +474,7 @@ function buildForm(section, cardId, api, adminTimezone) {
 
     if (onMailScreen) {
       const label = formatSelectedLabel();
-      changeFormBtn.textContent = label ? `Preferred Time: ${label}` : 'Prefer A Specific Time? (Optional)';
+      changeFormBtn.textContent = label ? `Preferred Time: ${label}` : 'Prefer A Specific Time?';
     } else {
       changeFormBtn.textContent = 'Back To Email';
     }
@@ -543,7 +540,7 @@ function buildForm(section, cardId, api, adminTimezone) {
     selectedSlots = [];
     saveTimeSlot();
     renderTimeGrid();
-    if (onMailScreen) changeFormBtn.textContent = 'Prefer A Specific Time? (Optional)';
+    if (onMailScreen) changeFormBtn.textContent = 'Prefer A Specific Time?';
   });
 
   subjectInput.addEventListener('input', (e) => {
@@ -640,7 +637,7 @@ function buildForm(section, cardId, api, adminTimezone) {
       selectedSlots = [];
       saveTimeSlot();
       renderTimeGrid();
-      changeFormBtn.textContent = 'Prefer A Specific Time? (Optional)';
+      changeFormBtn.textContent = 'Prefer A Specific Time?';
     } catch (err) {
       submitBtn.classList.add('btn-fail-glow');
     } finally {

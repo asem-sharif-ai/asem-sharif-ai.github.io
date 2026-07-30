@@ -59,43 +59,25 @@ function buildLogCard(item, index) {
   const header = document.createElement('div');
   header.className = 'log-card-header';
   header.innerHTML = `
-    <div class='log-desktop-view'>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
-          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
-        </div>
-        <div class='log-flex-right'>
-          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
-          ${duration ? `<span class='keyword'>${duration}</span>` : ''}
-        </div>
+    <div class='log-flex-row'>
+      <div class='log-flex-left'>
+        <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
+        ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
       </div>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
-          <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
-        </div>
-        <div class='log-flex-right'>
-          ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''} 
-          ${item.type && item.location ? `<span class='separator'>·</span>` : ''} 
-          ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
-        </div>
+      <div class='log-flex-right'>
+        <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
+        ${duration ? `<span class='keyword'>${duration}</span>` : ''}
       </div>
     </div>
-    <div class='log-mobile-view'>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
-          <span class='card-title log-card-title'>${item.title || 'Untitled'}</span>
-          ${entityUI ? `<span class='separator'>·</span><span class='log-entity'>${entityUI}</span>` : ''}
-        </div>
-        <div class='log-flex-right'></div>
+    <div class='log-flex-row'>
+      <div class='log-flex-left'>
+        <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
       </div>
-      <div class='log-flex-row'>
-        <div class='log-flex-left'>
-          <span class='log-subtitle'>${parseMarkdown(item.subtitle) || ''}</span>
-        </div>
-        <div class='log-flex-right'>
-          <span class='log-subtitle log-date'>${fromLabel} – ${toLabel}</span>
-        </div>
+      <div class='log-flex-right'>
+        ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''} 
+        ${item.type && item.location ? `<span class='separator'>·</span>` : ''} 
+        ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
+        <span class='log-subtitle log-date log-date-mobile'>${fromLabel} – ${toLabel}</span>
       </div>
     </div>
   `;
