@@ -2365,7 +2365,7 @@ li:first-child { margin-top: 0px; }
 li:last-child { margin-bottom: 8px; }
 li:has(> input[type='checkbox']) { list-style: none; display: flex; align-items: center; margin-left: -22px; padding-left: 0; }
 
-em { text-transform: capitalize; font-size: smaller; color: var(--text-muted); padding-right: 2px; }
+em { text-transform: capitalize; font-size: smaller; padding-right: 2px; }
 
 hr { border: none; border-top: 1px solid var(--border-color); margin: 16px 0; }
 strong { color: var(--text-bright); font-weight: 600; }
@@ -2681,8 +2681,7 @@ input[type='checkbox']:checked::after {
 
 .log-card-title {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: wrap;
   white-space: normal;
   word-break: break-word;
   border: none;
@@ -2694,8 +2693,7 @@ input[type='checkbox']:checked::after {
   font-size: 0.88rem;
   font-weight: 500;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: wrap;
   transition: color 0.3s ease;
 }
 
@@ -2847,6 +2845,15 @@ input[type='checkbox']:checked::after {
     border-top: 1px solid var(--border-color);
     margin-top: 8px;
   }
+
+td:nth-child(2) {
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 }
 
 /* ---------- ---------- [HUB] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */

@@ -76,12 +76,12 @@
 
   "education": [
     {
-      "title": "Faculty of Artificial Intelligence",
-      "entity": "Menoufia University",
+      "title": "BSc in Artificial Intelligence",
+      "entity": "MUFAI",
       "entity_url": "https://mu.menofia.edu.eg/ai/Home/en",
       "from_date": "10/2022",
-      "to_date": null,
-      "subtitle": "BSc in Artificial Intelligence - Cyber Security Department",
+      "to_date": "08/2026",
+      "subtitle": "Faculty of Artificial Intelligence - Menoufia University *(Cyber Security Department)*.",
       "type": "120 Credit Hours",
       "location": "Egypt",
       "markdown": "Data/Files/Edu_0/mufai.md",
