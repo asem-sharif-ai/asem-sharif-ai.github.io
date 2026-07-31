@@ -34,6 +34,12 @@ function openGuestbookModal() {
 
 function closeGuestbookModal() {
   document.getElementById('feed-modal-overlay').classList.remove('open');
+  // Edit is a one-shot action: once the modal is dismissed, the admin form
+  // resets to a fresh "New Post" state rather than staying targeted at
+  // whatever post was last opened for editing.
+  if (_gbIdentity?.isAdmin && document.getElementById('feed-state-admin')) {
+    setModalPage('admin');
+  }
 }
 
 function updateModalTrigger(state) {
@@ -78,7 +84,7 @@ function renderFeed(feedList) {
 
   _feedHasMatches = true;
 
-  const sorted = [...filtered].sort((a, b) => {
+  const dateSort = (a, b) => {
     const parse = (d) => {
       const parts = (d || '').split('/');
       if (parts.length !== 3) return 0;
@@ -86,7 +92,12 @@ function renderFeed(feedList) {
       return new Date(year, month - 1, day).getTime();
     };
     return parse(b.date) - parse(a.date);
-  });
+  };
+
+  const sorted = [
+    ...filtered.filter((i) => i.pin).sort(dateSort),
+    ...filtered.filter((i) => !i.pin).sort(dateSort),
+  ];
 
   sorted.forEach((item) => container.appendChild(buildFeedCard(item)));
 
@@ -111,17 +122,20 @@ function buildFeedCard(item) {
           ? `<img class='feed-card-avatar' src='${_gbState.adminAvatar}' alt='avatar' referrerpolicy='no-referrer' />`
           : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`}
         <div class='feed-identity-info'>
-          <span class='feed-name'>${highlightText(item.title || '', query)}</span>
-          <span class='feed-date'>${dateLabel}</span>
+          <span class='feed-name'>${highlightText(item.title || '', query)}${item.pin ? ` <i class='fa-solid fa-bookmark pin-icon'></i>` : ''}</span>
+          <span class='feed-date'>${dateLabel}${isAdmin && item.hidden ? ` · <span class='feed-hidden-badge'>Hidden</span>` : ''}</span>
         </div>
       </div>
       ${isAdmin ? `
       <div class='feed-card-icons'>
+        <button class='btn feed-btn feed-btn-pin ${item.pin ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+          <i class='${item.pin ? 'fa-solid' : 'fa-regular'} fa-bookmark'></i>
+        </button>
+        <button class='btn feed-btn feed-btn-hide ${item.hidden ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+          <i class='fa-solid ${item.hidden ? 'fa-eye-slash' : 'fa-eye'}'></i>
+        </button>
         <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
           <i class='fa-solid fa-pen'></i>
-        </button>
-        <button class='btn feed-btn feed-btn-remove' data-post-id='${item.id}'>
-          <i class='fa-solid fa-trash'></i>
         </button>
       </div>
       ` : ''}
@@ -130,8 +144,9 @@ function buildFeedCard(item) {
   `;
 
   if (isAdmin) {
-    msgPane.querySelector('.feed-btn-remove')?.addEventListener('click', () => feedAdminDelete(item.id, card));
     msgPane.querySelector('.feed-btn-edit')?.addEventListener('click', () => openAdminEditModal(item));
+    msgPane.querySelector('.feed-btn-pin')?.addEventListener('click', () => feedAdminTogglePin(item, card));
+    msgPane.querySelector('.feed-btn-hide')?.addEventListener('click', () => feedAdminToggleVisibility(item, card));
   }
 
   if (item.gallery && item.gallery.content.length > 0) {
@@ -154,13 +169,25 @@ function openAdminEditModal(item) {
   overlay.classList.add('open');
 }
 
-async function feedAdminDelete(postId, cardUI) {
+async function feedAdminTogglePin(item, cardUI) {
   try {
-    await fetchGuestbook('feed_delete', { id: postId });
-    _allFeed = _allFeed.filter((p) => p.id !== postId);
-    cardUI.remove();
+    const data = await fetchGuestbook('feed_pin', { id: item.id });
+    const post = _allFeed.find((p) => p.id === item.id);
+    if (post) post.pin = data.pin;
+    renderFeed(_allFeed);
   } catch (e) {
-    console.error('Feed Delete Failed:', e);
+    console.error('Feed Pin Toggle Failed:', e);
+  }
+}
+
+async function feedAdminToggleVisibility(item, cardUI) {
+  try {
+    const data = await fetchGuestbook('feed_visibility', { id: item.id });
+    const post = _allFeed.find((p) => p.id === item.id);
+    if (post) post.hidden = data.hidden;
+    renderFeed(_allFeed);
+  } catch (e) {
+    console.error('Feed Visibility Toggle Failed:', e);
   }
 }
 
