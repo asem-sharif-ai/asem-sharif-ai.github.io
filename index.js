@@ -1007,7 +1007,7 @@ async function runProfileApp() {
             const sectionIcon = iconMap[section.icon?.toLowerCase()] ?? iconMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
-            navBtn.className = 'home-nav-file';
+            navBtn.className = 'nav-link-section';
             navBtn.innerHTML = /*html*/ `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);
@@ -1068,7 +1068,7 @@ async function runProfileApp() {
         const formIcon = iconMap[data.form.icon?.toLowerCase()] ?? iconMap['default'];
         const navBtn = document.createElement('a');
         navBtn.id = `nav-${formCardId}`;
-        navBtn.className = 'home-nav-file';
+        navBtn.className = 'nav-link-section';
         navBtn.innerHTML = /*html*/ `<i class='${formIcon}'></i><span class='nav-label'> ${data.form.key}</span>`;
         navBtn.onclick = () => jumpToCard(formRowId, formCardId);
         navItems.appendChild(navBtn);
@@ -1111,7 +1111,7 @@ async function runProfileApp() {
           return fileOrder.indexOf('form');
         }
         
-        if (element.className === 'home-nav-file') {
+        if (element.className === 'nav-link-section') {
           return fileOrder.indexOf('sections');
         }
         
@@ -1126,6 +1126,42 @@ async function runProfileApp() {
       const sortedButtons = Array.from(navItems.children);
       sortedButtons.sort((a, b) => getOrderIndex(a) - getOrderIndex(b));
       sortedButtons.forEach(btn => navItems.appendChild(btn));
+    }
+
+    const menuToggle = document.getElementById('nav-menu');
+    const menuPanel = document.getElementById('nav-panel');
+    const menuList = document.getElementById('nav-dropdown');
+
+    if (navItems && menuList) {
+      Array.from(navItems.children).forEach(link => {
+        const clone = link.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.classList.add('filter-item', 'index-nav-item');
+        if (link.onclick) clone.onclick = (e) => { link.onclick(e); closeMenu(); };
+        if (link.href) clone.addEventListener('click', closeMenu);
+        menuList.appendChild(clone);
+      });
+    }
+
+    let isMenuOpen = false;
+
+    function positionMenuPanel() {
+      const rect = menuToggle.getBoundingClientRect();
+      menuPanel.style.top = `${rect.bottom + 10}px`;
+      menuPanel.style.left = `${rect.left}px`;
+    }
+
+    function openMenu() { isMenuOpen = true; positionMenuPanel(); menuPanel.classList.add('open'); menuToggle.classList.add('active'); }
+    function closeMenu() { isMenuOpen = false; menuPanel.classList.remove('open'); menuToggle.classList.remove('active'); }
+
+    if (menuToggle && menuPanel) {
+      menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isMenuOpen ? closeMenu() : openMenu();
+      });
+      document.addEventListener('click', (e) => {
+        if (!menuPanel.contains(e.target) && e.target !== menuToggle) closeMenu();
+      });
     }
 
     observeCards();
