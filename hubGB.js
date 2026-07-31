@@ -574,7 +574,7 @@ function setModalPage(state, editingPost = null) {
         <div id='feed-modal-status' class='subtitle hub-hidden'></div>
       </div>
     `;
-    modalHandlers('admin');
+    modalHandlers('admin', editingPost);
     return;
   }
 
@@ -796,11 +796,13 @@ function cancelOTPVerify() {
   setModalPage('login');
 }
 
-function modalHandlers(state) {
+function modalHandlers(state, editingPost = null) {
   document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeGuestbookModal);
 
   if (state === 'admin') {
     let pendingGallery = [];
+    const editingPostId = editingPost?.id || null;
+    const existingGallery = editingPost?.gallery || null;
 
     const titleInput = document.getElementById('feed-admin-title');
     const contentInput = document.getElementById('feed-admin-content');
@@ -867,6 +869,22 @@ function modalHandlers(state) {
       setModalStatus('');
     });
 
+    document.getElementById('feed-admin-delete-btn')?.addEventListener('click', async () => {
+      if (!editingPostId) return;
+      const deleteBtn = document.getElementById('feed-admin-delete-btn');
+      if (deleteBtn) deleteBtn.disabled = true;
+      setModalStatus('Deleting');
+      try {
+        await fetchGuestbook('feed_delete', { id: editingPostId });
+        _allFeed = _allFeed.filter((p) => p.id !== editingPostId);
+        renderFeed(_allFeed);
+        setModalPage('admin');
+      } catch (e) {
+        if (deleteBtn) deleteBtn.disabled = false;
+        setModalStatus(e.message, true);
+      }
+    });
+
     document.getElementById('feed-admin-save-btn')?.addEventListener('click', async () => {
       const title = titleInput?.value.trim();
       const content = contentInput?.value.trim();
@@ -895,8 +913,24 @@ function modalHandlers(state) {
           uploadedImages.push({ id: res.id, url: res.url });
         }
 
-        const gallery = uploadedImages.length > 0 ? { header: galleryHeader, content: uploadedImages } : null;
-        await fetchGuestbook('feed_save', { title, content, gallery });
+        // New images REPLACE the old gallery entirely - never merged, never edited in place.
+        // If no new images were picked, the previous gallery (if any) is kept as-is.
+        const isReplacingGallery = uploadedImages.length > 0;
+        const gallery = isReplacingGallery
+          ? { header: galleryHeader, content: uploadedImages }
+          : existingGallery;
+
+        await fetchGuestbook('feed_save', { id: editingPostId || undefined, title, content, gallery });
+
+        // Old gallery images are only discarded once the new post has saved successfully.
+        if (isReplacingGallery && existingGallery?.content?.length) {
+          for (const img of existingGallery.content) {
+            const publicId = typeof img === 'string' ? null : img?.id;
+            if (publicId) {
+              fetchGuestbook('gallery_delete', { id: publicId }).catch(() => {});
+            }
+          }
+        }
 
         pendingGallery = [];
         setModalStatus('Post Saved');
