@@ -112,6 +112,7 @@ function buildFeedCard(item) {
   const query = _searchQuery;
   const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
   const isAdmin = _gbIdentity?.isAdmin === true;
+  const isSignedInGuest = !!_gbIdentity && !isAdmin;
 
   const msgPane = document.createElement('div');
   msgPane.className = 'feed-msg-pane';
@@ -139,6 +140,14 @@ function buildFeedCard(item) {
         </button>
       </div>
       ` : ''}
+      ${isSignedInGuest ? `
+      <div class='feed-card-icons'>
+        <button class='btn feed-btn feed-btn-react ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+          <i class='${item.liked ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
+          <span class='feed-react-count'>${item.likeCount || 0}</span>
+        </button>
+      </div>
+      ` : ''}
     </div>
      <div class='feed-text'>${highlightText(parseMarkdown(Array.isArray(item.content) ? item.content.join('\n') : (item.content || '')), query)}</div>
   `;
@@ -147,6 +156,10 @@ function buildFeedCard(item) {
     msgPane.querySelector('.feed-btn-edit')?.addEventListener('click', () => openAdminEditModal(item));
     msgPane.querySelector('.feed-btn-pin')?.addEventListener('click', () => feedAdminTogglePin(item, card));
     msgPane.querySelector('.feed-btn-hide')?.addEventListener('click', () => feedAdminToggleVisibility(item, card));
+  }
+
+  if (isSignedInGuest) {
+    msgPane.querySelector('.feed-btn-react')?.addEventListener('click', (e) => feedToggleReact(item, e.currentTarget));
   }
 
   if (item.gallery && item.gallery.content.length > 0) {
@@ -189,6 +202,57 @@ async function feedAdminToggleVisibility(item, cardUI) {
   } catch (e) {
     console.error('Feed Visibility Toggle Failed:', e);
   }
+}
+
+function feedToggleReact(item, btnUI) {
+  // Optimistic update: flip the heart and adjust the count immediately,
+  // then sync with the server in the background. Roll back on failure.
+  const wasLiked = !!item.liked;
+  const prevCount = item.likeCount || 0;
+
+  const nextLiked = !wasLiked;
+  const nextCount = wasLiked ? Math.max(0, prevCount - 1) : prevCount + 1;
+
+  item.liked = nextLiked;
+  item.likeCount = nextCount;
+
+  const post = _allFeed.find((p) => p.id === item.id);
+  if (post) {
+    post.liked = nextLiked;
+    post.likeCount = nextCount;
+  }
+
+  applyReactUI(btnUI, nextLiked, nextCount);
+
+  fetchGuestbook('feed_react', { id: item.id })
+    .then((data) => {
+      item.liked = data.liked;
+      item.likeCount = data.likeCount;
+      if (post) {
+        post.liked = data.liked;
+        post.likeCount = data.likeCount;
+      }
+      applyReactUI(btnUI, data.liked, data.likeCount);
+    })
+    .catch((e) => {
+      console.error('Feed React Failed:', e);
+      item.liked = wasLiked;
+      item.likeCount = prevCount;
+      if (post) {
+        post.liked = wasLiked;
+        post.likeCount = prevCount;
+      }
+      applyReactUI(btnUI, wasLiked, prevCount);
+    });
+}
+
+function applyReactUI(btnUI, liked, count) {
+  if (!btnUI) return;
+  btnUI.classList.toggle('feed-btn-active', liked);
+  const icon = btnUI.querySelector('i');
+  if (icon) icon.className = `${liked ? 'fa-solid' : 'fa-regular'} fa-heart`;
+  const countUI = btnUI.querySelector('.feed-react-count');
+  if (countUI) countUI.textContent = count;
 }
 
 // ───── Guests ────────────────────────────────────────
