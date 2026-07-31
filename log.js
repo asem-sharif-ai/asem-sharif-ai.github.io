@@ -77,7 +77,10 @@ function buildLogCard(item, index) {
         ${item.type ? `<span class='log-subtitle log-type'>${item.type}</span>` : ''} 
         ${item.type && item.location ? `<span class='separator'>·</span>` : ''} 
         ${item.location ? `<span class='log-subtitle log-location'>${item.location}</span>` : ''}
-        <span class='log-subtitle log-date log-date-mobile'>${fromLabel} – ${toLabel}</span>
+        <div class='log-date-mobile'>
+          <span class='log-subtitle log-date'>${fromLabel}</span>
+          <span class='log-subtitle log-date'>${toLabel}</span>
+        </div>
       </div>
     </div>
   `;

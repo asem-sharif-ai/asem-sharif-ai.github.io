@@ -1136,7 +1136,7 @@ async function runProfileApp() {
       Array.from(navItems.children).forEach(link => {
         const clone = link.cloneNode(true);
         clone.removeAttribute('id');
-        clone.classList.add('filter-item', 'index-nav-item');
+        clone.classList.add('filter-item', 'index-menu-item');
         if (link.onclick) clone.onclick = (e) => { link.onclick(e); closeMenu(); };
         if (link.href) clone.addEventListener('click', closeMenu);
         menuList.appendChild(clone);
@@ -1162,6 +1162,7 @@ async function runProfileApp() {
       document.addEventListener('click', (e) => {
         if (!menuPanel.contains(e.target) && e.target !== menuToggle) closeMenu();
       });
+      window.addEventListener('scroll', () => { if (isMenuOpen) closeMenu(); }, { passive: true });
     }
 
     observeCards();

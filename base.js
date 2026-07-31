@@ -30,7 +30,7 @@ const iconMap = {
   update:       'fa-solid fa-clock-rotate-left',
   analytics:    'fa-solid fa-chart-line',
   faq:          'fa-solid fa-circle-question',
-  hub:          'fa-solid fa-share-nodes',
+  hub:          'fa-brands fa-superpowers',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
   default:      'fa-solid fa-layer-group',

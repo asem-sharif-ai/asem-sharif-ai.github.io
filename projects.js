@@ -217,7 +217,7 @@ function initFilterToggle() {
 
   function positionPanel() {
     const rect = btn.getBoundingClientRect();
-    panel.style.top = `${rect.bottom + 10}px`;
+    panel.style.top = `${rect.bottom + 32}px`;
     panel.style.left = `${rect.left}px`;
   }
 
