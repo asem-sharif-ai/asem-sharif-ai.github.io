@@ -124,20 +124,20 @@ function buildFeedCard(item) {
           ? `<img class='feed-card-avatar' src='${_gbState.adminAvatar}' alt='avatar' referrerpolicy='no-referrer' />`
           : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`}
         <div class='feed-identity-info'>
-          <span class='feed-name'>${highlightText(item.title || '', query)}${item.pin ? ` <i class='fa-solid fa-bookmark pin-icon'></i>` : ''}</span>
+          <span class='feed-name'>${highlightText(item.title || '', query)}</span>
           <span class='feed-date'>${dateLabel}${isAdmin && item.hidden ? ` · <span class='feed-hidden-badge'>Hidden</span>` : ''}</span>
         </div>
       </div>
       ${isAdmin ? `
       <div class='feed-card-icons'>
-        <button class='btn feed-btn feed-btn-pin ${item.pin ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
-          <i class='${item.pin ? 'fa-solid' : 'fa-regular'} fa-bookmark'></i>
+        <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
+          <i class='fa-solid fa-pen'></i>
         </button>
         <button class='btn feed-btn feed-btn-hide ${item.hidden ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
           <i class='fa-solid ${item.hidden ? 'fa-eye-slash' : 'fa-eye'}'></i>
         </button>
-        <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
-          <i class='fa-solid fa-pen'></i>
+        <button class='btn feed-btn feed-btn-pin ${item.pin ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+          <i class='${item.pin ? 'fa-solid' : 'fa-regular'} fa-bookmark'></i>
         </button>
       </div>
       ` : ''}
@@ -395,7 +395,7 @@ function renderGuestbook() {
   _gbHasMatches = true;
 
   if (isAdmin) {
-    const statusOrder = { approved: 1, pending: 2, deletedByGuest: 3, deletedByAdmin: 4, banned: 5 };
+    const statusOrder = { approved: 1, pending: 2, fresh: 3, deletedByGuest: 4, deletedByAdmin: 5, banned: 6 };
     const sortedEntries = [...finalEntries].sort((a, b) => (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99));
     
     sortedEntries.forEach((e) => container.appendChild(buildGuestbookCard(e, true)));
@@ -449,6 +449,7 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
   let statusBadge = '';
   if (isAdmin) {
     const badgeClass = {
+      fresh:          'keyword feed-badge feed-badge-fresh',
       approved:       'keyword feed-badge feed-badge-approved',
       pending:        'keyword feed-badge feed-badge-pending',
       deletedByGuest: 'keyword feed-badge feed-badge-banned',
@@ -475,9 +476,10 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
         ${
           isAdmin 
             ? `
+          ${entry.status === 'fresh' ? '' : `
           ${entry.status === 'deletedByGuest' || entry.status === 'deletedByAdmin' ? '' : `
           <button class='btn feed-btn feed-btn-approve ${entry.status === 'approved' ? 'feed-btn-active' : ''}'>
-            <i class='fa-solid fa-check'></i>
+            <i class='fa-solid ${entry.status === 'approved' ? 'fa-eye' : 'fa-eye-slash'}'></i>
           </button>
           <button class='btn feed-btn feed-btn-heart ${entry.like ? 'feed-btn-active' : ''}'>
             <i class='${entry.like ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
@@ -492,6 +494,7 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
           <button class='btn feed-btn feed-btn-remove'>
             <i class='fa-solid fa-trash'></i>
           </button>
+          `}
           <button class='btn feed-btn feed-btn-ban'>
             <i class='fa-solid fa-ban'></i>
           </button>
@@ -511,7 +514,7 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
     card.querySelector('.feed-btn-heart')?.addEventListener('click', () =>    gbAdminAction('like',            entry.id, card));
     card.querySelector('.feed-btn-pin')?.addEventListener('click', () =>      gbAdminAction('pin',             entry.id, card));
     card.querySelector('.feed-btn-delete')?.addEventListener('click', () =>   gbAdminAction('delete_message', entry.id, card));
-    card.querySelector('.feed-btn-remove').addEventListener('click', () =>   gbAdminAction('remove',          entry.id, card));
+    card.querySelector('.feed-btn-remove')?.addEventListener('click', () =>   gbAdminAction('remove',          entry.id, card));
     card.querySelector('.feed-btn-ban').addEventListener('click', () =>      gbAdminAction('ban',             entry.id, card));
   }
 
@@ -646,11 +649,13 @@ function setModalPage(state, editingPost = null) {
         <div class='feed-login-title-row'>
           <span class='feed-login-title'>${isEditing ? 'Edit Post' : 'New Post'}</span>
           <div class='feed-identity-right'>
-            <button class='feed-icon-btn feed-icon-cancel' id='feed-admin-cancel-btn'><i class='fa-solid fa-eraser'></i></button>
-            <button class='feed-icon-btn feed-icon-add' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i></button>
-            ${isEditing ? `<button class='feed-icon-btn feed-icon-delete' id='feed-admin-delete-btn'><i class='fa-solid fa-trash'></i></button>` : ''}
             <button class='feed-icon-btn feed-icon-save' id='feed-admin-save-btn'><i class='fa-solid fa-paper-plane'></i></button>
-            <button class='btn feed-unlink-btn' id='feed-unlink-btn'><i class='fa-solid fa-right-from-bracket'></i></button>
+            <button class='feed-icon-btn feed-icon-add' id='feed-admin-gallery-btn'><i class='fa-solid fa-images'></i></button>
+            ${isEditing ? `
+              <button class='feed-icon-btn feed-icon-delete' id='feed-admin-delete-btn'><i class='fa-solid fa-trash'></i></button>
+              ` : `
+              <button class='btn feed-unlink-btn' id='feed-unlink-btn'><i class='fa-solid fa-right-from-bracket'></i></button>
+            `}
             <button class='feed-icon-btn feed-icon-close' id='feed-close-modal-btn'><i class='fa-solid fa-xmark'></i></button>
           </div>
         </div>
@@ -808,6 +813,8 @@ async function gbAdminAction(action, id, cardUI) {
       }
       const btn = cardUI.querySelector('.feed-btn-approve');
       btn.classList.toggle('feed-btn-active', data.status === 'approved');
+      const btnIcon = btn.querySelector('i');
+      if (btnIcon) btnIcon.className = `fa-solid ${data.status === 'approved' ? 'fa-eye' : 'fa-eye-slash'}`;
       const badge = cardUI.querySelector('.feed-badge');
       if (badge) {
         badge.textContent = data.status === 'approved' ? 'Approved' : 'Pending';

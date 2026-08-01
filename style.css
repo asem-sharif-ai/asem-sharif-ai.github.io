@@ -509,10 +509,6 @@ footer a { border-bottom: none; text-decoration: none;}
   opacity: 1;
 }
 
-.community-icon {
-  font-size: 110%;
-}
-
 .post-detail {
   font-size: 0.8em;
   font-weight: normal;
@@ -1653,7 +1649,7 @@ footer a { border-bottom: none; text-decoration: none;}
 }
 
 .quick-link-item i {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   color: var(--text-muted);
   transition: var(--default-transition);
 }
@@ -1673,6 +1669,9 @@ footer a { border-bottom: none; text-decoration: none;}
   font-weight: 500;
   margin-top: 4px;
 }
+
+.community-icon { font-size: 110%; transform: rotate(8deg) }
+.quick-link-item .community-icon { font-size: 140%; }
 
 /* ---------- ---------- [MAIL_FORM] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
 
