@@ -133,7 +133,7 @@ function buildFeedCard(item) {
         <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
           <i class='fa-solid fa-pen'></i>
         </button>
-        <button class='btn feed-btn feed-btn-hide ${item.hidden ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+        <button class='btn feed-btn feed-btn-hide ${item.hidden ? '' : 'feed-btn-active'}' data-post-id='${item.id}'>
           <i class='fa-solid ${item.hidden ? 'fa-eye-slash' : 'fa-eye'}'></i>
         </button>
         <button class='btn feed-btn feed-btn-pin ${item.pin ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
