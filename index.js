@@ -663,32 +663,37 @@ function buildHero(data, getTheme, setTheme) {
     
   const currentTheme = getTheme();
 
+  function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    const theme = isLight ? 'light' : 'dark';
+    setTheme(theme);
+    localStorage.setItem(addresses.userTheme, theme);
+
+    const heroPicture = document.querySelector('.hero-picture');
+    if (heroPicture && data.picture) {
+      let resolvedPic = '';
+      if (Array.isArray(data.picture)) {
+        const [dark, light] = data.picture;
+        resolvedPic = (theme === 'light' ? light : dark) || dark || light || '';
+      } else if (data.picture && typeof data.picture === 'object') {
+        resolvedPic = (theme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
+      } else {
+        resolvedPic = data.picture || '';
+      }
+      heroPicture.src = resolvedPic;
+    }
+  }
+
   if (data.symbol) {
     const logoContainer = document.querySelector('.hero-logo');
     if (logoContainer) {
       logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
-      logoContainer.addEventListener('click', () => {
-        const isLight = document.body.classList.toggle('light-mode');
-        const theme = isLight ? 'light' : 'dark';
-        setTheme(theme);
-        localStorage.setItem(addresses.userTheme, theme);
-        
-        const heroPicture = document.querySelector('.hero-picture');
-        if (heroPicture && data.picture) {
-          let resolvedPic = '';
-          if (Array.isArray(data.picture)) {
-            const [dark, light] = data.picture;
-            resolvedPic = (theme === 'light' ? light : dark) || dark || light || '';
-          } else if (data.picture && typeof data.picture === 'object') {
-            resolvedPic = (theme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
-          } else {
-            resolvedPic = data.picture || '';
-          }
-          heroPicture.src = resolvedPic;
-        }
-      });
+      logoContainer.addEventListener('click', toggleTheme);
     }
   }
+
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
 
   const userName = document.getElementById('user-name');
   if (userName) userName.innerText = data.name || 'Anonymous';
@@ -1083,8 +1088,7 @@ async function runProfileApp() {
       education:  './log.html?page=education',
       experience: './log.html?page=experience',
       projects:   './projects.html',
-      skills:     './log.html?page=skills',
-      hub:        './hub.html',
+      community:  './hub.html',
     };
     const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
 
@@ -1093,7 +1097,7 @@ async function runProfileApp() {
         const btn = document.createElement('a');
         btn.id = `nav-${key}`;
         const label = key.charAt(0).toUpperCase() + key.slice(1);
-        btn.innerHTML = /*html*/ `<i class='${iconMap[key]}'></i><span class='nav-label'> ${label}</span>`;
+        btn.innerHTML = /*html*/ `<i class='${iconMap[key]}'></i><span class='nav-label'>${label}</span>`;
         btn.href = allowedKeys[key];
         navItems.appendChild(btn);
       });

@@ -18,8 +18,9 @@ async function runHubApp() {
     initHubSearch();
     initGuestbookModal();
 
+    renderNoData('Loading Community Data', 'list-container', false);
+
     document.getElementById(`hub-tab-${_currentTab}`).classList.add('active');
-    document.getElementById(`hub-panel-${_currentTab}`).classList.remove('hub-hidden');
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
     document.getElementById('hub-tab-feed').addEventListener('click', () => switchHubTab('feed'));
     document.getElementById('hub-tab-guests').addEventListener('click', () => switchHubTab('guests'));
@@ -38,18 +39,17 @@ async function runHubApp() {
         ensureGuestbookLoaded();
       }
     } else {
-      renderNoData('Feed Not Set Yet', 'feed-container', false);
-      renderNoData('Guestbook Not Set Yet', 'guests-container', false);
+      if (_currentTab === 'feed') renderNoData('Feed Not Set Yet', 'list-container', false);
+      if (_currentTab === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
     }
 
-    if (configData?.hub?.faq) {
-      renderNoData('Loading FAQ', 'list-container', false);
+    if (configData?.community.faq) {
       try {
-        const faqRes = await fetch(configData.hub.faq);
+        const faqRes = await fetch(configData.community.faq);
         _allFaq = await faqRes.json();
-        renderFAQ(_allFaq);
+        if (_currentTab === 'faq') renderFAQ(_allFaq);
       } catch {
-        renderNoData('Could Not Load FAQ', 'list-container', false);
+        if (_currentTab === 'faq') renderNoData('Could Not Load FAQ', 'list-container', false);
       }
     } else {
       if (_currentTab === 'faq')

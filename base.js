@@ -16,9 +16,8 @@ const iconMap = {
   resume:       'fa-solid fa-file-pdf',
   contact:      'fa-solid fa-envelope',
   connect:      'fa-brands fa-nfc-symbol',
-  experience:   'fa-solid fa-briefcase',
   education:    'fa-solid fa-graduation-cap',
-  skills:       'fa-solid fa-layer-group',
+  experience:   'fa-solid fa-briefcase',
   projects:     'fa-solid fa-laptop-code',
   services:     'fa-solid fa-handshake',
   gallery:      'fa-solid fa-image',
@@ -29,8 +28,8 @@ const iconMap = {
   status:       'fa-solid fa-circle-info',
   update:       'fa-solid fa-clock-rotate-left',
   analytics:    'fa-solid fa-chart-line',
+  community:    'fa-brands fa-superpowers',
   faq:          'fa-solid fa-circle-question',
-  hub:          'fa-brands fa-superpowers',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
   default:      'fa-solid fa-layer-group',
@@ -645,6 +644,11 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
   const navName = document.getElementById('nav-user-name');
   if (navName) navName.innerText = name;
   renderRoles('nav-user-role', data.role);
+
+  const navLogo = document.getElementById('nav-logo');
+  if (navLogo && data.icon) {
+    navLogo.innerHTML = `<img src='${data.icon}' alt='${name}' />`;
+  }
 
   if (data.icon) {
     let link = document.querySelector('link[rel*="icon"]');

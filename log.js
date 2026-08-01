@@ -267,38 +267,76 @@ function renderSkillsList(skillsData) {
   }
 }
 
-// ───── Log Rounter ────────────────────────────────────────
+// ───── Log Router / Tabs ────────────────────────────────────────
+
+const VALID_PAGES = ['education', 'experience', 'skills'];
+let _logConfigData = null;
+
+function setActiveTab(page) {
+  document.querySelectorAll('.log-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.page === page);
+  });
+}
+
+function renderLogPage(page) {
+  const data = _logConfigData?.[page];
+
+  const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+  const configName = _logConfigData?.name ?? _logConfigData?.config?.name ?? '';
+  document.title = configName ? `${configName} - ${capitalize(page)}` : capitalize(page);
+
+  if (page === 'skills') {
+    renderSkillsList(data);
+  } else if (data && Array.isArray(data) && data.length) {
+    renderLogList(data);
+  } else {
+    renderNoData(page);
+  }
+
+  setActiveTab(page);
+}
+
+function switchTab(page, { updateUrl = true } = {}) {
+  if (!VALID_PAGES.includes(page)) return;
+
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.history.pushState({ page }, '', url);
+  }
+
+  renderLogPage(page);
+}
 
 async function runLogRouter() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const page = params.get('page')?.toLowerCase() ?? '';
-    
-    if (!['education', 'experience', 'skills'].includes(page)) {
-      document.title = 'SlateMP - Invalid Request'
-      document.getElementById('nav-user-name').innerText = 'Invalid Request';
-      renderRoles('nav-user-role', 'Routing Options: Education, Experience, and Skills.')
+    let page = params.get('page')?.toLowerCase() ?? '';
 
-      console.warn(`Routing Fallback: Invalid OR Missing Parameter: '${page}'`);
-      return;
+    if (!VALID_PAGES.includes(page)) {
+      page = VALID_PAGES[0];
     }
 
-    const configData = await loadConfig();
-    const data = configData[page];
+    _logConfigData = await loadConfig();
+    applyBaseSetup(_logConfigData, '');
 
-    const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
-    applyBaseSetup(configData, capitalize(page));
+    document.querySelectorAll('.log-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = tab.dataset.page;
+        if (target === page) return;
+        page = target;
+        switchTab(page);
+      });
+    });
 
-    if (page === 'skills') {
-      renderSkillsList(data);
-    } else if (['education', 'experience'].includes(page)) {
-      const data = configData[page];
-      if (data && Array.isArray(data) && data.length) {
-        renderLogList(data);
-      } else {
-        renderNoData(page);
-      }
-    }
+    window.addEventListener('popstate', () => {
+      const p = new URLSearchParams(window.location.search).get('page')?.toLowerCase();
+      page = VALID_PAGES.includes(p) ? p : VALID_PAGES[0];
+      renderLogPage(page);
+    });
+
+    renderLogPage(page);
 
   } catch (e) {
     console.error('Log Core Router Failure:', e);

@@ -38,26 +38,25 @@ function switchHubTab(targetTab) {
   document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
 
-  const faqPanel = document.getElementById('hub-panel-faq');
-  const feedPanel = document.getElementById('hub-panel-feed');
-  const guestsPanel = document.getElementById('hub-panel-guests');
-
-  faqPanel.classList.add('hub-hidden');
-  feedPanel.classList.add('hub-hidden');
-  guestsPanel.classList.add('hub-hidden');
-
-  if (targetTab === 'feed') {
-    feedPanel.classList.remove('hub-hidden');
-  } else if (targetTab === 'guests') {
-    guestsPanel.classList.remove('hub-hidden');
-    if (document.getElementById('feed-state-loading') && !_gbIdentity) {
-      setModalPage('login');
-    }
-  } else {
-    faqPanel.classList.remove('hub-hidden');
+  if (targetTab === 'guests' && document.getElementById('feed-state-loading') && !_gbIdentity) {
+    setModalPage('login');
   }
 
+  renderCurrentTab();
   updateShareIconState();
+}
+
+// Single entry point for painting whatever tab is active: look at
+// _currentTab, pick the already-fetched data source for it, and let
+// that tab's own builder filter + render into 'list-container'.
+function renderCurrentTab() {
+  if (_currentTab === 'feed') {
+    renderFeed(_allFeed);
+  } else if (_currentTab === 'guests') {
+    renderGuestbook();
+  } else {
+    renderFAQ(_allFaq);
+  }
 }
 
 function initHubSearch() {
@@ -71,9 +70,7 @@ function initHubSearch() {
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
       _saveHubState();
-      renderFAQ(_allFaq);
-      renderFeed(_allFeed);
-      renderGuestbook();
+      renderCurrentTab();
       updateShareIconState();
     }, 300);
   });
@@ -107,13 +104,18 @@ function initHubShare(update = true) {
 
   const shareBtn = document.getElementById('nav-share-icon');
   if (shareBtn) {
+    let shareAnimating = false;
     shareBtn.addEventListener('click', (e) => {
-      if (shareBtn.classList.contains('ui-disabled')) return;
+      if (shareBtn.classList.contains('ui-disabled') || shareAnimating) return;
       e.stopPropagation();
-      navigator.clipboard
-        .writeText(buildUrl())
-        .then(() => showSuccessFeedback('nav-share-icon'))
-        .catch(err => console.error('Share Copy Failed: ', err));
+      navigator.clipboard.writeText(buildUrl()).then(() => {
+        shareAnimating = true;
+        shareBtn.classList.add('copied');
+        setTimeout(() => {
+          shareBtn.classList.remove('copied');
+          shareAnimating = false;
+        }, 2000);
+      }).catch(err => console.error('Share Copy Failed: ', err));
     });
   }
 
@@ -157,7 +159,7 @@ let _faqHasMatches = true;
 const A = (a) => Array.isArray(a) ? a.join('\n') : (a || '');
 
 async function loadFAQ(configData) {
-  const faqPath = configData?.hub?.faq;
+  const faqPath = configData?.community?.faq;
   if (faqPath) {
     const res = await fetch(faqPath);
     _allFaq = await res.json();
@@ -166,14 +168,14 @@ async function loadFAQ(configData) {
   }
 }
 
-function renderFAQ(faqList, containerId = 'list-container') {
-  const container = document.getElementById(containerId);
+function renderFAQ(faqList) {
+  const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
   if (!Array.isArray(faqList) || faqList.length === 0) {
     _faqHasMatches = false;
-    renderNoData('FAQ', containerId);
+    renderNoData('FAQ', 'list-container');
     return;
   }
 
@@ -193,7 +195,7 @@ function renderFAQ(faqList, containerId = 'list-container') {
 
   if (filtered.length === 0) {
     _faqHasMatches = false;
-    renderNoData('No FAQ Matched The Search Key', containerId, false);
+    renderNoData('No FAQ Matched The Search Key', 'list-container', false);
     return;
   }
 

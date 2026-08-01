@@ -379,6 +379,12 @@
     ]
   },
 
+  "community": {
+    "feed": true,
+    "guests": true,
+    "faq": "./faq.json"
+  },
+
   "form": {
     "key": "Connect",
     "icon": "connect",
@@ -402,11 +408,5 @@
       "Just Saying Hi!"
     ],
     "forward": "asem.sharif.ai@gmail.com"
-  },
-
-  "hub": {
-    "faq": "./faq.json",
-    "feed": "./feed.json",
-    "guestbook": "https://minimal-portfolio-guestbook.asem-sharif-ai.workers.dev"
   }
 }

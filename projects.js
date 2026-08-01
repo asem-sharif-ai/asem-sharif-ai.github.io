@@ -73,6 +73,20 @@ function _updateShareIcon() {
 
 // ───── Filter & Search ────────────────────────────────────────
 
+function buildFilterDetailLabel() {
+  const filterMobileEl = document.getElementById('filter-mobile');
+  if (_starredOnly) {
+    filterMobileEl.innerHTML = `(Starred)`;
+    return `Filter <span class='post-detail'>(Starred)</span>`;
+  } else if (_activeTopic.size > 0) {
+    filterMobileEl.innerHTML = `(${_filterMode === 'AND' ? 'All' : 'Any'} ${_activeTopic.size})`;
+    return `Filter <span class='post-detail'>(${[..._activeTopic].join(_filterMode === 'AND' ? ' & ' : ', ')})</span>`;
+  } else {
+    filterMobileEl.innerHTML = '';
+    return 'Filter';
+  }
+}
+
 function buildFilterDropdown() {
   function collectTopics(_allProjects) {
     const all = new Set();
@@ -92,31 +106,47 @@ function buildFilterDropdown() {
   if (!dropdown) return;
   dropdown.innerHTML = '';
 
-  const allItem = document.createElement('div');
-  allItem.className = `filter-item filter-item-all ${_activeTopic.size === 0 && !_starredOnly ? 'active' : ''}`;
-  allItem.innerText = `All Projects (${_allProjects.flat().length})`;
-  allItem.addEventListener('click', () => {
+  function clearAllFilters() {
     _activeTopic.clear();
     _starredOnly = false;
     dropdown.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
     allItem.classList.add('active');
     segmentContainer.className = 'filter-segment-line inactive-mode';
+    modeOr.classList.remove('active');
+    modeAnd.classList.remove('active');
     filterAndRerender();
     _saveFilterState();
-  });
-  dropdown.appendChild(allItem);
+  }
 
-  const starredItem = document.createElement('div');
-  starredItem.className = `filter-item filter-item-star ${_starredOnly ? 'active' : ''}`;
-  starredItem.innerHTML = `<span class='star-icon star-item'></span> Starred (${_allProjects.flat().filter(p => p.star).length})`;
-  starredItem.addEventListener('click', () => {
+  function selectStarredOnly() {
     _activeTopic.clear();
     _starredOnly = true;
     dropdown.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
     starredItem.classList.add('active');
     segmentContainer.className = 'filter-segment-line inactive-mode';
+    modeOr.classList.remove('active');
+    modeAnd.classList.remove('active');
     filterAndRerender();
     _saveFilterState();
+  }
+
+  const allItem = document.createElement('div');
+  allItem.className = `filter-item filter-item-all ${_activeTopic.size === 0 && !_starredOnly ? 'active' : ''}`;
+  allItem.innerHTML = `All Projects <span class='post-detail'>(${_allProjects.flat().length})</span>`;
+  allItem.addEventListener('click', () => {
+    const isAllActive = _activeTopic.size === 0 && !_starredOnly;
+    isAllActive ? selectStarredOnly() : clearAllFilters();
+  });
+  dropdown.appendChild(allItem);
+
+  const cancelFilterIcon = document.getElementById('cancel-filter-icon');
+  if (cancelFilterIcon) cancelFilterIcon.addEventListener('click', clearAllFilters);
+
+  const starredItem = document.createElement('div');
+  starredItem.className = `filter-item filter-item-star ${_starredOnly ? 'active' : ''}`;
+  starredItem.innerHTML = `<span class='star-icon star-item'></span> Starred <span class='post-detail'>(${_allProjects.flat().filter(p => p.star).length})</span>`;
+  starredItem.addEventListener('click', () => {
+    _starredOnly ? clearAllFilters() : selectStarredOnly();
   });
   dropdown.appendChild(starredItem);
 
@@ -169,10 +199,12 @@ function buildFilterDropdown() {
   segmentContainer.appendChild(lineRight);
   dropdown.appendChild(segmentContainer);
 
+  const flatProjects = _allProjects.flat();
   topics.forEach(topic => {
+    const topicCount = flatProjects.filter(p => (p.topics || []).some(t => t.replace(/^_+|_+$/g, '').trim() === topic)).length;
     const item = document.createElement('div');
     item.className = `filter-item ${_activeTopic.has(topic) ? 'active' : ''}`;
-    item.innerText = topic;
+    item.innerHTML = `${topic} <span class='post-detail'>(${topicCount})</span>`;
     item.dataset.topic = topic;
     item.addEventListener('click', () => {
       allItem.classList.remove('active');
@@ -211,7 +243,7 @@ function buildFilterDropdown() {
 
 function initFilterToggle() {
   const btn = document.getElementById('filter-btn');
-  const panel = document.getElementById('filter-panel');
+  const panel = document.getElementById('menu-panel');
   if (!btn || !panel) return;
   let isOpen  = false;
 
@@ -243,14 +275,7 @@ function filterAndRerender() {
   if (filterBtn) {
     const label = filterBtn.querySelector('.nav-label');
     if (label) {
-      if (_starredOnly) {
-        label.innerHTML = `Filter <span class='post-detail filter-detail'>(Starred)</span>`;
-      } else {
-        const connector = _filterMode === 'AND' ? ' & ' : ', ';
-        label.innerHTML = _activeTopic.size > 0
-          ? `Filter <span class='post-detail filter-detail'>(${[..._activeTopic].join(connector)})</span>`
-          : 'Filter';
-      }
+      label.innerHTML = buildFilterDetailLabel();
     }
   }
 
@@ -671,7 +696,7 @@ async function runProjectsApp() {
         
         const filterBtn = document.getElementById('filter-btn');
         if (filterBtn && filterBtn.querySelector('.nav-label')) {
-          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail filter-detail'>(Starred)</span>`;
+          filterBtn.querySelector('.nav-label').innerHTML = buildFilterDetailLabel();
         }
       } else if (_activeTopic.size > 0) {
         dropdown.querySelectorAll('.filter-item').forEach(el => {
@@ -681,10 +706,9 @@ async function runProjectsApp() {
           }
         });
         const filterBtn = document.getElementById('filter-btn');
-        const connector = _filterMode === 'AND' ? ' & ' : ', ';
-        
+
         if (filterBtn && filterBtn.querySelector('.nav-label')) {
-          filterBtn.querySelector('.nav-label').innerHTML = `Filter <span class='post-detail filter-detail'>(${[..._activeTopic].join(connector)})</span>`;
+          filterBtn.querySelector('.nav-label').innerHTML = buildFilterDetailLabel();
         }
       }
     }
@@ -697,11 +721,17 @@ async function runProjectsApp() {
 
     const shareBtn = document.getElementById('nav-share-icon');
     if (shareBtn) {
+      let shareAnimating = false;
       shareBtn.addEventListener('click', (e) => {
-        if (shareBtn.classList.contains('ui-disabled')) return;
+        if (shareBtn.classList.contains('ui-disabled') || shareAnimating) return;
         e.stopPropagation();
         navigator.clipboard.writeText(_buildShareUrl()).then(() => {
-          showSuccessFeedback('nav-share-icon')
+          shareAnimating = true;
+          shareBtn.classList.add('copied');
+          setTimeout(() => {
+            shareBtn.classList.remove('copied');
+            shareAnimating = false;
+          }, 2000);
         }).catch(err => console.error('Share Copy Failed: ', err));
       });
     }

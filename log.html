@@ -12,13 +12,28 @@
     <link rel='stylesheet' href='style.css' />
   </head>
   <body>
-    <nav class='navbar navbar-side has-glow'>
+    <nav class='navbar navbar-keep has-glow'>
       <div class='nav-profile'>
         <div class='nav-name' id='nav-user-name'>Loading...</div>
         <div class='nav-role' id='nav-user-role'></div>
       </div>
       <div class='nav-links'>
-        <a href='index.html'><i class='fa-solid fa-house'></i><span class='nav-label'>Home</span></a>
+        <a class='log-tab' id='log-tab-education' data-page='education'>
+          <i class='fa-solid fa-graduation-cap'></i>
+          <span class='nav-label'>Education</span>
+        </a>
+        <a class='log-tab' id='log-tab-experience' data-page='experience'>
+          <i class='fa-solid fa-briefcase'></i>
+          <span class='nav-label'>Experience</span>
+        </a>
+        <a class='log-tab' id='log-tab-skills' data-page='skills'>
+          <i class="fa-brands fa-slack"></i>
+          <span class='nav-label'>Skills</span>
+        </a>
+        <a href='index.html'>
+          <i class='fa-solid fa-house'></i>
+          <span class='nav-label'>Home</span>
+        </a>
       </div>
     </nav>
     <main class='container'>

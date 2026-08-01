@@ -12,7 +12,7 @@ function ensureGuestbookLoaded() {
   if (_gbAPI) {
     loadGuestbook();
   } else {
-    renderNoData('Guestbook Not Set Yet', 'guests-container', false);
+    if (_currentTab === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
     setModalPage('login');
   }
 }
@@ -60,13 +60,14 @@ function updateModalTrigger(state) {
 // ───── Feed ────────────────────────────────────────
 
 function renderFeed(feedList) {
-  const container = document.getElementById('feed-container');
+  if (_currentTab !== 'feed') return;
+  const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
   if (!Array.isArray(feedList) || feedList.length === 0) {
     _feedHasMatches = false;
-    renderNoData('No Feed Yet - Check Back Soon For Announcements', 'feed-container', false);
+    renderNoData('No Feed Yet - Check Back Soon For Announcements', 'list-container', false);
     return;
   }
 
@@ -78,7 +79,7 @@ function renderFeed(feedList) {
 
   if (filtered.length === 0) {
     _feedHasMatches = false;
-    renderNoData('No Feed Matched The Search Key', 'feed-container', false);
+    renderNoData('No Feed Matched The Search Key', 'list-container', false);
     return;
   }
 
@@ -294,11 +295,8 @@ function applyListData(listData) {
 }
 
 async function loadGuestbook() {
-  const container = document.getElementById('guests-container');
-  if (!container) return;
-  container.innerHTML = '';
-  renderNoData('Loading Posts', 'feed-container', false);
-  renderNoData('Loading Guests', 'guests-container', false);
+  if (_currentTab === 'feed') renderNoData('Loading Posts', 'list-container', false);
+  if (_currentTab === 'guests') renderNoData('Loading Guests', 'list-container', false);
 
   try {
     // Auth check and the single combined list fetch happen together, once,
@@ -342,13 +340,14 @@ async function loadGuestbook() {
     setModalPage('login');
     if (check.error) setModalStatus(check.error, true);
   } catch (e) {
-    renderNoData('Failed To Load Guestbook', 'guests-container', false);
+    if (_currentTab === 'guests') renderNoData('Failed To Load Guestbook', 'list-container', false);
     console.error(e);
   }
 }
 
 function renderGuestbook() {
-  const container = document.getElementById('guests-container');
+  if (_currentTab !== 'guests') return;
+  const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
 
@@ -389,7 +388,7 @@ function renderGuestbook() {
 
   if (!hasEntries && !hasBanned) {
     _gbHasMatches = false;
-    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'guests-container', false);
+    renderNoData(rawQuery ? 'No Messages Match Your Search' : 'No Messages Yet - Be The First To Leave One', 'list-container', false);
     return;
   }
 

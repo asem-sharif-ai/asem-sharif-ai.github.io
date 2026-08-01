@@ -15,12 +15,38 @@
   </head>
   <body>
     <nav class='navbar navbar-index has-glow'>
-      <div class='nav-profile'> <div class='nav-name nav-name-home' id='nav-user-name'>Loading...</div> </div>
+      <div class='nav-profile'>
+        <!-- <div class='nav-logo' id='nav-logo'></div> -->
+        <div class='nav-name' id='nav-user-name'>Loading...</div>
+      </div>
       <div class='nav-links' id='nav-items'></div>
-      <div class='nav-menu' id='nav-menu'><i class='fa-solid fa-bars'> M E N U</i></div>
+      <div class='nav-menu' id='nav-menu'>
+        <i class='fa-solid fa-bars'></i>
+        <i class='fa-solid menu-text'>Menu</i>
+      </div>
     </nav>
-    <div class='filter-panel' id='nav-panel'>
-      <div class='filter-header'>Portfolio Sections</div>
+    <div class='menu-panel' id='nav-panel'>
+      <div class='menu-header'>
+        <p>Portfolio Sections</p>
+        <button class='theme-toggle-btn' id='theme-toggle-btn' aria-label='Toggle theme' type='button'>
+          <svg class='theme-toggle-icon' id='theme-toggle-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+            <g class='theme-toggle-sun' id='theme-toggle-sun'>
+              <circle cx='12' cy='12' r='4.5'></circle>
+              <g stroke-linecap='round'>
+                <line x1='12' y1='1.5' x2='12' y2='3.5'></line>
+                <line x1='12' y1='20.5' x2='12' y2='22.5'></line>
+                <line x1='4.2' y1='4.2' x2='5.6' y2='5.6'></line>
+                <line x1='18.4' y1='18.4' x2='19.8' y2='19.8'></line>
+                <line x1='1.5' y1='12' x2='3.5' y2='12'></line>
+                <line x1='20.5' y1='12' x2='22.5' y2='12'></line>
+                <line x1='4.2' y1='19.8' x2='5.6' y2='18.4'></line>
+                <line x1='18.4' y1='5.6' x2='19.8' y2='4.2'></line>
+              </g>
+            </g>
+            <path class='theme-toggle-moon' id='theme-toggle-moon' d='M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5z'></path>
+          </svg>
+        </button>
+      </div>
       <div class='filter-dropdown' id='nav-dropdown'></div>
     </div>
     <section class='hero' id='home-hero'>

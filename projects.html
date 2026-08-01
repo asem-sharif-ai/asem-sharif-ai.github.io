@@ -18,25 +18,32 @@
         <div class='nav-role' id='nav-user-role'></div>
       </div>
       <div class='nav-links' id='nav-items'>
-        <a href='index.html'>
-          <i class='fa-solid fa-house'></i>
-          <span class='nav-label'>Home</span>
-        </a>
         <div class='filter-wrapper'>
           <a id='filter-btn'>
             <i class='fa-solid fa-filter'></i>
             <span class='nav-label'>Filter</span>
           </a>
+          <span class='post-detail filter-mobile' id='filter-mobile'></span>
         </div>
         <div class='search-wrapper'>
           <i class='fa-solid fa-magnifying-glass search-icon'></i>
           <input type='text' id='project-search-input' placeholder='Search' autocomplete='off' maxlength='50'/>
+          <button class='btn' id='nav-share-icon'>
+          <i class='fa-solid fa-arrow-up-from-bracket share-icon share-icon-upload'></i>
+          <i class='fa-solid fa-check share-icon share-icon-check'></i>
+        </button>
         </div>
-      <button class='btn' id='nav-share-icon'><i class='fa-solid fa-link share-icon'></i></button>
+        <a href='index.html'>
+          <i class='fa-solid fa-house'></i>
+          <span class='nav-label'>Home</span>
+        </a>
       </div>
     </nav>
-    <div class='filter-panel' id='filter-panel'>
-      <div class='filter-header'>Filter By Domain</div>
+    <div class='menu-panel' id='menu-panel'>
+      <div class='menu-header'>
+        <p>Filter By Domain</p>
+        <i class='fa-solid fa-filter-circle-xmark' id='cancel-filter-icon'></i>
+      </div>
       <div class='filter-dropdown' id='filter-dropdown'></div>
     </div>
     <section class='hero' id='latest-hero'>
