@@ -34,9 +34,6 @@ function openGuestbookModal() {
 
 function closeGuestbookModal() {
   document.getElementById('feed-modal-overlay').classList.remove('open');
-  // Edit is a one-shot action: once the modal is dismissed, the admin form
-  // resets to a fresh "New Post" state rather than staying targeted at
-  // whatever post was last opened for editing.
   if (_gbIdentity?.isAdmin && document.getElementById('feed-state-admin')) {
     setModalPage('admin');
   }
@@ -206,8 +203,6 @@ async function feedAdminToggleVisibility(item, cardUI) {
 }
 
 function feedToggleReact(item, btnUI) {
-  // Optimistic update: flip the heart and adjust the count immediately,
-  // then sync with the server in the background. Roll back on failure.
   const wasLiked = !!item.liked;
   const prevCount = item.likeCount || 0;
 
@@ -397,7 +392,6 @@ function renderGuestbook() {
   if (isAdmin) {
     const statusOrder = { approved: 1, pending: 2, fresh: 3, deletedByGuest: 4, deletedByAdmin: 5, banned: 6 };
     const sortedEntries = [...finalEntries].sort((a, b) => (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99));
-    
     sortedEntries.forEach((e) => container.appendChild(buildGuestbookCard(e, true)));
     finalBanned.forEach((e) => container.appendChild(buildGuestbookCard(e, false, true)));
   } else {
@@ -1010,16 +1004,10 @@ function modalHandlers(state, editingPost = null) {
           uploadedImages.push({ id: res.id, url: res.url });
         }
 
-        // New images REPLACE the old gallery entirely - never merged, never edited in place.
-        // If no new images were picked, the previous gallery (if any) is kept as-is.
         const isReplacingGallery = uploadedImages.length > 0;
-        const gallery = isReplacingGallery
-          ? { header: galleryHeader, content: uploadedImages }
-          : existingGallery;
+        const gallery = isReplacingGallery ? { header: galleryHeader, content: uploadedImages } : existingGallery;
 
         await fetchGuestbook('feed_save', { id: editingPostId || undefined, title, content, gallery });
-
-        // Old gallery images are only discarded once the new post has saved successfully.
         if (isReplacingGallery && existingGallery?.content?.length) {
           for (const img of existingGallery.content) {
             const publicId = typeof img === 'string' ? null : img?.id;
