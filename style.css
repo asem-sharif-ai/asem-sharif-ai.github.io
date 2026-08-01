@@ -490,9 +490,9 @@ footer a { border-bottom: none; text-decoration: none;}
   outline: none;
   padding: 0;
   transition: var(--search-transition);
-  width: 100px;
+  width: 80px;
 }
-.search-wrapper input:focus { width: 120px; }
+.search-wrapper input:focus { width: 100px; }
 .search-wrapper input::placeholder {
   color: var(--text-deep-muted);
   font-family: 'Ubuntu', sans-serif;
@@ -563,7 +563,7 @@ footer a { border-bottom: none; text-decoration: none;}
 .template-footer a:hover { color: var(--text-bright); }
 
 @media (max-width: 1024px) {
-  .navbar-index .nav-profile, .nav-links .nav-link-section, .navbar-keep .nav-profile .nav-role { display: none; }
+  .navbar-index .nav-profile, .navbar-keep .nav-profile .nav-role { display: none; }
   .navbar-index .nav-links {
     display: flex;
     align-items: center;
@@ -2730,21 +2730,17 @@ input[type='checkbox']:checked::after {
 
 .log-card-title {
   flex: 1;
-  min-width: 0;
   overflow: wrap;
   white-space: normal;
-  word-break: break-word;
   border: none;
 }
 
 .log-entity {
   color: var(--text-muted);
-  /* flex-shrink: 1; */
-  flex-shrink: 0;
   font-size: 0.88rem;
   font-weight: 500;
-  min-width: 0;
   overflow: wrap;
+  word-break: break-word;
   transition: color 0.3s ease;
 }
 
