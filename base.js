@@ -28,12 +28,11 @@ const iconMap = {
   status:       'fa-solid fa-circle-info',
   update:       'fa-solid fa-clock-rotate-left',
   analytics:    'fa-solid fa-chart-line',
-  community:    'fa-brands fa-superpowers',
+  community:    'fa-brands fa-superpowers community-icon',
   faq:          'fa-solid fa-circle-question',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
   default:      'fa-solid fa-layer-group',
-
   facebook:     'fa-brands fa-facebook-f',
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
@@ -79,6 +78,8 @@ const addresses = {
   precachedOffline:    'slatemp-offline-v3',
   precachedHosts:      'hosts.json',
 };
+
+const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
 
 // ───── Footer, Offline & Host Failure Cases ────────────────────────────────────────
 
@@ -563,7 +564,7 @@ function observeCards() {
 function createQRCodeModal(data) {
   const qrBtn = document.createElement('button');
   qrBtn.title = `Scan QRCode`
-  qrBtn.className = 'floating-trigger qr-trigger has-fast-glow';
+  qrBtn.className = 'floating-trigger qr-trigger has-glow';
   qrBtn.id = 'qr-trigger';
   qrBtn.innerHTML = '<i class="fa-solid fa-qrcode"></i>';
   document.body.appendChild(qrBtn);

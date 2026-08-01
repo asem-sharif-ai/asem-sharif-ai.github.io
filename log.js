@@ -281,7 +281,6 @@ function setActiveTab(page) {
 function renderLogPage(page) {
   const data = _logConfigData?.[page];
 
-  const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
   const configName = _logConfigData?.name ?? _logConfigData?.config?.name ?? '';
   document.title = configName ? `${configName} - ${capitalize(page)}` : capitalize(page);
 

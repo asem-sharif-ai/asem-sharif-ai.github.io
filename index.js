@@ -1024,25 +1024,21 @@ async function runProfileApp() {
       });
     }
 
-    const quickLinksMap = {
+    const allowedKeys = {
       education:  { label: 'Education',  href: './log.html?page=education' },
       experience: { label: 'Experience', href: './log.html?page=experience' },
       projects:   { label: 'Projects',   href: './projects.html' },
-      skills:     { label: 'Skills',     href: './log.html?page=skills' },
+      community:  { label: 'Community',  href: './hub.html' },
     };
+    const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
 
     if (sectionsContainer) {
       const quickLinksRow = document.createElement('div');
       quickLinksRow.className = 'quick-links-row';
       quickLinksRow.id = 'quick-links-row';
 
-      const fileOrder = Object.keys(data);
-      const orderedQuickKeys = Object.keys(quickLinksMap)
-        .filter(key => key in data)
-        .sort((a, b) => fileOrder.indexOf(a) - fileOrder.indexOf(b));
-
-      orderedQuickKeys.forEach(key => {
-        const { label, href } = quickLinksMap[key];
+      orderedKeys.forEach(key => {
+        const { label, href } = allowedKeys[key];
         const icon = iconMap[key] ?? iconMap['default'];
 
         const link = document.createElement('a');
@@ -1084,46 +1080,25 @@ async function runProfileApp() {
       sectionsContainer.remove();
     }
 
-    const allowedKeys = {
-      education:  './log.html?page=education',
-      experience: './log.html?page=experience',
-      projects:   './projects.html',
-      community:  './hub.html',
-    };
-    const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
-
     if (navItems) {
       orderedKeys.forEach(key => {
         const btn = document.createElement('a');
         btn.id = `nav-${key}`;
         const label = key.charAt(0).toUpperCase() + key.slice(1);
         btn.innerHTML = /*html*/ `<i class='${iconMap[key]}'></i><span class='nav-label'>${label}</span>`;
-        btn.href = allowedKeys[key];
+        btn.href = allowedKeys[key].href;
         navItems.appendChild(btn);
       });
-    }
 
-    if (navItems) {
       const fileOrder = Object.keys(data);
       const formCardId = data.form?.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
 
       const getOrderIndex = (element) => {
         const id = element.id;
         if (id === 'nav-home') return -1;
-        
-        if (id === `nav-${formCardId}`) {
-          return fileOrder.indexOf('form');
-        }
-        
-        if (element.className === 'nav-link-section') {
-          return fileOrder.indexOf('sections');
-        }
-        
-        const cleanKey = id.replace('nav-', '');
-        if (fileOrder.includes(cleanKey)) {
-          return fileOrder.indexOf(cleanKey);
-        }
-
+        if (id === `nav-${formCardId}`) return fileOrder.indexOf('form');
+        if (element.className === 'nav-link-section') return fileOrder.indexOf('sections');
+        if (fileOrder.includes(id.replace('nav-', ''))) return fileOrder.indexOf(id.replace('nav-', ''));
         return 999;
       };
 

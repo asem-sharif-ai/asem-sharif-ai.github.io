@@ -83,37 +83,8 @@ footer a { border-bottom: none; text-decoration: none;}
 /* ---------- ---------- [ANIMATIONS] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
 
 .has-glow { position: relative; z-index: 1; }
-
 .has-glow::before {
   animation: oceanFlow 10s ease infinite;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    transparent 35%,
-    var(--border-color) 50%,
-    transparent 65%,
-    transparent 100%
-  );
-  background-size: 400% 400%;
-  bottom: 0;
-  content: '';
-  left: 0;
-  opacity: 0.5;
-  pointer-events: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  transition: var(--default-transition);
-  z-index: -1;
-}
-
-.has-fast-glow {
-  position: relative;
-  z-index: 1;
-}
-
-.has-fast-glow::before {
-  animation: oceanFlow 5s ease infinite;
   background: linear-gradient(
     135deg,
     transparent 0%,
@@ -536,6 +507,10 @@ footer a { border-bottom: none; text-decoration: none;}
 #nav-share-icon.copied .share-icon-check {
   transform: translate(-50%, -50%) scale(1) rotate(0deg);
   opacity: 1;
+}
+
+.community-icon {
+  font-size: 110%;
 }
 
 .post-detail {
@@ -1532,7 +1507,7 @@ footer a { border-bottom: none; text-decoration: none;}
 }
 
 .card-header:has(+ .card-collapse.closed) {
-  border-bottom: none;
+  border-bottom: 1px solid transparent;
 }
 
 .idle-header {

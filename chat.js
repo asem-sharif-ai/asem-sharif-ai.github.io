@@ -163,7 +163,7 @@ function initChatAssistant(configData) {
 
   const triggerBtn = document.createElement('button');
   triggerBtn.title = 'Chat With AI Assistant';
-  triggerBtn.className = 'floating-trigger chat-trigger has-fast-glow';
+  triggerBtn.className = 'floating-trigger chat-trigger has-glow';
   triggerBtn.id = 'chat-assistant-trigger';
 
   updateTriggerIcon(triggerBtn);
