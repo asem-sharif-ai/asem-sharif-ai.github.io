@@ -2937,6 +2937,17 @@ input[type='checkbox']:checked::after {
   margin: 0px 0px;
 }
 
+#reacts-count {
+  color: var(--text-deep-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  transition: color 0.3s ease;
+  user-select: none;
+  margin-left: -6px;
+  padding-bottom: 2px;
+}
+
 .feed-text {
   color: var(--text-body);
   display: block;

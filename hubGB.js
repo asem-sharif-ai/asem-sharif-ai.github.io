@@ -111,6 +111,7 @@ function buildFeedCard(item) {
   const dateLabel = item.date ? highlightText(`${item.date}${duration ? ` · ${duration}` : ''}`, query) : '';
   const isAdmin = _gbIdentity?.isAdmin === true;
   const isSignedInGuest = !!_gbIdentity && !isAdmin;
+  const isGuestViewer = !isAdmin;
 
   const msgPane = document.createElement('div');
   msgPane.className = 'feed-msg-pane';
@@ -138,12 +139,12 @@ function buildFeedCard(item) {
         </button>
       </div>
       ` : ''}
-      ${isSignedInGuest ? `
+      ${isGuestViewer ? `
       <div class='feed-card-icons'>
         <button class='btn feed-btn feed-btn-react ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
           <i class='${item.liked ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
-          <span class='feed-react-count'>${item.likeCount || 0}</span>
         </button>
+        <span id='reacts-count'>${item.likeCount || 0}</span>
       </div>
       ` : ''}
     </div>
@@ -156,8 +157,14 @@ function buildFeedCard(item) {
     msgPane.querySelector('.feed-btn-hide')?.addEventListener('click', () => feedAdminToggleVisibility(item, card));
   }
 
-  if (isSignedInGuest) {
-    msgPane.querySelector('.feed-btn-react')?.addEventListener('click', (e) => feedToggleReact(item, e.currentTarget));
+  if (isGuestViewer) {
+    msgPane.querySelector('.feed-btn-react')?.addEventListener('click', (e) => {
+      if (!_gbIdentity) {
+        openGuestbookModal();
+        return;
+      }
+      feedToggleReact(item, e.currentTarget);
+    });
   }
 
   if (item.gallery && item.gallery.content.length > 0) {
@@ -247,7 +254,7 @@ function applyReactUI(btnUI, liked, count) {
   btnUI.classList.toggle('feed-btn-active', liked);
   const icon = btnUI.querySelector('i');
   if (icon) icon.className = `${liked ? 'fa-solid' : 'fa-regular'} fa-heart`;
-  const countUI = btnUI.querySelector('.feed-react-count');
+  const countUI = document.getElementById('reacts-count');
   if (countUI) countUI.textContent = count;
 }
 
