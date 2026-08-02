@@ -2644,23 +2644,6 @@ input[type='checkbox']:checked::after {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
-.gallery-lightbox-close {
-  position: absolute;
-  top: 30px;
-  right: 40px;
-  background: transparent;
-  border: none;
-  color: var(--text-bright);
-  font-size: 20px;
-  cursor: pointer;
-  line-height: 1;
-  transition: transform 0.3s ease;
-}
-
-.gallery-lightbox-close:hover {
-  transform: scale(1.25);
-}
-
 /* ---------- [LOG_PAGE] ---------- ---------- ---------- ---------- */
 
 .log-card-header {
@@ -2937,14 +2920,14 @@ input[type='checkbox']:checked::after {
   margin: 0px 0px;
 }
 
-#reacts-count {
+.reacts-count {
   color: var(--text-deep-muted);
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.4px;
   transition: color 0.3s ease;
   user-select: none;
-  margin-left: -6px;
+  margin-left: 6px;
   padding-bottom: 2px;
 }
 

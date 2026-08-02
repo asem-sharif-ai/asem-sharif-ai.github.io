@@ -143,8 +143,8 @@ function buildFeedCard(item) {
       <div class='feed-card-icons'>
         <button class='btn feed-btn feed-btn-react ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
           <i class='${item.liked ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
+          <span class='reacts-count'>${item.likeCount || 0}</span>
         </button>
-        <span id='reacts-count'>${item.likeCount || 0}</span>
       </div>
       ` : ''}
     </div>
@@ -254,7 +254,7 @@ function applyReactUI(btnUI, liked, count) {
   btnUI.classList.toggle('feed-btn-active', liked);
   const icon = btnUI.querySelector('i');
   if (icon) icon.className = `${liked ? 'fa-solid' : 'fa-regular'} fa-heart`;
-  const countUI = document.getElementById('reacts-count');
+  const countUI = document.querySelector('.reacts-count');
   if (countUI) countUI.textContent = count;
 }
 

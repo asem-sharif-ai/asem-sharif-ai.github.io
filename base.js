@@ -400,10 +400,6 @@ function openGalleryLightbox(src) {
   img.src = src;
   img.addEventListener('click', (e) => e.stopPropagation());
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'gallery-lightbox-close';
-  closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-
   function close() {
     overlay.classList.remove('is-visible');
     setTimeout(() => overlay.remove(), 200);
@@ -414,12 +410,10 @@ function openGalleryLightbox(src) {
     if (e.key === 'Escape') close();
   }
 
-  closeBtn.addEventListener('click', close);
   overlay.addEventListener('click', close);
   document.addEventListener('keydown', onKeydown);
 
   overlay.appendChild(img);
-  overlay.appendChild(closeBtn);
   document.body.appendChild(overlay);
 
   requestAnimationFrame(() => {
