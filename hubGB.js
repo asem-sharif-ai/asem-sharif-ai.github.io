@@ -41,14 +41,12 @@ function closeGuestbookModal() {
 
 function updateModalTrigger(state) {
   const trigger = document.getElementById('modal-trigger');
-  if (!trigger) return;
-
   const isSignedIn = (state === 'admin' || state === 'edit' || state === 'has-entry' || state === 'no-entry') && _gbIdentity;
 
   if (isSignedIn) {
     trigger.innerHTML = _gbIdentity.image
-      ? `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
-      : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
+      ? /*html*/ `<img class='feed-card-avatar' src='${_gbIdentity.image}' alt='avatar' referrerpolicy='no-referrer' />`
+      : /*html*/ `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`;
   } else {
     trigger.innerHTML = /*html*/ `<i class='fa-brands fa-google'></i>`;
   }
@@ -64,12 +62,11 @@ function renderFeed(feedList) {
 
   if (!Array.isArray(feedList) || feedList.length === 0) {
     _feedHasMatches = false;
-    renderNoData('No Feed Yet - Check Back Soon For Announcements', 'list-container', false);
+    renderNoData('No Feed Yet - Check Back Soon For Updates', 'list-container', false);
     return;
   }
 
   const words = (_searchQuery || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
-
   const filtered = words.length > 0
     ? feedList.filter(item => { return words.every(w => `${item.title} ${item.subtitle} ${item.date} ${formatDuration(item.date)}`.toLowerCase().includes(w)); })
     : feedList;
@@ -92,11 +89,7 @@ function renderFeed(feedList) {
     return parse(b.date) - parse(a.date);
   };
 
-  const sorted = [
-    ...filtered.filter((i) => i.pin).sort(dateSort),
-    ...filtered.filter((i) => !i.pin).sort(dateSort),
-  ];
-
+  const sorted = [...filtered.filter((i) => i.pin).sort(dateSort), ...filtered.filter((i) => !i.pin).sort(dateSort)];
   sorted.forEach((item) => container.appendChild(buildFeedCard(item)));
 
   observeCards();
@@ -119,14 +112,14 @@ function buildFeedCard(item) {
     <div class='feed-card-header'>
       <div class='feed-identity'>
         ${_gbState.adminAvatar
-          ? `<img class='feed-card-avatar' src='${_gbState.adminAvatar}' alt='avatar' referrerpolicy='no-referrer' />`
-          : `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`}
+          ? /*html*/ `<img class='feed-card-avatar' src='${_gbState.adminAvatar}' alt='avatar' referrerpolicy='no-referrer' />`
+          : /*html*/ `<div class='feed-card-avatar-fallback'><i class='fa-solid fa-user'></i></div>`}
         <div class='feed-identity-info'>
           <span class='feed-name'>${highlightText(item.title || '', query)}</span>
-          <span class='feed-date'>${dateLabel}${isAdmin && item.hidden ? ` · <span class='feed-hidden-badge'>Hidden</span>` : ''}</span>
+          <span class='feed-date'>${dateLabel}${isAdmin && item.hidden ? /*html*/ ` · <span class='feed-hidden-badge'>Hidden</span>` : ''}</span>
         </div>
       </div>
-      ${isAdmin ? `
+      ${isAdmin ? /*html*/ `
       <div class='feed-card-icons'>
         <button class='btn feed-btn feed-btn-edit' data-post-id='${item.id}'>
           <i class='fa-solid fa-pen'></i>
@@ -139,11 +132,11 @@ function buildFeedCard(item) {
         </button>
       </div>
       ` : ''}
-      ${isGuestViewer ? `
+      ${isGuestViewer ? /*html*/ `
       <div class='feed-card-icons'>
         <button class='btn feed-btn feed-btn-react ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
           <i class='${item.liked ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
-          <span class='reacts-count'>${item.likeCount || 0}</span>
+          <span class='reacts-count${(item.likeCount || 0) === 0 ? ' hub-hidden' : ''}'>${item.likeCount || 0}</span>
         </button>
       </div>
       ` : ''}
@@ -254,8 +247,11 @@ function applyReactUI(btnUI, liked, count) {
   btnUI.classList.toggle('feed-btn-active', liked);
   const icon = btnUI.querySelector('i');
   if (icon) icon.className = `${liked ? 'fa-solid' : 'fa-regular'} fa-heart`;
-  const countUI = document.querySelector('.reacts-count');
-  if (countUI) countUI.textContent = count;
+  const countUI = btnUI.querySelector('.reacts-count');
+  if (countUI) {
+    countUI.textContent = count;
+    countUI.classList.toggle('hub-hidden', !count);
+  }
 }
 
 // ───── Guests ────────────────────────────────────────
