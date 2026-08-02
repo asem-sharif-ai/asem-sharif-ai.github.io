@@ -301,8 +301,6 @@ async function loadGuestbook() {
   if (_currentTab === 'guests') renderNoData('Loading Guests', 'list-container', false);
 
   try {
-    // Auth check and the single combined list fetch happen together, once,
-    // at page start. Neither is repeated on tab switches.
     const [check, listData] = await Promise.all([
       fetchGuestbook('whoami'),
       fetchGuestbook('list'),
@@ -316,9 +314,6 @@ async function loadGuestbook() {
         adminId: check.adminId || null,
       };
 
-      // Identity determines how the single list response is shaped
-      // (admin sees _allGB with pending/banned entries; guests see only
-      // approved _gbState.entries) - still just the one 'list' call above.
       applyListData(listData);
       renderFeed(_allFeed);
 
@@ -664,9 +659,7 @@ function setModalPage(state, editingPost = null) {
         <textarea id='feed-admin-content' class='feed-textarea' placeholder='Content...' maxlength='2000'>${isEditing ? (Array.isArray(editingPost.content) ? editingPost.content.join('\n') : (editingPost.content || '')) : ''}</textarea>
         <input type='file' id='feed-admin-gallery-input' accept='image/*' multiple class='hub-hidden' />
         <input type='text' id='feed-admin-gallery-header' class='form-input ${galleryImages.length === 0 ? 'hub-hidden' : ''}' placeholder='Gallery Header' maxlength='80' value='${isEditing ? (editingPost.gallery?.header || '').replace(/'/g, '&#39;') : ''}' />
-        <div class='feed-admin-gallery-preview' id='feed-admin-gallery-preview'>
-          ${galleryImages.map((g) => `<div class='feed-admin-gallery-thumb'><img src='${g.url}' alt='' /><button type='button' class='feed-icon-btn feed-icon-close'><i class='fa-solid fa-xmark'></i></button></div>`).join('')}
-        </div>
+        <div class='feed-admin-gallery-preview' id='feed-admin-gallery-preview'></div>
         <div id='feed-modal-status' class='subtitle hub-hidden'></div>
       </div>
     `;
@@ -898,9 +891,12 @@ function modalHandlers(state, editingPost = null) {
   document.getElementById('feed-close-modal-btn')?.addEventListener('click', closeGuestbookModal);
 
   if (state === 'admin') {
-    let pendingGallery = [];
+    let pendingGallery = (editingPost?.gallery?.content || []).map((img) => {
+      const isObj = img && typeof img === 'object';
+      return { existing: true, id: isObj ? img.id : null, url: isObj ? img.url : img };
+    });
     const editingPostId = editingPost?.id || null;
-    const existingGallery = editingPost?.gallery || null;
+    const galleryHeaderStarted = pendingGallery.length > 0;
 
     const titleInput = document.getElementById('feed-admin-title');
     const contentInput = document.getElementById('feed-admin-content');
@@ -929,11 +925,57 @@ function modalHandlers(state, editingPost = null) {
       }
     });
 
+    let dragFromIdx = null;
+
     const renderGalleryPreview = () => {
       if (!galleryPreview) return;
       galleryPreview.innerHTML = pendingGallery
-        .map((g, i) => `<div class='feed-admin-gallery-thumb'><img src='${g.previewUrl}' alt='' /><button type='button' class='feed-icon-btn feed-icon-close' data-idx='${i}'><i class='fa-solid fa-xmark'></i></button></div>`)
+        .map((g, i) => {
+          const src = g.existing ? g.url : g.previewUrl;
+          return `<div class='feed-admin-gallery-thumb' draggable='true' data-idx='${i}'>
+            <img src='${src}' alt='' />
+            <span class='feed-admin-gallery-drag'><i class='fa-solid fa-grip-vertical'></i></span>
+            <button type='button' class='feed-icon-btn feed-icon-close' data-idx='${i}'><i class='fa-solid fa-xmark'></i></button>
+          </div>`;
+        })
         .join('');
+
+      galleryPreview.querySelectorAll('.feed-admin-gallery-thumb').forEach((thumb) => {
+        const idx = parseInt(thumb.dataset.idx, 10);
+
+        thumb.addEventListener('dragstart', (e) => {
+          dragFromIdx = idx;
+          thumb.classList.add('is-dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          try { e.dataTransfer.setData('text/plain', String(idx)); } catch {}
+        });
+
+        thumb.addEventListener('dragend', () => {
+          dragFromIdx = null;
+          galleryPreview.querySelectorAll('.feed-admin-gallery-thumb').forEach((t) => t.classList.remove('is-dragging', 'is-drop-target'));
+        });
+
+        thumb.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (dragFromIdx === null || dragFromIdx === idx) return;
+          thumb.classList.add('is-drop-target');
+        });
+
+        thumb.addEventListener('dragleave', () => {
+          thumb.classList.remove('is-drop-target');
+        });
+
+        thumb.addEventListener('drop', (e) => {
+          e.preventDefault();
+          thumb.classList.remove('is-drop-target');
+          if (dragFromIdx === null || dragFromIdx === idx) return;
+          const [moved] = pendingGallery.splice(dragFromIdx, 1);
+          pendingGallery.splice(idx, 0, moved);
+          dragFromIdx = null;
+          renderGalleryPreview();
+        });
+      });
+
       galleryPreview.querySelectorAll('button[data-idx]').forEach((btn) => {
         btn.addEventListener('click', () => {
           const idx = parseInt(btn.dataset.idx, 10);
@@ -941,27 +983,33 @@ function modalHandlers(state, editingPost = null) {
           renderGalleryPreview();
         });
       });
+
       galleryHeaderInput?.classList.toggle('hub-hidden', pendingGallery.length === 0);
     };
+
+    renderGalleryPreview();
 
     galleryBtn?.addEventListener('click', () => galleryInput?.click());
 
     galleryInput?.addEventListener('change', () => {
       const files = Array.from(galleryInput.files || []);
       files.forEach((file) => {
-        pendingGallery.push({ file, previewUrl: URL.createObjectURL(file) });
+        pendingGallery.push({ existing: false, file, previewUrl: URL.createObjectURL(file) });
       });
       galleryInput.value = '';
       renderGalleryPreview();
     });
 
     document.getElementById('feed-admin-cancel-btn')?.addEventListener('click', () => {
-      pendingGallery = [];
-      if (titleInput) titleInput.value = '';
-      if (contentInput) contentInput.value = '';
+      pendingGallery = (editingPost?.gallery?.content || []).map((img) => {
+        const isObj = img && typeof img === 'object';
+        return { existing: true, id: isObj ? img.id : null, url: isObj ? img.url : img };
+      });
+      if (titleInput) titleInput.value = editingPost?.title || '';
+      if (contentInput) contentInput.value = Array.isArray(editingPost?.content) ? editingPost.content.join('\n') : (editingPost?.content || '');
       if (galleryHeaderInput) {
-        galleryHeaderInput.value = '';
-        galleryHeaderInput.classList.add('hub-hidden');
+        galleryHeaderInput.value = editingPost?.gallery?.header || '';
+        galleryHeaderInput.classList.toggle('hub-hidden', pendingGallery.length === 0);
       }
       renderGalleryPreview();
       setModalStatus('');
@@ -998,8 +1046,12 @@ function modalHandlers(state, editingPost = null) {
       setModalStatus('Saving');
 
       try {
-        const uploadedImages = [];
+        const finalImages = [];
         for (const item of pendingGallery) {
+          if (item.existing) {
+            finalImages.push({ id: item.id, url: item.url });
+            continue;
+          }
           const dataUrl = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
@@ -1008,23 +1060,13 @@ function modalHandlers(state, editingPost = null) {
           });
           const base64 = dataUrl.split(',')[1];
           const res = await fetchGuestbook('gallery_upload', { data: base64, mimeType: item.file.type });
-          uploadedImages.push({ id: res.id, url: res.url });
+          finalImages.push({ id: res.id, url: res.url });
         }
 
-        const isReplacingGallery = uploadedImages.length > 0;
-        const gallery = isReplacingGallery ? { header: galleryHeader, content: uploadedImages } : existingGallery;
-
+        const gallery = finalImages.length > 0 ? { header: galleryHeader, content: finalImages } : null;
         await fetchGuestbook('feed_save', { id: editingPostId || undefined, title, content, gallery });
-        if (isReplacingGallery && existingGallery?.content?.length) {
-          for (const img of existingGallery.content) {
-            const publicId = typeof img === 'string' ? null : img?.id;
-            if (publicId) {
-              fetchGuestbook('gallery_delete', { id: publicId }).catch(() => {});
-            }
-          }
-        }
 
-        pendingGallery = [];
+        pendingGallery = finalImages.map((img) => ({ existing: true, id: img.id, url: img.url }));
         setModalStatus('Post Saved');
         try {
           const listData = await fetchGuestbook('list');

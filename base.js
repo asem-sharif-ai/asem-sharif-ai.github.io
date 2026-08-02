@@ -532,14 +532,6 @@ function toggleCard(cardId, collapseId) {
   }
 }
 
-function showSuccessFeedback(elementId, duration = 2000) {
-  const element = document.getElementById(elementId)
-  if (!element) return;
-  const originalHTML = element.innerHTML;
-  element.innerHTML = '<i class="fa-solid fa-check" style="color: var(--text-bright);"></i>';
-  setTimeout(() => { element.innerHTML = originalHTML; }, duration);
-}
-
 function observeCards() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {

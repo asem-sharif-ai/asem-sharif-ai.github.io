@@ -417,8 +417,9 @@ footer a { border-bottom: none; text-decoration: none;}
   text-decoration: none;
 }
 .index-menu-item:last-child { border-bottom: none; }
-.index-menu-item i { flex-shrink: 0; margin-left: 4px; text-align: center; width: 1.1em; }
+.index-menu-item i { flex-shrink: 0; margin-left: 4px; text-align: center; width: 1.2em; }
 .index-menu-item span { margin-left: 14px; }
+.index-menu-item .community-icon { width: 1.1em; }
 
 .search-wrapper {
   align-items: center;
@@ -3262,6 +3263,45 @@ input[type='checkbox']:checked::after {
   top: 4px;
 }
 .feed-admin-gallery-thumb .feed-icon-close i { font-size: 0.7rem; }
+
+.feed-admin-gallery-thumb {
+  cursor: grab;
+  transition: opacity 0.15s ease, transform 0.15s ease, outline-color 0.15s ease;
+}
+
+.feed-admin-gallery-thumb:active { cursor: grabbing; }
+
+.feed-admin-gallery-thumb.is-dragging {
+  opacity: 0.4;
+}
+
+.feed-admin-gallery-thumb.is-drop-target {
+  outline: 2px solid var(--accent-color, #4a90e2);
+  outline-offset: -2px;
+  transform: scale(0.97);
+}
+
+.feed-admin-gallery-drag {
+  align-items: center;
+  background-color: var(--card-header);
+  border-radius: 4px;
+  bottom: 4px;
+  display: flex;
+  height: 20px;
+  justify-content: center;
+  left: 4px;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.15s ease;
+  width: 20px;
+}
+
+.feed-admin-gallery-drag i { font-size: 0.65rem; }
+
+.feed-admin-gallery-thumb:hover .feed-admin-gallery-drag,
+.feed-admin-gallery-thumb.is-dragging .feed-admin-gallery-drag {
+  opacity: 1;
+}
 
 .feed-state-admin-row {
   align-items: center;
