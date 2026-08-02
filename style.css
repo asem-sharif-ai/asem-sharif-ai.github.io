@@ -254,12 +254,16 @@ footer a { border-bottom: none; text-decoration: none;}
   font-size: 0.9rem;
 }
 
-
 .filter-wrapper {
   align-items: center;
   display: flex;
   position: relative;
 }
+
+.filter-wrapper .nav-label {
+  max-width: 50vw;
+}
+
 
 .menu-panel {
   background-color: var(--bg-card);
@@ -2049,12 +2053,15 @@ footer a { border-bottom: none; text-decoration: none;}
 .card-header:has(+ .card-collapse.closed) .card-toggle-btn { transform: rotate(180deg); }
 .card-toggle-btn.checked { transform: rotate(0deg) !important; color: var(--text-bright); }
 
-@media (max-width: 840px) {
+/* desktop only: counter slides into the next-btn's spot when the card closes */
+@media (min-width: 841px) {
   .card-header:has(+ .card-collapse.closed) .slide-counter {
     transform: translateX(var(--counter-stack-x, 33px));
     pointer-events: none;
   }
+}
 
+@media (max-width: 840px) {
   .url-action-btn, .header-slide-btn { display: none !important; }
   .faq-btns { flex-direction: column; gap: 4px;}
 }

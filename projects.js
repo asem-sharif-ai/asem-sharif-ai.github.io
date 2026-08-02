@@ -79,8 +79,10 @@ function buildFilterDetailLabel() {
     filterMobileEl.innerHTML = `(Starred)`;
     return `Filter <span class='post-detail'>(Starred)</span>`;
   } else if (_activeTopic.size > 0) {
+    const filterDisplay = [..._activeTopic].join(_filterMode === 'AND' ? ' & ' : ', ');
+    document.getElementById('nav-user-role').style.display = filterDisplay.length > 70 ? 'none' : 'block';
     filterMobileEl.innerHTML = `(${_activeTopic.size > 1 ? (_filterMode === 'AND' ? 'All ' : 'Any ') : ''}${_activeTopic.size})`;
-    return `Filter <span class='post-detail'>(${[..._activeTopic].join(_filterMode === 'AND' ? ' & ' : ', ')})</span>`;
+    return `Filter <span class='post-detail'>(${filterDisplay})</span>`;
   } else {
     filterMobileEl.innerHTML = '(All)';
     return 'Filter';
@@ -109,6 +111,7 @@ function buildFilterDropdown() {
   function clearAllFilters() {
     _activeTopic.clear();
     _starredOnly = false;
+    document.getElementById('nav-user-role').style.display = 'block';
     dropdown.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
     allItem.classList.add('active');
     segmentContainer.className = 'filter-segment-line inactive-mode';
@@ -211,10 +214,17 @@ function buildFilterDropdown() {
       starredItem.classList.remove('active');
       _starredOnly = false;
 
+      const MAX_ACTIVE_TOPICS = 10;
+
       if (_activeTopic.has(topic)) {
         _activeTopic.delete(topic);
         item.classList.remove('active');
       } else {
+        if (_activeTopic.size >= MAX_ACTIVE_TOPICS) {
+          const oldestTopic = _activeTopic.values().next().value;
+          _activeTopic.delete(oldestTopic);
+          dropdown.querySelector(`.filter-item[data-topic="${oldestTopic}"]`)?.classList.remove('active');
+        }
         _activeTopic.add(topic);
         item.classList.add('active');
       }
