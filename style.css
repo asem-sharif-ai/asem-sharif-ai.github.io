@@ -275,6 +275,7 @@ footer a { border-bottom: none; text-decoration: none;}
   transition: var(--filter-transition);
   z-index: 2000;
 }
+.index-menu { display: none; }
 
 .menu-panel.open {
   opacity: 1;
@@ -587,6 +588,8 @@ footer a { border-bottom: none; text-decoration: none;}
   }
 
   .menu-panel { top: 72px !important; left: 40px !important; right: 40px !important; width: auto !important; }
+  .index-menu { display: inline; }
+
   .filter-wrapper .post-detail { display: none; }
   .filter-wrapper .filter-mobile { display: flex !important; }
 }

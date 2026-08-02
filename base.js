@@ -145,12 +145,12 @@ function handleOffline() {
             const response = await fetch(fetchUrl, { mode: url.startsWith('http') ? 'cors' : 'same-origin', cache: 'no-store' });
             if (response && response.ok) await cache.put(url, response.clone());
           } catch (e) {
-            console.error(`Offline precache failed for ${url}:`, e);
+            console.error(`Offline Pre-Cache Failed For ${url}:`, e);
           }
         })
       );
     } catch (e) {
-      console.error('Offline cache open failed:', e);
+      console.error('Offline Cache Open Failed:', e);
     }
   }
 
@@ -592,7 +592,6 @@ async function applyCustomTheme(theme) {
   if (!theme) return;
   
   let themeObj = null;
-  
   if (typeof theme === 'string' && theme.endsWith('.json')) {
     try {
       const res = await fetch(theme);
@@ -604,12 +603,9 @@ async function applyCustomTheme(theme) {
   } 
   
   if (themeObj) {
-    let styleUI = document.getElementById('slate-dynamic-theme');
-    if (!styleUI) {
-      styleUI = document.createElement('style');
-      styleUI.id = 'slate-dynamic-theme';
-      document.head.appendChild(styleUI);
-    }
+    const styleUI = document.createElement('style');
+    styleUI.id = 'slate-dynamic-theme';
+    document.head.appendChild(styleUI);
     
     const mapVars = (vars) => vars ? Object.entries(vars).map(([k, v]) => `--${k}: ${v};`).join('\n        ') : '';
     

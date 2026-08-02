@@ -79,10 +79,10 @@ function buildFilterDetailLabel() {
     filterMobileEl.innerHTML = `(Starred)`;
     return `Filter <span class='post-detail'>(Starred)</span>`;
   } else if (_activeTopic.size > 0) {
-    filterMobileEl.innerHTML = `(${_filterMode === 'AND' ? 'All' : 'Any'} ${_activeTopic.size})`;
+    filterMobileEl.innerHTML = `(${_activeTopic.size > 1 ? (_filterMode === 'AND' ? 'All ' : 'Any ') : ''}${_activeTopic.size})`;
     return `Filter <span class='post-detail'>(${[..._activeTopic].join(_filterMode === 'AND' ? ' & ' : ', ')})</span>`;
   } else {
-    filterMobileEl.innerHTML = '';
+    filterMobileEl.innerHTML = '(All)';
     return 'Filter';
   }
 }
@@ -253,6 +253,12 @@ function initFilterToggle() {
     panel.style.left = `${rect.left}px`;
   }
 
+  function closePanel() {
+    isOpen = false;
+    panel.classList.remove('open');
+    btn.classList.remove('active');
+  }
+
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     isOpen = !isOpen;
@@ -262,12 +268,10 @@ function initFilterToggle() {
   });
 
   document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && e.target !== btn) {
-      isOpen = false;
-      panel.classList.remove('open');
-      btn.classList.remove('active');
-    }
+    if (!panel.contains(e.target) && e.target !== btn) closePanel();
   });
+
+  window.addEventListener('scroll', () => { if (isOpen) closePanel(); }, { passive: true });
 }
 
 function filterAndRerender() {
