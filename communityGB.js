@@ -12,7 +12,7 @@ function ensureGuestbookLoaded() {
   if (_gbAPI) {
     loadGuestbook();
   } else {
-    if (_currentTab === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
+    if (_currentPage === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
     setModalPage('login');
   }
 }
@@ -55,7 +55,7 @@ function updateModalTrigger(state) {
 // ───── Feed ────────────────────────────────────────
 
 function renderFeed(feedList) {
-  if (_currentTab !== 'feed') return;
+  if (_currentPage !== 'feed') return;
   const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
@@ -266,7 +266,7 @@ async function fetchGuestbook(action, body = null) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ tag: 'hub', action, ...(body || {}) }),
+    body: JSON.stringify({ tag: 'community', action, ...(body || {}) }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Guestbook Request Failed.');
@@ -298,8 +298,8 @@ function applyListData(listData) {
 }
 
 async function loadGuestbook() {
-  if (_currentTab === 'feed') renderNoData('Loading Posts', 'list-container', false);
-  if (_currentTab === 'guests') renderNoData('Loading Guests', 'list-container', false);
+  if (_currentPage === 'feed') renderNoData('Loading Posts', 'list-container', false);
+  if (_currentPage === 'guests') renderNoData('Loading Guests', 'list-container', false);
 
   try {
     const [check, listData] = await Promise.all([
@@ -338,13 +338,13 @@ async function loadGuestbook() {
     setModalPage('login');
     if (check.error) setModalStatus(check.error, true);
   } catch (e) {
-    if (_currentTab === 'guests') renderNoData('Failed To Load Guestbook', 'list-container', false);
+    if (_currentPage === 'guests') renderNoData('Failed To Load Guestbook', 'list-container', false);
     console.error(e);
   }
 }
 
 function renderGuestbook() {
-  if (_currentTab !== 'guests') return;
+  if (_currentPage !== 'guests') return;
   const container = document.getElementById('list-container');
   if (!container) return;
   container.innerHTML = '';
@@ -522,7 +522,7 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
 function syncModal() {
   const modal = document.getElementById('feed-modal');
   if (!modal) return;
-  if (_currentTab === 'guests') modal.classList.remove('hub-hidden');
+  if (_currentPage === 'guests') modal.classList.remove('hub-hidden');
   else modal.classList.add('hub-hidden');
 }
 

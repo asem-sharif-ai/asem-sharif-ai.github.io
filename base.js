@@ -58,6 +58,8 @@ const iconMap = {
   default:      'fa-solid fa-link',
 };
 
+const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
+
 function _address(key) {
   const sanitize = (S) => (!S) ? '' : S.toLowerCase().trim().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
   return `${sanitize(window.location.origin)}-minimal-portfolio-${key}`;
@@ -73,13 +75,11 @@ const addresses = {
   projectsStarredOnly: _address('projects-starred-only'),
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
-  hubActiveTab:        _address('hub-active-tab'),
+  hubActivePage:       _address('hub-active-page'),
   hubLiveOTP:          _address('hub-live-otp'),
   precachedOffline:    'slatemp-offline-v3',
   precachedHosts:      'hosts.json',
 };
-
-const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
 
 // ───── Footer, Offline & Host Failure Cases ────────────────────────────────────────
 

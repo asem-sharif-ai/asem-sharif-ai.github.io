@@ -1028,7 +1028,7 @@ async function runProfileApp() {
       education:  { label: 'Education',  href: './log.html?page=education' },
       experience: { label: 'Experience', href: './log.html?page=experience' },
       projects:   { label: 'Projects',   href: './projects.html' },
-      community:  { label: 'Community',  href: './hub.html' },
+      community:  { label: 'Community',  href: './community.html' },
     };
     const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
 

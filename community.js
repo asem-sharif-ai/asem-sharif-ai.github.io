@@ -1,5 +1,5 @@
 let _configData = {};
-let _currentTab = 'feed';
+let _currentPage = 'feed';
 let _searchQuery = '';
 
 let _gbAPI = '';
@@ -12,7 +12,7 @@ async function runHubApp() {
     _configData = configData;
     _gbAPI = configData?.api || '';
 
-    applyBaseSetup(configData, 'Hub', []);
+    applyBaseSetup(configData, 'Community', []);
     loadHubState();
     initHubShare()
     initHubSearch();
@@ -20,7 +20,7 @@ async function runHubApp() {
 
     renderNoData('Loading Community Data', 'list-container', false);
 
-    document.getElementById(`hub-tab-${_currentTab}`).classList.add('active');
+    document.getElementById(`hub-tab-${_currentPage}`).classList.add('active');
     document.getElementById('hub-tab-faq').addEventListener('click', () => switchHubTab('faq'));
     document.getElementById('hub-tab-feed').addEventListener('click', () => switchHubTab('feed'));
     document.getElementById('hub-tab-guests').addEventListener('click', () => switchHubTab('guests'));
@@ -39,20 +39,20 @@ async function runHubApp() {
         ensureGuestbookLoaded();
       }
     } else {
-      if (_currentTab === 'feed') renderNoData('Feed Not Set Yet', 'list-container', false);
-      if (_currentTab === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
+      if (_currentPage === 'feed') renderNoData('Feed Not Set Yet', 'list-container', false);
+      if (_currentPage === 'guests') renderNoData('Guestbook Not Set Yet', 'list-container', false);
     }
 
     if (configData?.community.faq) {
       try {
         const faqRes = await fetch(configData.community.faq);
         _allFaq = await faqRes.json();
-        if (_currentTab === 'faq') renderFAQ(_allFaq);
+        if (_currentPage === 'faq') renderFAQ(_allFaq);
       } catch {
-        if (_currentTab === 'faq') renderNoData('Could Not Load FAQ', 'list-container', false);
+        if (_currentPage === 'faq') renderNoData('Could Not Load FAQ', 'list-container', false);
       }
     } else {
-      if (_currentTab === 'faq')
+      if (_currentPage === 'faq')
         renderNoData('FAQ Not Set Yet', 'list-container', false);
     }
 

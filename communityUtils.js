@@ -1,16 +1,25 @@
 // ───── Utils ────────────────────────────────────────
 
+function _updateUrlPageParam() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('page', _currentPage);
+  window.history.replaceState({}, '', url);
+}
+
 function _saveHubState() {
-  sessionStorage.setItem(addresses.hubActiveTab, _currentTab);
+  sessionStorage.setItem(addresses.hubActivePage, _currentPage);
   sessionStorage.setItem(addresses.hubSearchQuery, _searchQuery);
+  _updateUrlPageParam();
 }
 
 function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
-  const savedTab = urlParams.get('tab') || sessionStorage.getItem(addresses.hubActiveTab);
-  if (['faq', 'feed', 'guests'].includes(savedTab)) _currentTab = savedTab;
+  const savedPage = urlParams.get('page') || sessionStorage.getItem(addresses.hubActivePage);
+  if (['faq', 'feed', 'guests'].includes(savedPage)) _currentPage = savedPage;
+
+  _updateUrlPageParam();
 
   const storedOTP = localStorage.getItem(addresses.hubLiveOTP);
   if (storedOTP) {
@@ -29,16 +38,16 @@ function loadHubState() {
   }
 }
 
-function switchHubTab(targetTab) {
-  if (targetTab === _currentTab) return;
+function switchHubTab(targetPage) {
+  if (targetPage === _currentPage) return;
 
-  _currentTab = targetTab;
+  _currentPage = targetPage;
   _saveHubState();
 
   document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`hub-tab-${targetTab}`).classList.add('active');
+  document.getElementById(`hub-tab-${targetPage}`).classList.add('active');
 
-  if (targetTab === 'guests' && document.getElementById('feed-state-loading') && !_gbIdentity) {
+  if (targetPage === 'guests' && document.getElementById('feed-state-loading') && !_gbIdentity) {
     setModalPage('login');
   }
 
@@ -46,13 +55,10 @@ function switchHubTab(targetTab) {
   updateShareIconState();
 }
 
-// Single entry point for painting whatever tab is active: look at
-// _currentTab, pick the already-fetched data source for it, and let
-// that tab's own builder filter + render into 'list-container'.
 function renderCurrentTab() {
-  if (_currentTab === 'feed') {
+  if (_currentPage === 'feed') {
     renderFeed(_allFeed);
-  } else if (_currentTab === 'guests') {
+  } else if (_currentPage === 'guests') {
     renderGuestbook();
   } else {
     renderFAQ(_allFaq);
@@ -82,9 +88,9 @@ function updateShareIconState() {
   if (!_searchQuery) {
     searchIcon.classList.remove('ui-disabled');
   } else {
-    const hasMatches = _currentTab === 'faq'
+    const hasMatches = _currentPage === 'faq'
       ? _faqHasMatches
-      : (_currentTab === 'guests' ? _gbHasMatches : _feedHasMatches);
+      : (_currentPage === 'guests' ? _gbHasMatches : _feedHasMatches);
     if (hasMatches) {
       searchIcon.classList.remove('ui-disabled');
     } else {
@@ -97,7 +103,7 @@ function initHubShare(update = true) {
   function buildUrl() {
     const url = new URL(window.location.href);
     url.search = '';
-    url.searchParams.set('tab', _currentTab);
+    url.searchParams.set('page', _currentPage);
     if (_searchQuery) url.searchParams.set('search', _searchQuery);
     return url.toString();
   }
