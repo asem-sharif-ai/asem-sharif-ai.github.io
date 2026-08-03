@@ -2932,7 +2932,7 @@ input[type='checkbox']:checked::after {
 }
 
 .reacts-btn {
-  margin: 0 -6px 0 0 !important;
+  margin: 0 -4px 0 0 !important;
   padding: 4px 8px !important;
   gap: 4px !important;
   border: 1px solid var(--border-color) !important;
@@ -2947,6 +2947,7 @@ input[type='checkbox']:checked::after {
 .reacts-btn:hover, .reacts-btn:hover span { color: var(--text-bright) !important; }
 
 .reacted { color: var(--heart-color) !important; }
+.reacted:hover { color: var(--text-bright) !important; }
 
 .reacts-count {
   color: var(--text-deep-muted);
