@@ -134,10 +134,15 @@ function buildFeedCard(item) {
       ` : ''}
       ${isGuestViewer ? /*html*/ `
       <div class='feed-card-icons'>
-        <button class='btn feed-btn feed-btn-react ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
-          <i class='${item.liked ? 'fa-solid' : 'fa-regular'} fa-heart'></i>
+        <button class='btn feed-btn reacts-btn action-btn ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+          <i class='${item.liked ? 'fa-solid reacted' : 'fa-regular'} fa-heart'></i>
           <span class='reacts-count${(item.likeCount || 0) === 0 ? ' hub-hidden' : ''}'>${item.likeCount || 0}</span>
         </button>
+        ${item.pin ? /*html*/ `
+          <button class='btn feed-btn feed-btn-pin ${item.pin ? 'feed-btn-active' : ''}'>
+            <i class='fa-solid fa-bookmark pin-icon'></i>
+          </button>
+          ` : '' }
       </div>
       ` : ''}
     </div>
@@ -151,7 +156,7 @@ function buildFeedCard(item) {
   }
 
   if (isGuestViewer) {
-    msgPane.querySelector('.feed-btn-react')?.addEventListener('click', (e) => {
+    msgPane.querySelector('.reacts-btn')?.addEventListener('click', (e) => {
       if (!_gbIdentity) {
         openGuestbookModal();
         return;
