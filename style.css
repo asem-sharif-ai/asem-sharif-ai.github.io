@@ -2942,10 +2942,10 @@ input[type='checkbox']:checked::after {
 }
 .reacts-btn i { margin-right: -1px; transition: color 0.3s ease; }
 .reacts-btn:hover, .reacts-btn:hover span, .reacts-btn:hover i { transform: scale(1); }
-.reacts-btn:hover, .reacts-btn:hover i { color: var(--heart-color-sub) !important; }
+.reacts-btn:hover, .reacts-btn:hover i { color: var(--heart-color) !important; }
 .reacts-btn:hover, .reacts-btn:hover span { color: var(--text-bright) !important; }
 
-.reacted { color: var(--heart-color-sub) !important; }
+.reacted { color: var(--heart-color) !important; }
 
 .reacts-count {
   color: var(--text-deep-muted);
