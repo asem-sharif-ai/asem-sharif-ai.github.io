@@ -251,7 +251,7 @@ function applyReactUI(btnUI, liked, count) {
   if (!btnUI) return;
   btnUI.classList.toggle('feed-btn-active', liked);
   const icon = btnUI.querySelector('i');
-  if (icon) icon.className = `${liked ? 'fa-solid' : 'fa-regular'} fa-heart`;
+  if (icon) icon.className = `${liked ? 'fa-solid reacted' : 'fa-regular'} fa-heart`;
   const countUI = btnUI.querySelector('.reacts-count');
   if (countUI) {
     countUI.textContent = count;
@@ -495,8 +495,7 @@ function buildGuestbookCard(entry, isAdmin = false, banned = false) {
           <button class='btn feed-btn feed-btn-ban'>
             <i class='fa-solid fa-ban'></i>
           </button>
-        `
-            : `
+        ` : `
           ${entry.like ? `<i class='fa-solid fa-heart heart-icon'></i>` : ''}
           ${entry.pin ? `<i class='fa-solid fa-bookmark pin-icon'></i>` : ''}
         `
