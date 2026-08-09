@@ -24,7 +24,7 @@
     "link": [
       { "rel": "icon",              "href": "/icon.png", "type": "image/png" },
       { "rel": "apple-touch-icon",  "href": "/icon.png" },
-      { "rel": "canonical",         "href": "https://asem-sharif-ai.pages.dev" }
+      { "rel": "canonical",         "href": "https://asem-sharif-ai.github.io" }
     ],
     "theme" : [
       { "media": "(prefers-color-scheme: dark)",  "content": "#0f0f0f" },
