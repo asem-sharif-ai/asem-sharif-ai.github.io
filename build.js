@@ -24,7 +24,9 @@ function escape(str) {
   return String(str).replace(/&/g, '&amp;').replace(/'/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function metaKey(tag) { return tag.name || tag.property; }
+function metaKey(tag) {
+  return tag.name || tag.property;
+}
 
 function baseData(head) {
   return {
