@@ -317,6 +317,7 @@ async function loadGuestbook() {
 
       applyListData(listData);
       renderFeed(_allFeed);
+      updateAdminAccess(check.isAdmin);
 
       if (check.isAdmin) {
         renderGuestbook();
@@ -334,6 +335,7 @@ async function loadGuestbook() {
     _gbIdentity = null;
     applyListData(listData);
     renderFeed(_allFeed);
+    updateAdminAccess(false);
     renderGuestbook();
     setModalPage('login');
     if (check.error) setModalStatus(check.error, true);
@@ -533,6 +535,8 @@ async function applySession(data) {
     image: data.image || null,
     adminId: data.adminId || null,
   };
+
+  updateAdminAccess(data.isAdmin);
 
   if (data.isAdmin) {
     try {

@@ -30,6 +30,7 @@ const iconMap = {
   analytics:    'fa-solid fa-chart-line',
   community:    'fa-brands fa-superpowers community-icon',
   faq:          'fa-solid fa-circle-question',
+  dashboard:    'fa-solid fa-chart-pie',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
   default:      'fa-solid fa-layer-group',
@@ -37,7 +38,7 @@ const iconMap = {
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
   youtube:      'fa-brands fa-youtube',
-  whatsapp:     'iconify:iconoir:whatsapp-solid',
+  whatsapp:     'fa-brands fa-whatsapp',
   telegram:     'fa-brands fa-telegram',
   discord:      'fa-brands fa-discord',
   mailto:       'fa-solid fa-envelope',
@@ -77,6 +78,8 @@ const addresses = {
   hubSearchQuery:      _address('hub-search-query'),
   hubActivePage:       _address('hub-active-page'),
   hubLiveOTP:          _address('hub-live-otp'),
+  sessionMeta:         _address('session-meta'),
+  sessionEvents:       _address('session-events'),
   precachedOffline:    'slatemp-offline-v3',
   precachedHosts:      'hosts.json',
 };
@@ -111,7 +114,7 @@ function handleOffline() {
         <body>
           <div class='hero hero-card'>
             <div class='hero-logo idle-header'>&lt;/&gt;</div>
-            <h2 class='user-name' id='offline-title'>YOU ARE OFFLINE</h2>
+            <h1 class='user-name' id='offline-title'>YOU ARE OFFLINE</h1>
             <p class='subtitle' id='offline-subtitle'>Check Your Internet Connection And Try Again</p>
           </div>
           ${homeFooter(true)}
@@ -550,7 +553,7 @@ function observeCards() {
 function createQRCodeModal(data) {
   const qrBtn = document.createElement('button');
   qrBtn.title = `Scan QRCode`
-  qrBtn.className = 'floating-trigger qr-trigger has-glow';
+  qrBtn.className = 'floating-trigger qr-trigger has-glow _clickable';
   qrBtn.id = 'qr-trigger';
   qrBtn.innerHTML = '<i class="fa-solid fa-qrcode"></i>';
   document.body.appendChild(qrBtn);
@@ -676,7 +679,7 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
   if (triggers.includes('assistant') && data.assistant?.name) {
     initChatAssistant(data);
     
-    const chatWin = document.getElementById('chat-assistant-window');
+    const chatWin = document.getElementById('chat-window');
     const targetQrBtn = document.getElementById('qr-trigger');
     if (chatWin && targetQrBtn) {
       const syncObserver = new MutationObserver(() => {
@@ -689,14 +692,6 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
     }
   }
 
-  document.querySelectorAll('tbody tr[data-href]').forEach(row => {
-    row.addEventListener('click', () => window.location.href = row.dataset.href);
-  });
-
-  return appliedTheme;
-}
-
-function applyFinalSetup(){
   document.addEventListener('click', (e) => {
     const row = e.target.closest('table tbody tr');
     if (!row) return;
@@ -704,6 +699,194 @@ function applyFinalSetup(){
     const link = row.querySelector('a[href]');
     if (link) window.location.href = link.getAttribute('href');
   });
+
+  return appliedTheme;
+}
+
+// ───── Session Analysis ────────────────────────────────────────
+
+let events = [];
+async function applyAnalysis(api = null) {
+  if (!api) return;
+
+  function logEvent(type, data = {}) {
+    const item = { type, timestamp: Date.now(), data };
+    console.log(item);
+    events.push(item);
+    localStorage.setItem(addresses.sessionEvents, JSON.stringify(events));
+  }
+
+  const metaRaw = localStorage.getItem(addresses.sessionMeta);
+  const eventsRaw = localStorage.getItem(addresses.sessionEvents);
+
+  const meta = metaRaw ? JSON.parse(metaRaw) : null;
+  events = eventsRaw ? JSON.parse(eventsRaw) : [];
+
+  const lastEvent = events.length ? events[events.length - 1] : null;
+  const isExpired = !lastEvent || lastEvent.timestamp < Date.now() - 1800000;
+
+  const params = new URLSearchParams(location.search);
+  const inviteId = params.get('invite') || null;
+
+  if (!meta || !events.length || isExpired) {
+    const sessionMeta = {
+      sessionId: crypto.randomUUID(),
+      initializedAt: new Date().toISOString(),
+      referrer: document.referrer || null,
+      landing: location.pathname,
+      language: navigator.language,
+      screen: `${screen.width}x${screen.height}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      previousId: meta?.sessionId || null,
+      inviteId
+    };
+    events = [];
+
+    localStorage.setItem(addresses.sessionMeta, JSON.stringify(sessionMeta));
+    localStorage.setItem(addresses.sessionEvents, JSON.stringify(events));
+
+    // try {
+    //   await fetch(api, {
+    //     method: 'POST',
+    //     credentials: 'include',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ tag: 'analytics', metadata: sessionMeta }),
+    //   });
+    // } catch (e) {
+    //   console.log('Portfolio Analytics Error:', e);
+    //   return;
+    // }
+
+  } else {
+    logEvent('pulse');
+  }
+
+  logEvent('page_open', { path: location.pathname, referrer: document.referrer || null });
+  window.addEventListener('pagehide', () => { logEvent('page_exit', { scrollY: window.scrollY, path: location.pathname }); });
+
+  window.addEventListener('focus', () => { logEvent('focused', { scrollY: window.scrollY }); });
+  window.addEventListener('blur', () => { logEvent('unfocused', { scrollY: window.scrollY }); });
+  document.addEventListener('visibilitychange', () => { logEvent(document.hidden ? 'hidden' : 'visible', { scrollY: window.scrollY });});
+
+  const chatWindow = document.getElementById('chat-window');
+  if (chatWindow) {
+    const chatObserver = new MutationObserver(() => { logEvent(chatWindow.classList.contains('open') ? 'chat_opened' : 'chat_closed'); });
+    chatObserver.observe(chatWindow, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  let scrollActive = false, scrollTimeout = null;
+  document.addEventListener('scroll', () => {
+    const snapshot = {
+      scrollY: window.scrollY,
+      docHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight
+    };
+
+    if (!scrollActive) { scrollActive = true; logEvent('scroll_start', snapshot); }
+
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      scrollActive = false;
+      logEvent('scroll_end', {
+        scrollY: window.scrollY,
+        docHeight: document.documentElement.scrollHeight,
+        viewportHeight: window.innerHeight
+      });
+    }, 200);
+  });
+
+  document.addEventListener('click', (e) => {
+    const I = e.target.closest('._clickable');
+    if (I) logEvent('click', { id: I.id || null, text: I.innerText?.slice(0, 100) || null });
+  }, true);
+
+  document.addEventListener('copy', () => {
+    const selection = window.getSelection()?.toString() || '';
+    const el = document.activeElement;
+    logEvent('copy', {
+      text: selection.slice(0, 200),
+      elementId: el?.id || null,
+      elementTag: el?.tagName || null,
+      elementClass: el?.className || null
+    });
+  });
+
+  // ---------- form fields ----------
+  document.addEventListener('focus', (e) => {
+    const el = e.target.closest('._trackable');
+    if (!el) return;
+    logEvent('field_focus', { id: el.id || null });
+  }, true);
+
+  document.addEventListener('blur', (e) => {
+    const el = e.target.closest('._trackable');
+    if (!el) return;
+    logEvent('field_blur', { id: el.id || null, filled: !!el.value?.trim() });
+  }, true);
+
+  // ---------- search ----------
+  let searchDebounce = null;
+  const searchInput = document.getElementById('project-search-input');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        const query = e.target.value.trim();
+        if (!query) return;
+        logEvent('search', { query });
+      }, 500);
+    });
+  }
+
+  window.addEventListener('error', (e) => {
+    logEvent('error', {
+      kind: 'js_error',
+      message: e.message || null,
+      filename: e.filename || null,
+      lineno: e.lineno || null,
+      colno: e.colno || null,
+      stack: e.error?.stack?.slice(0, 500) || null
+    });
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    logEvent('error', {
+      kind: 'unhandled_rejection',
+      reason: e.reason?.message || String(e.reason).slice(0, 500)
+    });
+  });
+
+  const IDLE_THRESHOLD = 60000;
+  let isIdle = false, idleTimer = null;
+  let lastMouseX = null, lastMouseY = null;
+
+  function markActive() {
+    if (isIdle) {
+      isIdle = false;
+      logEvent('user_active');
+    }
+
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      isIdle = true;
+      logEvent('user_idle');
+    }, IDLE_THRESHOLD);
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    if (lastMouseX === null || Math.abs(e.clientX - lastMouseX) > 5 || Math.abs(e.clientY - lastMouseY) > 5) {
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      markActive();
+    }
+  }, { passive: true });
+
+  ['keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, markActive, { passive: true });
+  });
+
+  markActive();
 }
 
 function makeSeparator(extraClass = '') {

@@ -38,19 +38,27 @@ function loadHubState() {
   }
 }
 
+function updateAdminAccess(isAdmin) {
+  const name = document.getElementById('nav-user-name');
+  if (!name) return;
+  if (isAdmin) {
+    name.classList.add('title-link');
+    name.onclick = () => { window.location.href = '/dashboard.html'; };
+  } else {
+    name.classList.remove('title-link');
+    name.onclick = null;
+  }
+}
+
 function switchHubTab(targetPage) {
   if (targetPage === _currentPage) return;
-
   _currentPage = targetPage;
   _saveHubState();
-
   document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`hub-tab-${targetPage}`).classList.add('active');
-
   if (targetPage === 'guests' && document.getElementById('feed-state-loading') && !_gbIdentity) {
     setModalPage('login');
   }
-
   renderCurrentTab();
   updateShareIconState();
 }

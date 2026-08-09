@@ -1,0 +1,70 @@
+{
+  "head": {
+    "title": "Asem E. Sharif - AI & Computer Vision Engineer",
+    "meta": [
+      { "name":     "title",               "content": "Asem E. Sharif - AI & Computer Vision Engineer" },
+      { "name":     "description",         "content": "AI & Computer Vision Engineer specializing in Human-Centered Tasks and Biometric Technologies, with experience across Autonomous Systems, Industrial Inspection, and Satellite Imagery." },
+      { "name":     "author",              "content": "Asem E. Sharif" },
+      { "name":     "robots",              "content": "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" },
+      { "property": "og:type",             "content": "profile" },
+      { "property": "og:site_name",        "content": "Asem E. Sharif" },
+      { "property": "og:url",              "content": "https://asem-sharif-ai.pages.dev" },
+      { "property": "og:title",            "content": "Asem E. Sharif - AI & Computer Vision Engineer" },
+      { "property": "og:description",      "content": "AI & Computer Vision Engineer specializing in Human-Centered Tasks and Biometric Technologies, with experience across Autonomous Systems, Industrial Inspection, and Satellite Imagery." },
+      { "property": "og:image",            "content": "https://asem-sharif-ai.pages.dev/image.png" },
+      { "property": "og:image:alt",        "content": "Asem E. Sharif - AI & Computer Vision Engineer Portfolio" },
+      { "property": "og:locale",           "content": "en_US" },
+      { "property": "twitter:card",        "content": "summary_large_image" },
+      { "property": "twitter:url",         "content": "https://asem-sharif-ai.pages.dev" },
+      { "property": "twitter:title",       "content": "Asem E. Sharif - AI & Computer Vision Engineer" },
+      { "property": "twitter:description", "content": "AI & Computer Vision Engineer specializing in Human-Centered Tasks and Biometric Technologies, with experience across Autonomous Systems, Industrial Inspection, and Satellite Imagery." },
+      { "property": "twitter:image",       "content": "https://asem-sharif-ai.pages.dev/image.png" },
+      { "property": "twitter:image:alt",   "content": "Asem E. Sharif - AI & Computer Vision Engineer Portfolio" }
+    ],
+    "link": [
+      { "rel": "icon",              "href": "/icon.png", "type": "image/png" },
+      { "rel": "apple-touch-icon",  "href": "/icon.png" },
+      { "rel": "canonical",         "href": "https://asem-sharif-ai.pages.dev" }
+    ],
+    "theme" : [
+      { "media": "(prefers-color-scheme: dark)",  "content": "#0f0f0f" },
+      { "media": "(prefers-color-scheme: light)", "content": "#ffffff" }
+    ],
+    "jsonld": {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Asem E. Sharif",
+      "jobTitle": "AI & Computer Vision Engineer",
+      "description": "AI & Computer Vision Engineer specializing in Human-Centered Tasks and Biometric Technologies, with experience across Autonomous Systems, Industrial Inspection, and Satellite Imagery.",
+      "url": "https://asem-sharif-ai.pages.dev",
+      "image": "https://asem-sharif-ai.pages.dev/image.png",
+      "sameAs": [ "https://github.com/asem-sharif-ai", "https://www.linkedin.com/in/asem-sharif" ]
+    }
+  },
+
+  "page": {
+    "log": {
+      "description" : "Education, Experience, and Skills - A Timeline of Formal Credentials, Engineering Roles, and Core Technologies.",
+      "og:title" : "Asem E. Sharif - Log",
+      "og:description" : "Education, Experience, and Skills - A Timeline of Formal Credentials, Engineering Roles, and Core Technologies.",
+      "twitter:title" : "Asem E. Sharif - Log",
+      "twitter:description" : "Education, Experience, and Skills - A Timeline of Formal Credentials, Engineering Roles, and Core Technologies."
+    },
+
+  "projects": {
+    "description" : "Searchable, Filterable, and Interactive Archive of My Projects, Applications, and Architectures.",
+    "og:title" : "Asem E. Sharif - Projects",
+    "og:description" : "Searchable, Filterable, and Interactive Archive of My Projects, Applications, and Architectures.",
+    "twitter:title" : "Asem E. Sharif - Projects",
+    "twitter:description" : "Searchable, Filterable, and Interactive Archive of My Projects, Applications, and Architectures."
+  },
+
+    "community": {
+      "description" : "Central Community for Feed Updates and Posts, Guests Reviews, and Frequently Asked Questions (FAQ).",
+      "og:title" : "Asem E. Sharif - Community",
+      "og:description" : "Central Community for Feed Updates and Posts, Guests Reviews, and Frequently Asked Questions (FAQ).",
+      "twitter:title" : "Asem E. Sharif - Community",
+      "twitter:description" : "Central Community for Feed Updates and Posts, Guests Reviews, and Frequently Asked Questions (FAQ)."
+    }
+  }
+}

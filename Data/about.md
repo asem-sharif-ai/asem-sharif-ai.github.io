@@ -10,7 +10,7 @@ I believe in the critical importance of the **Lower-Level Stages** of a project,
 | [AI Assistant](#chat-with-assistant)    | Direct Conversational Interface to Explore My Background, Projects, and Expertise. | › |
 | [Education](/log.html?page=education)   | Formal Credentials, Academic Milestones, and Specialized Courseworks.              | › |
 | [Experience](/log.html?page=experience) | Professional History, Engineering Roles, and Technical Contributions.              | › |
-| [Projects](/projects.html)              | Interactive Archive of My Projects, Applications, and Architectures.               | › |
 | [Skills](/log.html?page=skills)         | Core Technologies, Development Frameworks, and Domain Proficiencies.               | › |
-| [Community](/community.html?tab=feed)   | Central Feed for Live Updates, Community Posts, and Guest Reviews.                 | › |
-| [FAQ](/community.html?tab=faq)          | Answers to Common Inquiries Regarding My Work, Stack, and Availability.            | › |
+| [Projects](/projects.html)              | Interactive Archive of My Projects, Applications, and Architectures.               | › |
+| [Community](/community.html?page=feed)  | Central Community for Feed Live Updates, Guest Reviews and Posts, and FAQ.         | › |
+| [FAQ](/community.html?page=faq)         | Answers to Common Inquiries Regarding My Work, Stack, and Availability.            | › |

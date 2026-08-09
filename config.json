@@ -2,13 +2,14 @@
   "theme": null,
   "dark_mode": null,
   "icon": "./icon.png",
-
+  
   "symbol": ">_",
   "name": "Asem E. Sharif",
   "role": ["AI & Computer Vision Engineer", "PyQt Developer"],
   "bio": "I build full-pipeline computer vision systems and the interfaces around them, delivering AI solutions with real-time inference through production-grade desktop applications.",
   "location": "Cairo, Egypt.",
   "timezone": "Africa/Cairo",
+  
   "status": {
     "daily": [
       { "from": "06:00", "to": "12:00", "label": "Open For Business" },
@@ -21,6 +22,7 @@
       "friday": "Weekend"
     }
   },
+
   "picture": ["./Data/Me-Dark.jpg", "./Data/Me-Light.jpg"],
 
   "cta": {
@@ -34,6 +36,7 @@
     "original": "https://asem-sharif-ai.pages.dev",
     "fallback": "https://asem-sharif-ai.github.io",
     "redirect": false,
+    "analysis": false,
     "qr_code": true
   },
 
@@ -60,8 +63,8 @@
       { "site": "facebook",    "url": "https://www.facebook.com/notasem.fb" },
       { "site": "instagram",   "url": "https://www.instagram.com/_notasem_" },
       { "site": "twitter",     "url": "https://x.com/_notasem_" },
-      { "site": "youtube",     "url": "https://www.youtube.com/@AsemSharif-AI" },
       { "site": "whatsapp",    "url": "https://wa.me/+201010057162" },
+      { "site": "youtube",     "url": "https://www.youtube.com/@AsemSharif-AI" },
       { "site": "discord",     "url": "https://discord.com/users/asem.sharif.ai" },
       { "site": "medium",      "url": "https://medium.com/@asem-sharif-ai" },
       { "site": "kaggle",      "url": "https://www.kaggle.com/asemsharifai" },
@@ -389,7 +392,7 @@
     "key": "Connect",
     "icon": "connect",
     "title": "Let's Connect",
-    "subtitle": "I'm always available to discuss ventures, career opportunities, and strategic challenges.",
+    "subtitle": "Drop Me a Line and I'll Get Back to You as Soon as I Can." ,
     "subjects": [
       "Job Opportunity",
       "Internship Opportunity",

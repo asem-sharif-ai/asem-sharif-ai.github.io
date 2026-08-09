@@ -1,4 +1,4 @@
-// ───── Log (Education, Experience) ────────────────────────────────────────
+// ───── Education & Experience ────────────────────────────────────────
 
 function _parseDate(dateStr) {
   if (!dateStr) return null;
@@ -57,7 +57,7 @@ function buildLogCard(item, index) {
     : '';
 
   const header = document.createElement('div');
-  header.className = 'log-card-header';
+  header.className = 'card-header log-card-header';
   header.innerHTML = `
     <div class='log-flex-row'>
       <div class='log-flex-left'>
@@ -269,8 +269,8 @@ function renderSkillsList(skillsData) {
 
 // ───── Log Router / Tabs ────────────────────────────────────────
 
+let configData = null;
 const VALID_PAGES = ['education', 'experience', 'skills'];
-let _logConfigData = null;
 
 function setActiveTab(page) {
   document.querySelectorAll('.log-tab').forEach(tab => {
@@ -279,9 +279,9 @@ function setActiveTab(page) {
 }
 
 function renderLogPage(page) {
-  const data = _logConfigData?.[page];
+  const data = configData?.[page];
 
-  const configName = _logConfigData?.name ?? _logConfigData?.config?.name ?? '';
+  const configName = configData?.name ?? configData?.config?.name ?? '';
   document.title = configName ? `${configName} - ${capitalize(page)}` : capitalize(page);
 
   if (page === 'skills') {
@@ -316,8 +316,8 @@ async function runLogRouter() {
       page = VALID_PAGES[0];
     }
 
-    _logConfigData = await loadConfig();
-    applyBaseSetup(_logConfigData, '');
+    configData = await loadConfig();
+    applyBaseSetup(configData, '');
 
     document.querySelectorAll('.log-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
@@ -336,6 +336,7 @@ async function runLogRouter() {
     });
 
     renderLogPage(page);
+    if (configData?.host.analysis) await applyAnalysis(configData?.api)
 
   } catch (e) {
     console.error('Log Core Router Failure:', e);

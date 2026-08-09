@@ -74,17 +74,17 @@ function _updateShareIcon() {
 // ───── Filter & Search ────────────────────────────────────────
 
 function buildFilterDetailLabel() {
-  const filterMobileEl = document.getElementById('filter-mobile');
+  const filterMobile = document.getElementById('filter-mobile');
   if (_starredOnly) {
-    filterMobileEl.innerHTML = `(Starred)`;
+    filterMobile.innerHTML = `(Starred)`;
     return `Filter <span class='post-detail'>(Starred)</span>`;
   } else if (_activeTopic.size > 0) {
     const filterDisplay = [..._activeTopic].join(_filterMode === 'AND' ? ' & ' : ', ');
     document.getElementById('nav-user-role').style.display = filterDisplay.length > 70 ? 'none' : 'block';
-    filterMobileEl.innerHTML = `(${_activeTopic.size > 1 ? (_filterMode === 'AND' ? 'All ' : 'Any ') : ''}${_activeTopic.size})`;
+    filterMobile.innerHTML = `(${_activeTopic.size > 1 ? (_filterMode === 'AND' ? 'All ' : 'Any ') : ''}${_activeTopic.size})`;
     return `Filter <span class='post-detail'>(${filterDisplay})</span>`;
   } else {
-    filterMobileEl.innerHTML = '(All)';
+    filterMobile.innerHTML = '(All)';
     return 'Filter';
   }
 }
@@ -428,19 +428,19 @@ function buildProjectCard(project, cardId) {
   const hasUrl = !!project.url;
   const cleanTopics = (project.topics || []).map(topic => topic.replace(/^_+/, '').trim());
 
-  card.innerHTML = `
+  card.innerHTML = /*html*/ `
     <div class='card-header idle-header' id='header-${cardId}'>
       <div class='project-title-container'>
       ${project.star ? `<span class='star-icon'></span>` : ''}
-      <div class='card-title ${project.url ? 'card-title-link' : ''}'>${project.title || 'Untitled'}</div>
+      <div class='card-title ${project.url ? 'title-link' : ''}'>${project.title || 'Untitled'}</div>
       </div>
       <div class='card-btns'>
-        ${(contents.length > 1) ? `
-          <button class='btn prev-btn header-slide-btn' id='prev-${cardId}'><i class='fa-solid fa-chevron-left'></i></button>
+        ${(contents.length > 1) ? /*html*/ `
+          <button class='btn prev-btn header-slide-btn _clickable' id='prev-${cardId}'><i class='fa-solid fa-chevron-left'></i></button>
           <span class='slide-counter' id='counter-${cardId}'>1/${contents.length}</span>
-          <button class='btn next-btn header-slide-btn' id='next-${cardId}'><i class='fa-solid fa-chevron-right'></i></button>
+          <button class='btn next-btn header-slide-btn _clickable' id='next-${cardId}'><i class='fa-solid fa-chevron-right'></i></button>
         ` : ''}
-        <button class='btn toggle-btn' id='toggle-btn-${cardId}'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
+        <button class='btn toggle-btn _clickable' id='toggle-${cardId}'><i class='fa-solid fa-chevron-up card-toggle-btn'></i></button>
       </div>
     </div>
     <div class='card-collapse'>
@@ -448,15 +448,15 @@ function buildProjectCard(project, cardId) {
         <div class='scroll-area' id='${textId}'>Loading...</div>
       </div>
     </div>
-    ${project.topics?.length ? `
-      <div class='project-card-footer card-collapse closed' id='footer-${cardId}'>
+    ${project.topics?.length ? /*html*/ `
+      <div class='project-card-footer card-collapse closed _clickable' id='footer-${cardId}'>
         <div class='project-card-footer-inner'>
           <div class='project-card-footer-topics'>${cleanTopics.map(t => `<span class='keyword'>${t}</span>`).join('')}</div>
         </div>
       </div>` : ''}
   `;
 
-  card.querySelector(`#toggle-btn-${cardId}`).addEventListener('click', (e) => {
+  card.querySelector(`#toggle-${cardId}`).addEventListener('click', (e) => {
     e.stopPropagation();
     toggleProjectCard(cardId);
   });
@@ -478,10 +478,11 @@ function buildProjectCard(project, cardId) {
       prevBtnEl.style.setProperty('--stack-x', `${prevGap}px`);
     }
     const counterEl = card.querySelector('.slide-counter');
-    if (nextBtnEl && counterEl && nextBtnEl.offsetParent !== null) {
+    if (nextBtnEl && counterEl && prevBtnEl.offsetParent !== null) {
       const nextRect = nextBtnEl.getBoundingClientRect();
       const counterRect = counterEl.getBoundingClientRect();
       const counterGap = (nextRect.left + nextRect.width / 2) - (counterRect.left + counterRect.width / 2);
+      console.log(counterGap)
       counterEl.style.setProperty('--counter-stack-x', `${counterGap}px`);
     }
   });
@@ -686,7 +687,6 @@ async function runProjectsApp() {
     const configData = await loadConfig();
     const projectsData = configData.projects;
 
-    _configData = configData;
     _allProjects = projectsData.content || [];
 
     applyBaseSetup(configData, 'Projects');
@@ -772,6 +772,8 @@ async function runProjectsApp() {
     }
 
     filterAndRerender();
+    if (configData?.host.analysis) await applyAnalysis(configData?.api)
+
 
   } catch (e) {
     console.error('Projects App Setup Failure:', e);

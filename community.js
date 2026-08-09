@@ -1,4 +1,3 @@
-let _configData = {};
 let _currentPage = 'feed';
 let _searchQuery = '';
 
@@ -9,7 +8,6 @@ let _gbHasModal = false;
 async function runHubApp() {
   try {
     const configData = await loadConfig();
-    _configData = configData;
     _gbAPI = configData?.api || '';
 
     applyBaseSetup(configData, 'Community', []);
@@ -56,8 +54,10 @@ async function runHubApp() {
         renderNoData('FAQ Not Set Yet', 'list-container', false);
     }
 
+    if (configData?.host.analysis) await applyAnalysis(_gbAPI)
+
   } catch (e) {
-    console.error('Hub Setup Failure:', e);
+    console.error('Community Setup Failure:', e);
   }
 }
 

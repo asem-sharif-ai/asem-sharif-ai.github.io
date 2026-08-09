@@ -1,4 +1,4 @@
-// ───── Cards Setup ────────────────────────────────────────
+// ───── Sections Cards ────────────────────────────────────────
 
 function buildCard(section, cardId) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId});
@@ -6,18 +6,21 @@ function buildCard(section, cardId) {
   const textId = `text-${cardId}`;
   const copyId = `copy-${cardId}`;
   const shareId = `share-${cardId}`;
+  const toggleId = `toggle-${cardId}`;
   const collapseId = `card-collapse-${cardId}`;
   const isImage = isImagePath(section.path);
   const isVideo = isVideoPath(section.path);
   const isMedia = isImage || isVideo;
 
   card.innerHTML = /*html*/ `
-    <div class='card-header idle-header' id='header-${cardId}'>
-      <div class='card-title card-title-link' id='${shareId}'>${section.title}</div>
+    <div class='card-header' id='header-${cardId}'>
+      <div class='card-title title-link _clickable' id='${shareId}'>${section.title}</div>
       <div class='card-btns'>
-        <button class='btn' id='${copyId}'><i class='${isMedia ? 'fa-regular fa-circle-down download-icon' : 'fa-regular fa-copy copy-icon'}'></i></button>
-        <button class='btn' id='toggle-btn-${cardId}'>
-          <svg class='card-toggle-btn' id='toggle-${cardId}' style='width: 1.05em; height: 1.05em;' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <button class='btn _clickable' id='${copyId}'>
+          <i class='${isMedia ? 'fa-regular fa-circle-down download-icon' : 'fa-regular fa-copy copy-icon'}'></i>
+        </button>
+        <button class='card-toggle-btn btn _clickable' id='${toggleId}'>
+          <svg id='card-toggle-${cardId}' style='width: 1.05em; height: 1.05em;' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
             <path class='toggle-arm-left' d='M4 15 L12 7' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/>
             <path class='toggle-arm-right' d='M12 7 L20 15' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/>
           </svg>
@@ -25,13 +28,13 @@ function buildCard(section, cardId) {
       </div>
     </div>
     <div class='card-collapse' id='${collapseId}'>
-      <div class='card-body home-card'>
+      <div class='card-body index-card'>
         <div class='scroll-area' id='${textId}'>Loading...</div>
       </div>
     </div>
   `;
 
-  card.querySelector(`#toggle-btn-${cardId}`).addEventListener('click', (e) => { e.stopPropagation(); if (card.dataset.toggleLocked) return; toggleCard(cardId, collapseId); });
+  card.querySelector(`#${toggleId}`).addEventListener('click', (e) => { e.stopPropagation(); if (card.dataset.toggleLocked) return; toggleCard(cardId, collapseId); });
   card.querySelector(`#${copyId}`).addEventListener('click', (e) => { e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);});
   card.querySelector(`#${shareId}`).addEventListener('click', (e) => { e.stopPropagation(); copyCardURL(cardId, shareId)});
 
@@ -59,72 +62,12 @@ function buildCard(section, cardId) {
   return card;
 }
 
-function highlightCard(cardId) {
-  document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
-  if (cardId !== 'home-hero') {
-    const target = document.getElementById(cardId);
-    if (target) {
-      target.classList.add('focus');
-      const collapse = target.querySelector('.card-collapse');
-      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
-    }
-  }
-}
-
 function copyCardText(cardId) {
   const card = document.getElementById(cardId);
   if (card && card.dataset.copyInProgress) return;
-  const scrollArea = card.querySelector('.scroll-area');
-  navigator.clipboard.writeText(scrollArea.innerText).then(() => { hideCopyIconAndPulseToggle(cardId) }).catch(err => console.error('Copy Failed: ', err));
-}
-
-function copyCardURL(cardId, shareId) {
-  const card = document.getElementById(cardId);
-  if (card && card.dataset.copyInProgress) return;
-
-  navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
-    .then(() => { hideCopyIconAndPulseToggle(cardId); })
-    .catch(err => console.error('Share Failed: ', err));
-}
-
-function hideCopyIconAndPulseToggle(cardId) {
-  const copyIcon = document.querySelector(`#copy-${cardId} i`);
-  if (copyIcon) {
-    copyIcon.classList.add('copy-icon-hidden');
-    clearTimeout(copyIcon._showTimeout);
-    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
-  }
-
-  const icon = document.getElementById(`toggle-${cardId}`);
-  const card = document.getElementById(cardId);
-  if (!icon || !card) return;
-
-  const left = icon.querySelector('.toggle-arm-left');
-  const right = icon.querySelector('.toggle-arm-right');
-  if (!left || !right) return;
-
-  const wasChecked = left.getAttribute('d') === 'M4 12 L10 18';
-
-  card.dataset.toggleLocked = 'true';
-  card.dataset.copyInProgress = 'true';
-  icon.classList.add('checked');
-  left.setAttribute('d', 'M4 12 L10 18');
-  right.setAttribute('d', 'M10 18 L20 6');
-  right.animate(
-    [{ strokeWidth: 2.5 }, { strokeWidth: 3.2 }, { strokeWidth: 2.5 }],
-    { duration: 400, easing: 'ease' }
-  );
-
-  clearTimeout(icon._unrotateTimeout);
-  icon._unrotateTimeout = setTimeout(() => {
-    if (!wasChecked) {
-      left.setAttribute('d', 'M4 15 L12 7');
-      right.setAttribute('d', 'M12 7 L20 15');
-      icon.classList.remove('checked');
-    }
-    delete card.dataset.toggleLocked;
-    delete card.dataset.copyInProgress;
-  }, 1000);
+  navigator.clipboard.writeText(
+    card.querySelector('.scroll-area').innerText
+  ).then(() => { pulseToggleIcon(cardId) }).catch(err => console.error('Copy Failed: ', err));
 }
 
 function downloadCardMedia(cardId) {
@@ -147,22 +90,54 @@ function downloadCardMedia(cardId) {
   anchor.click();
   document.body.removeChild(anchor);
 
-  hideCopyIconAndPulseToggle(cardId)
+  pulseToggleIcon(cardId)
 }
 
-function jumpToCard(targetId, targetCardId) {
-  const cardId = targetCardId || targetId;
-  const target = document.getElementById(cardId);
-  if (!target) return;
-  target.scrollIntoView({ behavior: 'smooth' });
-  if (targetCardId) highlightCard(targetCardId);
+function pulseToggleIcon(cardId) {
+  const copyIcon = document.querySelector(`#copy-${cardId} i`);
+  if (copyIcon) {
+    copyIcon.classList.add('copy-icon-hidden');
+    clearTimeout(copyIcon._showTimeout);
+    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
+  }
+
+  const icon = document.getElementById(`toggle-${cardId}`);
+  const card = document.getElementById(cardId);
+  if (!icon || !card) return;
+
+  const left = icon.querySelector('.toggle-arm-left');
+  const right = icon.querySelector('.toggle-arm-right');
+  if (!left || !right) return;
+
+  const wasChecked = left.getAttribute('d') === 'M4 12 L10 18';
+  const wasRotated = icon.classList.contains('rotated');
+
+  card.dataset.toggleLocked = 'true';
+  card.dataset.copyInProgress = 'true';
+  icon.classList.add('checked');
+  if (wasRotated) icon.classList.remove('rotated');
+  left.setAttribute('d', 'M4 12 L10 18');
+  right.setAttribute('d', 'M10 18 L20 6');
+  right.animate([{ strokeWidth: 2.5 }, { strokeWidth: 3.2 }, { strokeWidth: 2.5 }], { duration: 400, easing: 'ease' });
+
+  clearTimeout(icon._unrotateTimeout);
+  icon._unrotateTimeout = setTimeout(() => {
+    if (!wasChecked) {
+      left.setAttribute('d', 'M4 15 L12 7');
+      right.setAttribute('d', 'M12 7 L20 15');
+      icon.classList.remove('checked');
+    }
+
+    const collapse = card.querySelector('.card-collapse');
+    const isClosed = collapse ? collapse.classList.contains('closed') : wasRotated;
+    icon.classList.toggle('rotated', isClosed);
+
+    delete card.dataset.toggleLocked;
+    delete card.dataset.copyInProgress;
+  }, 1000);
 }
 
-function makeCardId(rowIndex, colIndex, title) {
-  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
-}
-
-// ───── Form Setup ────────────────────────────────────────
+// ───── Form Card ────────────────────────────────────────
 
 function buildForm(section, cardId, api, adminTimezone) {
   const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId });
@@ -174,7 +149,7 @@ function buildForm(section, cardId, api, adminTimezone) {
   const nameId = `name-${cardId}`;
   const roleId = `role-${cardId}`;
   const contactId = `contact-${cardId}`;
-  const subjectId = `subject-input-${cardId}`;
+  const subjectId = `subject-${cardId}`;
   const suggestionsId = `suggestions-${cardId}`;
   const messageId = `message-${cardId}`;
   const contactDetailId = `contact-detail-${cardId}`;
@@ -188,44 +163,45 @@ function buildForm(section, cardId, api, adminTimezone) {
   const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
 
   card.innerHTML = /*html*/ `
-    <div class='card-header idle-header' id='header-${cardId}'>
-      <div class='card-title'>${section.title || 'Get In Touch'} <span class='log-subtitle' style='margin-left: 4px; '> ${section.subtitle || 'Reach Out For Collaborations'} </span></div>
+    <div class='card-header form-header' id='header-${cardId}'>
+      <div class='card-title title-link _clickable' id='connnect-form'>${section.title || 'Get In Touch'}</div>
+      <span class='log-subtitle'> ${section.subtitle || 'Reach Out For Collaborations'} </span>
     </div>
     <div class='card-collapse' id='${collapseId}'>
-      <div class='card-body' id='form-card-body'>
+      <div class='card-body form-body'>
         <div class='form-stack' id='${stackId}'>
           <div class='form-screen active' id='${mailScreenId}'>
             <form class='mail-form' id='${formId}' novalidate>
               <div class='form-row-top'>
                 <div class='form-group'>
                   <label class='form-label' for='${nameId}'>Name</label>
-                  <input class='form-input' type='text' id='${nameId}' name='name' autocomplete='name' required />
+                  <input class='form-input _trackable' type='text' id='${nameId}' name='name' autocomplete='name' required />
                 </div>
                 <div class='form-group'>
                   <label class='form-label' for='${roleId}'>Role <span class='post-detail'>optional</span></label>
-                  <input class='form-input' type='text' id='${roleId}' name='role' />
+                  <input class='form-input _trackable' type='text' id='${roleId}' name='role' />
                 </div>
                 <div class='form-group'>
                   <label class='form-label' for='${contactId}'>Reach Back At <span class='post-detail' id='${contactDetailId}'></span></label>
-                  <input class='form-input' type='text' id='${contactId}' name='contact' autocomplete='off' required />
+                  <input class='form-input _trackable' type='text' id='${contactId}' name='contact' autocomplete='off' required />
                 </div>
               </div>
               <div class='form-row-full'>
                 <div class='form-group autocomplete-wrapper'>
                   <label class='form-label' for='${subjectId}'>Subject</label>
-                  <input class='form-input' type='text' id='${subjectId}' name='subject' autocomplete='off' required />
+                  <input class='form-input _trackable' type='text' id='${subjectId}' name='subject' autocomplete='off' required />
                   <div class='autocomplete-suggestions' id='${suggestionsId}'></div>
                 </div>
               </div>
               <div class='form-group'>
                 <label class='form-label' for='${messageId}'>Message</label>
-                <textarea class='form-input form-textarea' id='${messageId}' name='message' rows='4' required></textarea>
+                <textarea class='form-input form-textarea _trackable' id='${messageId}' name='message' rows='4' required></textarea>
               </div>
               <div class='form-footer'>
-                <a class='form-label' href='mailto:${section.forward}'><i class='${iconMap['mailto']}'></i> ${section.forward}</a>
+                <a class='form-label _clickable' href='mailto:${section.forward}'><i class='${iconMap['mailto']}'></i> ${section.forward}</a>
                 <div class='form-actions-wrapper'>
-                  <button class='action-btn clear-btn' type='button' id='${clearId}'><i class='fa-solid fa-eraser' style='margin: 0; padding-top: 2px;'></i></button>
-                  <button class='action-btn' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
+                  <button class='action-btn clear-btn _clickable' type='button' id='${clearId}'><i class='fa-solid fa-eraser'></i></button>
+                  <button class='action-btn _clickable' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
                 </div>
               </div>
             </form>
@@ -234,10 +210,12 @@ function buildForm(section, cardId, api, adminTimezone) {
             <div class='time-grid' id='${timeGridId}'></div>
           </div>
         </div>
-        <p class='form-divider form-label form-last' id='${changeFormId}'>Prefer A Specific Time?</p>
+        <p class='form-divider form-label form-last _clickable' id='${changeFormId}'>Prefer A Specific Time?</p>
       </div>
     </div>
   `;
+
+  card.querySelector(`#connnect-form`).addEventListener('click', (e) => { e.stopPropagation(); copyCardURL(cardId, 'connnect-form')});
 
   const form = card.querySelector(`#${formId}`);
   const submitBtn = form.querySelector(`#${submitId}`);
@@ -649,11 +627,45 @@ function buildForm(section, cardId, api, adminTimezone) {
   return card;
 }
 
+// ───── Utils ────────────────────────────────────────
+
+function highlightCard(cardId) {
+  document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
+  if (cardId !== 'home-hero') {
+    const target = document.getElementById(cardId);
+    if (target) {
+      target.classList.add('focus');
+      const collapse = target.querySelector('.card-collapse');
+      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
+    }
+  }
+}
+
+function copyCardURL(cardId, shareId) {
+  const card = document.getElementById(cardId);
+  if (card && card.dataset.copyInProgress) return;
+  navigator.clipboard.writeText(
+    `${window.location.origin}${window.location.pathname}#${cardId}`
+  ).then(() => { pulseToggleIcon(cardId); }).catch(err => console.error('Share Failed: ', err));
+}
+
+function jumpToCard(targetId, targetCardId) {
+  const cardId = targetCardId || targetId;
+  const target = document.getElementById(cardId);
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth' });
+  if (targetCardId) highlightCard(targetCardId);
+}
+
+function makeCardId(rowIndex, colIndex, title) {
+  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
+}
+
 // ───── Hero Setup ────────────────────────────────────────
 
 function buildHero(data, getTheme, setTheme) {
-  document.querySelector('.hero-logo').insertAdjacentHTML('afterend', `
-    <h2 id='user-name'> </h2>
+  document.querySelector('.hero-logo').insertAdjacentHTML('afterend', /*html*/ `
+    <h1 id='user-name'> </h1>
     <p class='subtitle' id='user-role'></p>
     <p class='subtitle' id='user-location'></p>
     <p class='subtitle' id='user-bio'></p>
@@ -813,7 +825,8 @@ function buildHero(data, getTheme, setTheme) {
         return icon;
       }
       const icon = document.createElement('i');
-      icon.className = iconValue;
+      icon.className = `${iconValue} _clickable`;
+      icon.id = site;
       return icon;
     };
 
@@ -847,7 +860,7 @@ function buildHero(data, getTheme, setTheme) {
       toggle.setAttribute('tabindex', '0');
 
       const icon = document.createElement('i');
-      icon.className = 'fa-solid fa-bars';
+      icon.className = 'fa-solid fa-bars _clickable';
       icon.id = 'socials-list';
       toggle.appendChild(icon);
 
@@ -884,7 +897,7 @@ function buildHero(data, getTheme, setTheme) {
     if (panel) {
       Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0).forEach(([key, doc], i) => {
         const btn = document.createElement('button');
-        btn.className = `cta-trigger cta-${key}`;
+        btn.className = `cta-trigger cta-${key} _clickable`;
         btn.id = `cta-trigger-${key}`;
         btn.innerHTML = /*html*/ `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-text'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
         btn.addEventListener('click', () => {
@@ -977,7 +990,7 @@ async function runProfileApp() {
       baseNavItems.forEach(item => {
         const btn = document.createElement('a');
         btn.id = item.id;
-        btn.className = 'home-nav-home';
+        btn.className = 'home-nav-home _clickable';
         btn.innerHTML = /*html*/ `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
         btn.onclick = () => jumpToCard(item.target, item.cardId);
         navItems.appendChild(btn);
@@ -1012,7 +1025,7 @@ async function runProfileApp() {
             const sectionIcon = iconMap[section.icon?.toLowerCase()] ?? iconMap['default'];
             const navBtn = document.createElement('a');
             navBtn.id = navId;
-            navBtn.className = 'nav-link-section';
+            navBtn.className = 'nav-link-section _clickable';
             navBtn.innerHTML = /*html*/ `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);
@@ -1042,7 +1055,7 @@ async function runProfileApp() {
         const icon = iconMap[key] ?? iconMap['default'];
 
         const link = document.createElement('a');
-        link.className = 'quick-link-item has-glow';
+        link.className = 'quick-link-item has-glow _clickable';
         link.href = href;
         link.innerHTML = /*html*/ `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
         quickLinksRow.appendChild(link);
@@ -1097,7 +1110,7 @@ async function runProfileApp() {
         const id = element.id;
         if (id === 'nav-home') return -1;
         if (id === `nav-${formCardId}`) return fileOrder.indexOf('form');
-        if (element.className === 'nav-link-section') return fileOrder.indexOf('sections');
+        if (element.classList.contains('nav-link-section')) return fileOrder.indexOf('sections');
         if (fileOrder.includes(id.replace('nav-', ''))) return fileOrder.indexOf(id.replace('nav-', ''));
         return 999;
       };
@@ -1151,7 +1164,7 @@ async function runProfileApp() {
     footer.innerHTML = homeFooter();
     document.body.appendChild(footer);
 
-    applyFinalSetup()
+    if (data?.host.analysis) await applyAnalysis(data?.api)
 
     return true;
 
@@ -1180,9 +1193,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-window.addEventListener('hashchange', () => {
-  const targetId = window.location.hash.substring(1);
-  if (targetId === 'chat-with-assistant') {
-    openChatWindow();
-  }
-});
+window.addEventListener('hashchange', () => { if (window.location.hash.substring(1) === 'chat-with-assistant') { openChatWindow(); } });

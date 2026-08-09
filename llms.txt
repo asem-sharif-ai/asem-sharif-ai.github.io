@@ -1,0 +1,26 @@
+# Asem E. Sharif
+
+> AI & Computer Vision Engineer and PyQt Developer based in Cairo, Egypt. Builds full-pipeline computer vision systems and the interfaces around them, delivering AI solutions with real-time inference through production-grade desktop applications.
+
+## About
+Recent AI Graduate, passionate about Computer Vision broadly (Detection, Classification, Segmentation), with particular focus on Human-Centered Tasks and Biometric Technologies, alongside adjacent domains such as Autonomous Systems, Industrial Inspection, and Satellite Imagery.
+
+Believes in the critical importance of the lower-level stages of a project, and frequently builds internal tools and annotation pipelines to support the infrastructure that model development ultimately depends on. This reflects a background at the intersection of Deep Learning and Software Engineering, building production-ready systems (desktop applications, interactive websites) beyond just training models.
+
+- Role: AI & Computer Vision Engineer, PyQt Developer
+- Location: Cairo, Egypt (Africa/Cairo)
+- Site assistant: "Twin" — An in-portfolio digital assistant that answers questions about Asem's projects, skillsets, and system architecture
+
+## Pages
+- [Home](https://asem-sharif-ai.pages.dev/): Portfolio overview and introduction
+- [Education](https://asem-sharif-ai.pages.dev/log.html?page=education): Formal credentials, academic milestones, and specialized coursework
+- [Experience](https://asem-sharif-ai.pages.dev/log.html?page=experience): Professional history, engineering roles, and technical contributions
+- [Projects](https://asem-sharif-ai.pages.dev/projects.html): Interactive archive of projects, applications, and architectures
+- [Skills](https://asem-sharif-ai.pages.dev/log.html?page=skills): Core technologies, development frameworks, and domain proficiencies
+- [Community](https://asem-sharif-ai.pages.dev/community.html?page=feed): Central feed for live updates, community posts, and guest reviews
+- [FAQ](https://asem-sharif-ai.pages.dev/community.html?page=faq): Answers to common inquiries regarding work, stack, and availability
+
+## Contact
+- Portfolio: https://asem-sharif-ai.pages.dev
+- GitHub: https://github.com/asem-sharif-ai
+- LinkedIn: https://www.linkedin.com/in/asem-sharif

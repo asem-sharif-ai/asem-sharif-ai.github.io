@@ -13,11 +13,7 @@ async function getModelResponse(configData = {}, newMessage = '') {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tag: 'chat',
-        message: newMessage,
-        newWindow: newWindow,
-      }),
+      body: JSON.stringify({ tag: 'chat', message: newMessage, newWindow: newWindow }),
     });
   } catch (networkErr) {
     const err = new Error('C001');
@@ -163,14 +159,14 @@ function initChatAssistant(configData) {
 
   const triggerBtn = document.createElement('button');
   triggerBtn.title = 'Chat With AI Assistant';
-  triggerBtn.className = 'floating-trigger chat-trigger has-glow';
-  triggerBtn.id = 'chat-assistant-trigger';
+  triggerBtn.className = 'floating-trigger chat-trigger has-glow _clickable';
+  triggerBtn.id = 'chat-trigger';
 
   updateTriggerIcon(triggerBtn);
 
   const chatWindow = document.createElement('div');
   chatWindow.className = 'chat-window';
-  chatWindow.id = 'chat-assistant-window';
+  chatWindow.id = 'chat-window';
 
   chatWindow.innerHTML = `
     <div class='chat-header'>
@@ -189,7 +185,7 @@ function initChatAssistant(configData) {
       <div class='chat-input-wrapper'>
         <input type='text' id='chat-user-input' placeholder='Ask Something...' autocomplete='off' maxlength='${250}' />
       </div>
-      <button class='chat-send-btn' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
+      <button class='chat-send-btn _clickable' id='chat-send-trigger'><i class='fa-solid fa-arrow-up'></i></button>
     </div>
   `;
 
@@ -203,7 +199,7 @@ function initChatAssistant(configData) {
   if (systemLogo) {
     systemLogo.addEventListener('click', () => {
       setTimeout(() => {
-        updateTriggerIcon(document.getElementById('chat-assistant-trigger'));
+        updateTriggerIcon(document.getElementById('chat-trigger'));
         updateAvatarLayout();
       }, 50);
     });
@@ -222,12 +218,12 @@ function initChatAssistant(configData) {
   document.getElementById('chat-clear-window').addEventListener('click', (e) => {
     e.stopPropagation();
     handleChatLogPurge();
-    const win = document.getElementById('chat-assistant-window');
+    const win = document.getElementById('chat-window');
     if (win) win.classList.remove('open');
   });
 
   document.addEventListener('click', (e) => {
-    const win = document.getElementById('chat-assistant-window');
+    const win = document.getElementById('chat-window');
     if (win && win.classList.contains('open')) {
       if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
         win.classList.remove('open');
@@ -247,7 +243,7 @@ function initChatAssistant(configData) {
 }
 
 function openChatWindow(attemptsLeft = 5) {
-  const win = document.getElementById('chat-assistant-window');
+  const win = document.getElementById('chat-window');
   if (win) {
     if (!win.classList.contains('open')) toggleChatWindow();
   } else if (attemptsLeft > 0) {
@@ -256,7 +252,7 @@ function openChatWindow(attemptsLeft = 5) {
 }
 
 function toggleChatWindow() {
-  const win = document.getElementById('chat-assistant-window');
+  const win = document.getElementById('chat-window');
   if (win) {
     win.classList.toggle('open');
     if (win.classList.contains('open')) {
