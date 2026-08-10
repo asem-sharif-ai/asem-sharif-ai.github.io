@@ -1438,7 +1438,7 @@ footer a { border-bottom: none; text-decoration: none;}
   margin-top: 60px;
 }
 
-#list-container {
+.list-container {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1486,7 +1486,7 @@ footer a { border-bottom: none; text-decoration: none;}
     margin-top: 0px;
   }
   
-  #list-container {
+  .list-container {
     margin-top: 0;
   }
 }
@@ -2883,7 +2883,7 @@ input[type='checkbox']:checked::after {
 
 /* ---------- ---------- [HUB] ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- */
 
-.hub-hidden { display: none !important; }
+.hidden { display: none !important; }
 
 .hub-main {
   display: flex;
@@ -2940,27 +2940,19 @@ input[type='checkbox']:checked::after {
 
 .reacts-btn {
   margin: 0 -4px 0 0 !important;
-  padding: 4px 8px !important;
-  gap: 4px !important;
+  padding: 6px 8px !important;
+  gap: 2px !important;
   border: 1px solid var(--border-color) !important;
-  align-items: center;
-  text-align: center;
   transition: all 0.3s ease !important;
 }
-.reacts-btn i { margin-right: -1.5px; transition: color 0.3s ease; }
-.reacts-btn:hover i { color: var(--heart-color) !important; transform: scale(1) !important; }
+.reacts-btn:hover { transform: scale(1.05) !important; }
+
+.reacts-btn i { transition: color 0.3s ease; }
+.reacts-btn span { color: var(--text-deep-muted); font-size: 0.8rem; transition: color 0.3s ease; user-select: none; }
+.reacts-btn:hover i { color: var(--heart-color) !important; }
 .reacts-btn:hover span { color: var(--text-bright) !important; }
 
 .reacted { color: var(--heart-color) !important; }
-
-.reacts-count {
-  color: var(--text-deep-muted);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.4px;
-  transition: color 0.3s ease;
-  user-select: none;
-}
 
 .feed-text {
   color: var(--text-body);
@@ -3115,7 +3107,7 @@ input[type='checkbox']:checked::after {
   padding: 15px 15px;
 }
 
-.feed-modal .subtitle:not(.hub-hidden) {
+.feed-modal .subtitle:not(.hidden) {
   align-self: center;
   margin-top: 10px;
   text-align: center;

@@ -5,6 +5,11 @@ let _activeTopic = new Set();
 let _starredOnly = false;
 let _filterMode  = 'OR';
 let _hasMatches  = true;
+let _gridBuilt   = false;
+
+function makeCardId(rowIndex, colIndex, title) {
+  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
+}
 
 // ───── State ────────────────────────────────────────
 
@@ -619,65 +624,109 @@ function setContentSlider(container, contents, prevBtn, nextBtn, counter) {
 
 // ───── Render ────────────────────────────────────────
 
-function renderProjectsGrid(projectRows) {
+function buildProjectsGridOnce(projectRows) {
   const container = document.getElementById('list-container');
   container.innerHTML = '';
 
-  const processedRows = [];
-  projectRows.forEach(row => {
-    const activeItems = row.filter(project => {
-      const matchesSearch = (project.title || '').toLowerCase().includes(_searchQuery.toLowerCase());
-      const matchesStarred = !_starredOnly || !!project.star;
-
-      let matchesTopic = true;
-      if (_activeTopic.size > 0) {
-        if (_filterMode === 'AND') {
-          matchesTopic = [..._activeTopic].every(t => project.topics?.includes(t));
-        } else {
-          matchesTopic = project.topics?.some(t => _activeTopic.has(t));
-        }
-      }
-
-      return matchesTopic && matchesSearch && matchesStarred;
-    });
-    if (activeItems.length) processedRows.push(activeItems);
-  });
-
-  if (!processedRows.length) {
-    _hasMatches = false;
-    _updateShareIcon();
-    const isFiltered = _searchQuery.length > 0 || _activeTopic.size > 0 || _starredOnly;
-    if (isFiltered) renderNoData('No Projects Matched The Specified Requirements', 'list-container', false);
-    return;
-  }
-  _hasMatches = true;
-
-  let globalIndex = 0;
-  processedRows.forEach((row, rowIndex) => {
-    const colCount = row.length;
-    const totalSize = row.reduce((sum, p) => sum + (p.size || 1), 0);
-    const rowId = `project-row-${rowIndex}`;
-
+  projectRows.forEach((row, rowIndex) => {
     const wrapper = document.createElement('div');
-    if (colCount > 1) {
-      wrapper.className = 'row';
-      wrapper.style.setProperty('--col-count', totalSize);
-    }
-    wrapper.id = rowId;
+    wrapper.className = 'row';
+    wrapper.id = `row-${rowIndex}`;
+    wrapper.dataset.rowIndex = rowIndex;
 
-    row.forEach(project => {
-      const cardId = `project-${globalIndex}`;
+    row.forEach((project, colIndex) => {
+      const cardId = makeCardId(rowIndex, colIndex, project.title);
       const card = buildProjectCard(project, cardId);
-      if (colCount > 1) card.style.gridColumn = `span ${project.size || 1}`;
+      card.style.gridColumn = `span ${project.size || 1}`;
+      card.dataset.title = (project.title || '').toLowerCase();
+      card.dataset.star = project.star ? '1' : '';
+      card.dataset.topics = JSON.stringify(project.topics || []);
       wrapper.appendChild(card);
-      globalIndex++;
     });
 
     container.appendChild(wrapper);
   });
 
+  const noData = document.createElement('div');
+  noData.id = 'no-data-card';
+  noData.className = 'hidden';
+  container.appendChild(noData);
+
+  _gridBuilt = true;
   observeCards();
+}
+
+function replayCardEntrance(card, delay = 0) {
+  card.classList.remove('visible');
+  card.style.animationDelay = '';
+  // eslint-disable-next-line no-unused-expressions
+  void card.offsetWidth; // force reflow so the animation restarts
+  card.style.animationDelay = `${delay}s`;
+  card.classList.add('visible');
+}
+
+function renderProjectsGrid(projectRows) {
+  if (!_gridBuilt) {
+    buildProjectsGridOnce(projectRows);
+  }
+
+  const container = document.getElementById('list-container');
+  const noDataEl = document.getElementById('no-data-card');
+  let anyMatch = false;
+  let visibleRowIndex = 0;
+
+  container.querySelectorAll('.row').forEach(wrapper => {
+    let visibleInRow = 0;
+    let visibleSize = 0;
+    let rowHasAnyMatch = false;
+    const rowDelay = visibleRowIndex * 0.05;
+
+    wrapper.querySelectorAll('.project-card').forEach(card => {
+      const topics = JSON.parse(card.dataset.topics || '[]');
+      const matchesSearch = card.dataset.title.includes(_searchQuery.toLowerCase());
+      const matchesStarred = !_starredOnly || !!card.dataset.star;
+
+      let matchesTopic = true;
+      if (_activeTopic.size > 0) {
+        if (_filterMode === 'AND') {
+          matchesTopic = [..._activeTopic].every(t => topics.includes(t));
+        } else {
+          matchesTopic = topics.some(t => _activeTopic.has(t));
+        }
+      }
+
+      const isMatch = matchesTopic && matchesSearch && matchesStarred;
+      card.classList.toggle('hidden', !isMatch);
+
+      if (isMatch) {
+        replayCardEntrance(card, rowDelay);
+        visibleInRow++;
+        rowHasAnyMatch = true;
+        const span = parseInt((card.style.gridColumn || '').replace('span ', ''), 10) || 1;
+        visibleSize += span;
+        anyMatch = true;
+      }
+    });
+
+    if (rowHasAnyMatch) visibleRowIndex++;
+
+    const rowHasMatches = visibleInRow > 0;
+    wrapper.classList.toggle('hidden', !rowHasMatches);
+    if (rowHasMatches) {
+      wrapper.style.setProperty('--col-count', visibleSize);
+    }
+  });
+
+  _hasMatches = anyMatch;
   _updateShareIcon();
+
+  if (noDataEl) {
+    const isFiltered = _searchQuery.length > 0 || _activeTopic.size > 0 || _starredOnly;
+    noDataEl.classList.toggle('hidden', anyMatch || !isFiltered);
+    if (!anyMatch && isFiltered) {
+      renderNoData('No Projects Matched The Specified Requirements', 'no-data-card', false);
+    }
+  }
 }
 
 // ───── Projects App ────────────────────────────────────────

@@ -61,6 +61,10 @@ const iconMap = {
 
 const capitalize = str => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : '';
 
+function makeCardId(rowIndex, colIndex, title) {
+  return title ? title.toLowerCase().replace(/\s+/g, '-') : `card-r${rowIndex}-c${colIndex}`;
+}
+
 function _address(key) {
   const sanitize = (S) => (!S) ? '' : S.toLowerCase().trim().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
   return `${sanitize(window.location.origin)}-minimal-portfolio-${key}`;

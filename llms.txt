@@ -1,4 +1,4 @@
-# Asem E. Sharif
+# Asem Sharif
 
 > AI & Computer Vision Engineer and PyQt Developer based in Cairo, Egypt. Builds full-pipeline computer vision systems and the interfaces around them, delivering AI solutions with real-time inference through production-grade desktop applications.
 

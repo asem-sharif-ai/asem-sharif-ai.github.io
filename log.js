@@ -38,10 +38,10 @@ function _calculateDuration(from, to) {
   return `${plural(yrs, 'Year')} – ${plural(mos, 'Month')}`;
 }
 
-function buildLogCard(item, index) {
-  const cardId = `log-card-${index}`;
-  const collapseId = `log-collapse-${index}`;
-  const markdownId = `log-md-${index}`;
+function buildLogCard(item, index, containerId) {
+  const cardId = `${containerId}-log-card-${index}`;
+  const collapseId = `${containerId}-log-collapse-${index}`;
+  const markdownId = `${containerId}-log-md-${index}`;
 
   const card = document.createElement('div');
   card.className = 'card visible';
@@ -106,42 +106,44 @@ function buildLogCard(item, index) {
   const mdContent = document.createElement('div');
   mdContent.className = 'log-md-content';
   mdContent.id = markdownId;
-  
-  if (item.markdown) {
-    loadContent(item.markdown, markdownId);
-  }
+
+  const loadPromise = item.markdown
+    ? loadContent(item.markdown, markdownId)
+    : Promise.resolve();
 
   mdPane.appendChild(mdContent);
   logBody.appendChild(mdPane);
 
-const gallery = item.gallery;
-if (gallery && Array.isArray(gallery.content)) {
-  const galleryList = gallery.content.filter(src => isImagePath(src) || isVideoPath(src));
-  if (galleryList.length > 0) {
-    logBody.classList.add('has-gallery');
-    logBody.appendChild(buildGalleryPane(galleryList, gallery.header));
+  const gallery = item.gallery;
+  if (gallery && Array.isArray(gallery.content)) {
+    const galleryList = gallery.content.filter(src => isImagePath(src) || isVideoPath(src));
+    if (galleryList.length > 0) {
+      logBody.classList.add('has-gallery');
+      logBody.appendChild(buildGalleryPane(galleryList, gallery.header));
+    }
   }
-}
-  
+
   cardBody.appendChild(logBody);
   collapse.appendChild(cardBody);
   card.appendChild(header);
   card.appendChild(collapse);
 
-  return card;
+  return { card, loadPromise };
 }
 
-function renderLogList(items) {
-  const listContainer = document.getElementById('list-container');
-  if (!listContainer) return;
+function renderLogList(items, containerId) {
+  const listContainer = document.getElementById(containerId);
+  if (!listContainer) return Promise.resolve();
   listContainer.innerHTML = '';
 
-  items.forEach((item, index) => {
-    const card = buildLogCard(item, index);
+  const loadPromises = items.map((item, index) => {
+    const { card, loadPromise } = buildLogCard(item, index, containerId);
     listContainer.appendChild(card);
+    return loadPromise;
   });
 
   observeCards();
+  return Promise.allSettled(loadPromises);
 }
 
 // ───── Skills ────────────────────────────────────────
@@ -253,15 +255,15 @@ function buildSkillsCard(group, index) {
   return card;
 }
 
-function renderSkillsList(skillsData) {
+function renderSkillsList(skillsData, containerId) {
   try {
     if (Array.isArray(skillsData) && skillsData.length > 0) {
-      const container = document.getElementById('list-container');
+      const container = document.getElementById(containerId);
       if (!container) return;
       container.innerHTML = '';
       skillsData.forEach((group, index) => { container.appendChild(buildSkillsCard(group, index));});
       observeCards();
-    } else { renderNoData('Skills', 'list-container'); }
+    } else { renderNoData('Skills', containerId); }
   } catch (e) {
     console.error('Skills Page Initialization Failure:', e);
   }
@@ -271,6 +273,7 @@ function renderSkillsList(skillsData) {
 
 let configData = null;
 const VALID_PAGES = ['education', 'experience', 'skills'];
+const builtPages = new Set();
 
 function setActiveTab(page) {
   document.querySelectorAll('.log-tab').forEach(tab => {
@@ -278,20 +281,37 @@ function setActiveTab(page) {
   });
 }
 
-function renderLogPage(page) {
-  const data = configData?.[page];
+function showPageContainer(page) {
+  VALID_PAGES.forEach(p => {
+    const el = document.getElementById(`${p}-container`);
+    if (el) el.classList.toggle('hidden', p !== page);
+  });
+}
 
+function renderLogPage(page) {
   const configName = configData?.name ?? configData?.config?.name ?? '';
   document.title = configName ? `${configName} - ${capitalize(page)}` : capitalize(page);
 
-  if (page === 'skills') {
-    renderSkillsList(data);
-  } else if (data && Array.isArray(data) && data.length) {
-    renderLogList(data);
-  } else {
-    renderNoData(page);
+  if (!builtPages.has(page) && !builtPages.has(`${page}:pending`)) {
+    const data = configData?.[page];
+    const containerId = `${page}-container`;
+
+    if (page === 'skills') {
+      renderSkillsList(data, containerId);
+      builtPages.add(page);
+    } else if (data && Array.isArray(data) && data.length) {
+      builtPages.add(`${page}:pending`);
+      renderLogList(data, containerId).then(() => {
+        builtPages.delete(`${page}:pending`);
+        builtPages.add(page);
+      });
+    } else {
+      renderNoData(page, containerId);
+      builtPages.add(page);
+    }
   }
 
+  showPageContainer(page);
   setActiveTab(page);
 }
 

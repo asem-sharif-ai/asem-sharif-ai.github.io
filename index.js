@@ -657,10 +657,6 @@ function jumpToCard(targetId, targetCardId) {
   if (targetCardId) highlightCard(targetCardId);
 }
 
-function makeCardId(rowIndex, colIndex, title) {
-  return title ? title.toLowerCase().replace(/\s+/g, '-') : `panel-r${rowIndex}-c${colIndex}`;
-}
-
 // ───── Hero Setup ────────────────────────────────────────
 
 function buildHero(data, getTheme, setTheme) {

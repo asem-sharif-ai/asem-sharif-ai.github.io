@@ -134,7 +134,7 @@ function buildFeedCard(item) {
       ` : ''}
       ${isGuestViewer ? /*html*/ `
       <div class='feed-card-icons'>
-        <button class='btn feed-btn reacts-btn action-btn ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
+        <button class='btn feed-btn action-btn reacts-btn ${item.liked ? 'feed-btn-active' : ''}' data-post-id='${item.id}'>
           <i class='${item.liked ? 'fa-solid reacted' : 'fa-regular'} fa-heart'></i>
           <span class='reacts-count${(item.likeCount || 0) === 0 ? ' hub-hidden' : ''}'>${item.likeCount || 0}</span>
         </button>

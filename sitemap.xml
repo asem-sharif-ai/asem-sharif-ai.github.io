@@ -11,32 +11,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://asem-sharif-ai.pages.dev/log.html?page=education</loc>
+    <loc>https://asem-sharif-ai.pages.dev/log.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://asem-sharif-ai.pages.dev/log.html?page=skills</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://asem-sharif-ai.pages.dev/log.html?page=experience</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://asem-sharif-ai.pages.dev/community.html?page=feed</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://asem-sharif-ai.pages.dev/community.html?page=guests</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://asem-sharif-ai.pages.dev/community.html?page=faq</loc>
+    <loc>https://asem-sharif-ai.pages.dev/community.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
