@@ -1722,6 +1722,7 @@ footer a { border-bottom: none; text-decoration: none;}
   min-height: 140px;
   resize: none;
   overflow: hidden;
+  field-sizing: content;
 }
 
 .form-stack {
@@ -3430,6 +3431,7 @@ input[type='checkbox']:checked::after {
   outline: none;
   overflow: hidden;
   padding: 6px 10px;
+  field-sizing: content;
   resize: none;
   transition: var(--search-transition);
   width: 100%;
