@@ -12,12 +12,18 @@ function _saveHubState() {
   _updateUrlPageParam();
 }
 
+function _saveHubPageIndex() {
+  sessionStorage.setItem(addresses.hubPageIndex, JSON.stringify(_pageIndex));
+}
+
 function loadHubState() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlSearch = urlParams.get('search');
   _searchQuery = urlSearch !== null ? urlSearch : sessionStorage.getItem(addresses.hubSearchQuery) || '';
   const savedPage = urlParams.get('page') || sessionStorage.getItem(addresses.hubActivePage);
   if (['faq', 'feed', 'guests'].includes(savedPage)) _currentPage = savedPage;
+
+  _pageIndex = JSON.parse(sessionStorage.getItem(addresses.hubPageIndex) || 'null') || { feed: 1, guests: 1, faq: 1 };
 
   _updateUrlPageParam();
 
@@ -83,6 +89,10 @@ function initHubSearch() {
     _searchQuery = e.target.value.trim();
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(() => {
+      _pageIndex.feed = 1;
+      _pageIndex.guests = 1;
+      _pageIndex.faq = 1;
+      _saveHubPageIndex();
       _saveHubState();
       renderCurrentTab();
       updateShareIconState();
@@ -94,7 +104,7 @@ function updateShareIconState() {
   const searchIcon = document.getElementById('nav-share-icon');
   if (!searchIcon) return;
   if (!_searchQuery) {
-    searchIcon.classList.remove('ui-disabled');
+    searchIcon.classList.add('ui-disabled');
   } else {
     const hasMatches = _currentPage === 'faq'
       ? _faqHasMatches
@@ -165,6 +175,43 @@ function formatDuration(dateStr) {
   return `${value} ${unit}${value > 1 ? 's' : ''} Ago`;
 }
 
+function buildPagerRow(page, totalPages, onChange) {
+  const row = document.createElement('div');
+  row.className = 'hub-pager visible';
+
+  const btn = (cls, direction, count, disabled) => {
+    const icon = `<i class='fa-solid fa-chevron-${direction}'></i>`;
+    return `
+      <button class='hub-pager-btn ${cls}${disabled ? ' ui-disabled' : ''}'>
+        ${icon.repeat(count)}
+      </button>
+    `;
+  };
+
+  row.innerHTML = /*html*/ `
+    <div class='hub-pager-track'>
+      ${btn('hub-pager-first', 'left', 2, page <= 1)}
+      ${btn('hub-pager-prev', 'left', 1, page <= 1)}
+      <div class='hub-pager-dash'></div>
+      <div class='hub-pager-count'>
+        <span class='hub-pager-current'>${page}</span>
+        <span class='hub-pager-sep'>/</span>
+        <span class='hub-pager-total'>${totalPages}</span>
+      </div>
+      <div class='hub-pager-dash'></div>
+      ${btn('hub-pager-next', 'right', 1, page >= totalPages)}
+      ${btn('hub-pager-last', 'right', 2, page >= totalPages)}
+    </div>
+  `;
+
+  row.querySelector('.hub-pager-first').addEventListener('click', () => { if (page > 1) onChange(1); });
+  row.querySelector('.hub-pager-prev').addEventListener('click', () => { if (page > 1) onChange(page - 1); });
+  row.querySelector('.hub-pager-next').addEventListener('click', () => { if (page < totalPages) onChange(page + 1); });
+  row.querySelector('.hub-pager-last').addEventListener('click', () => { if (page < totalPages) onChange(totalPages); });
+
+  return row;
+}
+
 // ───── FAQ ────────────────────────────────────────
 
 let _allFaq = [];
@@ -214,10 +261,23 @@ function renderFAQ(faqList) {
   }
 
   _faqHasMatches = true;
-  filtered.forEach(({ item, originalIndex }) => {
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / _pageLength.faq));
+  if (_pageIndex.faq > totalPages) _pageIndex.faq = totalPages;
+  if (_pageIndex.faq < 1) _pageIndex.faq = 1;
+
+  const start = (_pageIndex.faq - 1) * _pageLength.faq;
+  const pageItems = filtered.slice(start, start + _pageLength.faq);
+  pageItems.forEach(({ item, originalIndex }) => {
     if (item.q && item.a) container.appendChild(buildFaqCard(item, originalIndex));
   });
-  
+
+  container.appendChild(buildPagerRow(_pageIndex.faq, totalPages, (newPage) => {
+    _pageIndex.faq = newPage;
+    _saveHubPageIndex();
+    renderFAQ(_allFaq);
+  }));
+
   observeCards();
 }
 

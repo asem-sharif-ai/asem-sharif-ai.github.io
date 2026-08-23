@@ -1,7 +1,10 @@
 // ───── Sections Cards ────────────────────────────────────────
 
 function buildCard(section, cardId) {
-  const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId});
+  const card = Object.assign(document.createElement("div"), {
+    className: "card",
+    id: cardId,
+  });
 
   const textId = `text-${cardId}`;
   const copyId = `copy-${cardId}`;
@@ -17,7 +20,7 @@ function buildCard(section, cardId) {
       <div class='card-title title-link _clickable' id='${shareId}'>${section.title}</div>
       <div class='card-btns'>
         <button class='btn _clickable' id='${copyId}'>
-          <i class='${isMedia ? 'fa-regular fa-circle-down download-icon' : 'fa-regular fa-copy copy-icon'}'></i>
+          <i class='${isMedia ? "fa-regular fa-circle-down download-icon" : "fa-regular fa-copy copy-icon"}'></i>
         </button>
         <button class='card-toggle-btn btn _clickable' id='${toggleId}'>
           <svg id='card-toggle-${cardId}' style='width: 1.05em; height: 1.05em;' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
@@ -34,9 +37,19 @@ function buildCard(section, cardId) {
     </div>
   `;
 
-  card.querySelector(`#${toggleId}`).addEventListener('click', (e) => { e.stopPropagation(); if (card.dataset.toggleLocked) return; toggleCard(cardId, collapseId); });
-  card.querySelector(`#${copyId}`).addEventListener('click', (e) => { e.stopPropagation(); isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);});
-  card.querySelector(`#${shareId}`).addEventListener('click', (e) => { e.stopPropagation(); copyCardURL(cardId, shareId)});
+  card.querySelector(`#${toggleId}`).addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (card.dataset.toggleLocked) return;
+    toggleCard(cardId, collapseId);
+  });
+  card.querySelector(`#${copyId}`).addEventListener("click", (e) => {
+    e.stopPropagation();
+    isMedia ? downloadCardMedia(cardId) : copyCardText(cardId);
+  });
+  card.querySelector(`#${shareId}`).addEventListener("click", (e) => {
+    e.stopPropagation();
+    copyCardURL(cardId, shareId);
+  });
 
   const container = card.querySelector(`#${textId}`);
 
@@ -65,72 +78,82 @@ function buildCard(section, cardId) {
 function copyCardText(cardId) {
   const card = document.getElementById(cardId);
   if (card && card.dataset.copyInProgress) return;
-  navigator.clipboard.writeText(
-    card.querySelector('.scroll-area').innerText
-  ).then(() => { pulseToggleIcon(cardId) }).catch(err => console.error('Copy Failed: ', err));
+  navigator.clipboard
+    .writeText(card.querySelector(".scroll-area").innerText)
+    .then(() => {
+      pulseToggleIcon(cardId);
+    })
+    .catch((err) => console.error("Copy Failed: ", err));
 }
 
 function downloadCardMedia(cardId) {
   const card = document.getElementById(cardId);
-  const scrollArea = card.querySelector('.scroll-area');
-  const image = scrollArea.querySelector('img');
-  const video = scrollArea.querySelector('video source, video');
-  
+  const scrollArea = card.querySelector(".scroll-area");
+  const image = scrollArea.querySelector("img");
+  const video = scrollArea.querySelector("video source, video");
+
   let url = null;
   if (image) url = image.src;
-  else if (video) url = video.src || video.querySelector('source')?.src;
+  else if (video) url = video.src || video.querySelector("source")?.src;
   if (!url) return;
 
-  const filename = url.split('/').pop().split('?')[0] || 'download';
-  const anchor = document.createElement('a');
+  const filename = url.split("/").pop().split("?")[0] || "download";
+  const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.target = '_blank';
+  anchor.target = "_blank";
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
 
-  pulseToggleIcon(cardId)
+  pulseToggleIcon(cardId);
 }
 
 function pulseToggleIcon(cardId) {
   const copyIcon = document.querySelector(`#copy-${cardId} i`);
   if (copyIcon) {
-    copyIcon.classList.add('copy-icon-hidden');
+    copyIcon.classList.add("copy-icon-hidden");
     clearTimeout(copyIcon._showTimeout);
-    copyIcon._showTimeout = setTimeout(() => { copyIcon.classList.remove('copy-icon-hidden'); }, 1000);
+    copyIcon._showTimeout = setTimeout(() => {
+      copyIcon.classList.remove("copy-icon-hidden");
+    }, 1000);
   }
 
   const icon = document.getElementById(`toggle-${cardId}`);
   const card = document.getElementById(cardId);
   if (!icon || !card) return;
 
-  const left = icon.querySelector('.toggle-arm-left');
-  const right = icon.querySelector('.toggle-arm-right');
+  const left = icon.querySelector(".toggle-arm-left");
+  const right = icon.querySelector(".toggle-arm-right");
   if (!left || !right) return;
 
-  const wasChecked = left.getAttribute('d') === 'M4 12 L10 18';
-  const wasRotated = icon.classList.contains('rotated');
+  const wasChecked = left.getAttribute("d") === "M4 12 L10 18";
+  const wasRotated = icon.classList.contains("rotated");
 
-  card.dataset.toggleLocked = 'true';
-  card.dataset.copyInProgress = 'true';
-  icon.classList.add('checked');
-  if (wasRotated) icon.classList.remove('rotated');
-  left.setAttribute('d', 'M4 12 L10 18');
-  right.setAttribute('d', 'M10 18 L20 6');
-  right.animate([{ strokeWidth: 2.5 }, { strokeWidth: 3.2 }, { strokeWidth: 2.5 }], { duration: 400, easing: 'ease' });
+  card.dataset.toggleLocked = "true";
+  card.dataset.copyInProgress = "true";
+  icon.classList.add("checked");
+  if (wasRotated) icon.classList.remove("rotated");
+  left.setAttribute("d", "M4 12 L10 18");
+  right.setAttribute("d", "M10 18 L20 6");
+  right.animate(
+    [{ strokeWidth: 2.5 }, { strokeWidth: 3.2 }, { strokeWidth: 2.5 }],
+    { duration: 400, easing: "ease" },
+  );
 
   clearTimeout(icon._unrotateTimeout);
   icon._unrotateTimeout = setTimeout(() => {
     if (!wasChecked) {
-      left.setAttribute('d', 'M4 15 L12 7');
-      right.setAttribute('d', 'M12 7 L20 15');
-      icon.classList.remove('checked');
+      left.setAttribute("d", "M4 15 L12 7");
+      right.setAttribute("d", "M12 7 L20 15");
+      icon.classList.remove("checked");
     }
 
-    const collapse = card.querySelector('.card-collapse');
-    const isClosed = collapse ? collapse.classList.contains('closed') : wasRotated;
-    icon.classList.toggle('rotated', isClosed);
+    const collapse = card.querySelector(".card-collapse");
+    const isClosed = collapse
+      ? collapse.classList.contains("closed")
+      : wasRotated;
+    icon.classList.toggle("rotated", isClosed);
 
     delete card.dataset.toggleLocked;
     delete card.dataset.copyInProgress;
@@ -140,7 +163,10 @@ function pulseToggleIcon(cardId) {
 // ───── Form Card ────────────────────────────────────────
 
 function buildForm(section, cardId, api, adminTimezone) {
-  const card = Object.assign(document.createElement('div'), { className: 'card', id: cardId });
+  const card = Object.assign(document.createElement("div"), {
+    className: "card",
+    id: cardId,
+  });
 
   const formId = `mail-form-${cardId}`;
   const collapseId = `card-collapse-${cardId}`;
@@ -160,12 +186,14 @@ function buildForm(section, cardId, api, adminTimezone) {
   const timeGridId = `time-grid-${cardId}`;
   const changeFormId = `change-form-${cardId}`;
 
-  const suggestSubjects = Array.isArray(section.subjects) ? section.subjects : ['General Inquiry', 'Feedback'];
+  const suggestSubjects = Array.isArray(section.subjects)
+    ? section.subjects
+    : ["General Inquiry", "Feedback"];
 
   card.innerHTML = /*html*/ `
     <div class='card-header form-header' id='header-${cardId}'>
-      <div class='card-title title-link _clickable' id='connnect-form'>${section.title || 'Get In Touch'}</div>
-      <span class='log-subtitle'> ${section.subtitle || 'Reach Out For Collaborations'} </span>
+      <div class='card-title title-link _clickable' id='connnect-form'>${section.title || "Get In Touch"}</div>
+      <span class='log-subtitle'> ${section.subtitle || "Reach Out For Collaborations"} </span>
     </div>
     <div class='card-collapse' id='${collapseId}'>
       <div class='card-body form-body'>
@@ -198,7 +226,7 @@ function buildForm(section, cardId, api, adminTimezone) {
                 <textarea class='form-input form-textarea _trackable' id='${messageId}' name='message' rows='4' required></textarea>
               </div>
               <div class='form-footer'>
-                <a class='form-label _clickable' href='mailto:${section.forward}'><i class='${iconMap['mailto']}'></i> ${section.forward}</a>
+                <a class='form-label _clickable' href='mailto:${section.forward}'><i class='${iconMap["mailto"]}'></i> ${section.forward}</a>
                 <div class='form-actions-wrapper'>
                   <button class='action-btn clear-btn _clickable' type='button' id='${clearId}'><i class='fa-solid fa-eraser'></i></button>
                   <button class='action-btn _clickable' type='submit' id='${submitId}'><i class='fa-solid fa-paper-plane'></i>Send</button>
@@ -215,7 +243,10 @@ function buildForm(section, cardId, api, adminTimezone) {
     </div>
   `;
 
-  card.querySelector(`#connnect-form`).addEventListener('click', (e) => { e.stopPropagation(); copyCardURL(cardId, 'connnect-form')});
+  card.querySelector(`#connnect-form`).addEventListener("click", (e) => {
+    e.stopPropagation();
+    copyCardURL(cardId, "connnect-form");
+  });
 
   const form = card.querySelector(`#${formId}`);
   const submitBtn = form.querySelector(`#${submitId}`);
@@ -228,9 +259,15 @@ function buildForm(section, cardId, api, adminTimezone) {
   const suggestionsBox = form.querySelector(`#${suggestionsId}`);
   const messageInput = form.querySelector(`#${messageId}`);
 
-  form.addEventListener('click', (e) => e.stopPropagation());
+  form.addEventListener("click", (e) => e.stopPropagation());
 
-  const inputs = [nameInput, roleInput, contactInput, subjectInput, messageInput];
+  const inputs = [
+    nameInput,
+    roleInput,
+    contactInput,
+    subjectInput,
+    messageInput,
+  ];
 
   const mailScreen = card.querySelector(`#${mailScreenId}`);
   const meetingScreen = card.querySelector(`#${timeScreenId}`);
@@ -239,29 +276,49 @@ function buildForm(section, cardId, api, adminTimezone) {
   let onMailScreen = true;
 
   const timeGrid = card.querySelector(`#${timeGridId}`);
-  const timeSlotDefs = [ { hours: [10, 13] }, { hours: [13, 16] }, { hours: [16, 19] }, { hours: [19, 22] }, { hours: [22, 25] } ];
+  const timeSlotDefs = [
+    { hours: [10, 13] },
+    { hours: [13, 16] },
+    { hours: [16, 19] },
+    { hours: [19, 22] },
+    { hours: [22, 25] },
+  ];
 
   const hourLabel = (h) => {
     const normalized = ((h % 24) + 24) % 24;
-    const suffix = normalized >= 12 ? 'PM' : 'AM';
+    const suffix = normalized >= 12 ? "PM" : "AM";
     const display = normalized % 12 === 0 ? 12 : normalized % 12;
     return `${display} ${suffix}`;
   };
 
-  const dayNameFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long' });
-  const dayDateFmt = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  const dayLabelFmt = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+  const dayNameFmt = new Intl.DateTimeFormat("en-US", { weekday: "long" });
+  const dayDateFmt = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+  const dayLabelFmt = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const tzNoteEl = card.querySelector(`#timezone-note-${cardId}`);
 
   const getTimezoneOffsetMinutes = (timeZone, atDate) => {
     try {
-      const parts = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'shortOffset', hour: '2-digit' }).formatToParts(atDate);
-      const tzName = parts.find(p => p.type === 'timeZoneName')?.value || 'GMT+0';
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        timeZoneName: "shortOffset",
+        hour: "2-digit",
+      }).formatToParts(atDate);
+      const tzName =
+        parts.find((p) => p.type === "timeZoneName")?.value || "GMT+0";
       const match = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
       if (!match) return 0;
-      const sign = match[1] === '-' ? -1 : 1;
+      const sign = match[1] === "-" ? -1 : 1;
       const hours = parseInt(match[2], 10);
       const mins = match[3] ? parseInt(match[3], 10) : 0;
       return sign * (hours * 60 + mins);
@@ -271,19 +328,38 @@ function buildForm(section, cardId, api, adminTimezone) {
   };
 
   const adminHourToInstant = (date, hour) => {
-    const approxUTC = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hour % 24, 0);
-    const offsetMin = getTimezoneOffsetMinutes(adminTimezone, new Date(approxUTC));
+    const approxUTC = Date.UTC(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      hour % 24,
+      0,
+    );
+    const offsetMin = getTimezoneOffsetMinutes(
+      adminTimezone,
+      new Date(approxUTC),
+    );
     return new Date(approxUTC - offsetMin * 60000);
   };
 
-  const viewerTimeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  const viewerDateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+  const viewerTimeFmt = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const viewerDateFmt = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 
   const buildSlotViewerLabel = (date, def) => {
-    if (!adminTimezone || adminTimezone === viewerTimezone) return '';
+    if (!adminTimezone || adminTimezone === viewerTimezone) return "";
     try {
       const startInstant = adminHourToInstant(date, def.hours[0]);
-      const endInstant = adminHourToInstant(date, def.hours[def.hours.length - 1]);
+      const endInstant = adminHourToInstant(
+        date,
+        def.hours[def.hours.length - 1],
+      );
 
       const baseDateStr = viewerDateFmt.format(date);
       const startDateStr = viewerDateFmt.format(startInstant);
@@ -295,7 +371,7 @@ function buildForm(section, cardId, api, adminTimezone) {
       if (endDateStr !== startDateStr) label += ` (${endDateStr})`;
       return label;
     } catch (e) {
-      return '';
+      return "";
     }
   };
 
@@ -309,7 +385,10 @@ function buildForm(section, cardId, api, adminTimezone) {
     return days;
   };
 
-  const timeStorageKey = (addresses && addresses.timeSlotData) ? addresses.timeSlotData : `timeSlotData-${cardId}`;
+  const timeStorageKey =
+    addresses && addresses.timeSlotData
+      ? addresses.timeSlotData
+      : `timeSlotData-${cardId}`;
   const maxSelectedSlots = 6;
   let selectedSlots = [];
 
@@ -326,25 +405,32 @@ function buildForm(section, cardId, api, adminTimezone) {
       const saved = localStorage.getItem(timeStorageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        selectedSlots = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+        selectedSlots = Array.isArray(parsed) ? parsed : parsed ? [parsed] : [];
       }
     } catch (e) {
-      console.error('[Time Screen] Failed To Load Saved Slot:', e);
+      console.error("[Time Screen] Failed To Load Saved Slot:", e);
       selectedSlots = [];
     }
   };
 
-  const findSlotIndex = (dateISO, slotIndex) => selectedSlots.findIndex(s => s.dateISO === dateISO && s.slotIndex === slotIndex);
-  const findDaySlotIndex = (dateISO) => selectedSlots.findIndex(s => s.dateISO === dateISO);
+  const findSlotIndex = (dateISO, slotIndex) =>
+    selectedSlots.findIndex(
+      (s) => s.dateISO === dateISO && s.slotIndex === slotIndex,
+    );
+  const findDaySlotIndex = (dateISO) =>
+    selectedSlots.findIndex((s) => s.dateISO === dateISO);
 
   const formatSelectedTimesFull = () => {
     if (!selectedSlots.length) return null;
-    return selectedSlots.map((slot) => {
-      const date = new Date(slot.dateISO);
-      const def = timeSlotDefs[slot.slotIndex];
-      if (!def) return null;
-      return `${dayLabelFmt.format(date)}, ${hourLabel(def.hours[0])} – ${hourLabel(def.hours[def.hours.length - 1])}`;
-    }).filter(Boolean).join('\n');
+    return selectedSlots
+      .map((slot) => {
+        const date = new Date(slot.dateISO);
+        const def = timeSlotDefs[slot.slotIndex];
+        if (!def) return null;
+        return `${dayLabelFmt.format(date)}, ${hourLabel(def.hours[0])} – ${hourLabel(def.hours[def.hours.length - 1])}`;
+      })
+      .filter(Boolean)
+      .join("\n");
   };
 
   const formatSelectedLabel = () => {
@@ -361,50 +447,66 @@ function buildForm(section, cardId, api, adminTimezone) {
   };
 
   const renderTimeGrid = () => {
-    timeGrid.innerHTML = '';
+    timeGrid.innerHTML = "";
     const days = getUpcomingDays();
+
+    const validDateISOs = new Set(
+      days.map((date) => date.toISOString().slice(0, 10)),
+    );
+    const prunedCount = selectedSlots.length;
+    selectedSlots = selectedSlots.filter((s) => validDateISOs.has(s.dateISO));
+    if (selectedSlots.length !== prunedCount) saveTimeSlot();
 
     days.forEach((date) => {
       const dateISO = date.toISOString().slice(0, 10);
 
-      const dayCell = document.createElement('div');
-      dayCell.className = 'time-day-cell';
+      const dayCell = document.createElement("div");
+      dayCell.className = "time-day-cell";
 
-      const dayHeader = document.createElement('div');
-      dayHeader.className = 'time-day-label';
+      const dayHeader = document.createElement("div");
+      dayHeader.className = "time-day-label";
       dayHeader.innerHTML = /*html*/ `<span class='form-label'>${dayNameFmt.format(date)}</span><span class='form-label'>${dayDateFmt.format(date)}</span>`;
       dayCell.appendChild(dayHeader);
 
-      const bar = document.createElement('div');
-      bar.className = 'time-day-bar';
+      const bar = document.createElement("div");
+      bar.className = "time-day-bar";
 
-      const tzLabel = document.createElement('div');
-      tzLabel.className = 'timezone-note-label';
+      const tzLabel = document.createElement("div");
+      tzLabel.className = "timezone-note-label";
 
       const updateTzLabel = (def) => {
-        if (!def) { tzLabel.textContent = ''; tzLabel.classList.remove('show'); return; }
+        if (!def) {
+          tzLabel.textContent = "";
+          tzLabel.classList.remove("show");
+          return;
+        }
         const viewerLabel = buildSlotViewerLabel(date, def);
-        if (!viewerLabel) { tzLabel.textContent = ''; tzLabel.classList.remove('show'); return; }
+        if (!viewerLabel) {
+          tzLabel.textContent = "";
+          tzLabel.classList.remove("show");
+          return;
+        }
         tzLabel.textContent = `By Your Local Time: ${viewerLabel}`;
-        tzLabel.classList.add('show');
+        tzLabel.classList.add("show");
       };
 
       const parts = [];
 
       timeSlotDefs.forEach((def, slotIndex) => {
-        const part = document.createElement('button');
-        part.type = 'button';
-        part.className = 'time-slot-part has-glow';
+        const part = document.createElement("button");
+        part.type = "button";
+        part.className = "time-slot-part";
         part.innerHTML = /*html*/ `<span class='time-slot-from'>${hourLabel(def.hours[0])}</span><span class='time-slot-to'>${hourLabel(def.hours[def.hours.length - 1])}</span>`;
 
-        if (findSlotIndex(dateISO, slotIndex) !== -1) part.classList.add('selected');
+        if (findSlotIndex(dateISO, slotIndex) !== -1)
+          part.classList.add("selected");
 
-        part.addEventListener('click', () => {
+        part.addEventListener("click", () => {
           const existingIndex = findSlotIndex(dateISO, slotIndex);
 
           if (existingIndex !== -1) {
             selectedSlots.splice(existingIndex, 1);
-            part.classList.remove('selected');
+            part.classList.remove("selected");
             updateTzLabel(null);
           } else {
             const dayIndex = findDaySlotIndex(dateISO);
@@ -412,13 +514,13 @@ function buildForm(section, cardId, api, adminTimezone) {
               const prevSlotIndex = selectedSlots[dayIndex].slotIndex;
               selectedSlots.splice(dayIndex, 1);
               const prevPart = parts[prevSlotIndex];
-              if (prevPart) prevPart.classList.remove('selected');
+              if (prevPart) prevPart.classList.remove("selected");
             } else if (selectedSlots.length >= maxSelectedSlots) {
               return;
             }
 
             selectedSlots.push({ dateISO, slotIndex });
-            part.classList.add('selected');
+            part.classList.add("selected");
             updateTzLabel(def);
           }
 
@@ -432,7 +534,11 @@ function buildForm(section, cardId, api, adminTimezone) {
       dayCell.appendChild(bar);
 
       const initialDaySlotIndex = findDaySlotIndex(dateISO);
-      updateTzLabel(initialDaySlotIndex !== -1 ? timeSlotDefs[selectedSlots[initialDaySlotIndex].slotIndex] : null);
+      updateTzLabel(
+        initialDaySlotIndex !== -1
+          ? timeSlotDefs[selectedSlots[initialDaySlotIndex].slotIndex]
+          : null,
+      );
       dayCell.appendChild(tzLabel);
 
       timeGrid.appendChild(dayCell);
@@ -443,31 +549,39 @@ function buildForm(section, cardId, api, adminTimezone) {
   renderTimeGrid();
   {
     const initialLabel = formatSelectedLabel();
-    if (initialLabel) changeFormBtn.textContent = `Preferred Time: ${initialLabel}`;
+    if (initialLabel)
+      changeFormBtn.textContent = `Preferred Time: ${initialLabel}`;
   }
-  changeFormBtn.addEventListener('click', () => {
+  changeFormBtn.addEventListener("click", () => {
     onMailScreen = !onMailScreen;
-    mailScreen.classList.toggle('active', onMailScreen);
-    meetingScreen.classList.toggle('active', !onMailScreen);
+    mailScreen.classList.toggle("active", onMailScreen);
+    meetingScreen.classList.toggle("active", !onMailScreen);
 
     if (onMailScreen) {
       const label = formatSelectedLabel();
-      changeFormBtn.textContent = label ? `Preferred Time: ${label}` : 'Prefer A Specific Time?';
+      changeFormBtn.textContent = label
+        ? `Preferred Time: ${label}`
+        : "Prefer A Specific Time?";
     } else {
-      changeFormBtn.textContent = 'Back To Email';
+      changeFormBtn.textContent = "Back To Email";
     }
   });
 
   const triggerContactDetailDetection = (value) => {
-    if (!value) { contactDetail.textContent = ''; return; }
+    if (!value) {
+      contactDetail.textContent = "";
+      return;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^(\+?\d{1,4}[\s-]?)?(\(?\d{2,4}\)?[\s-]?)?[\d\s-]{5,15}$/;
-    const urlRegex = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+    const phoneRegex =
+      /^(\+?\d{1,4}[\s-]?)?(\(?\d{2,4}\)?[\s-]?)?[\d\s-]{5,15}$/;
+    const urlRegex =
+      /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
 
-    if (emailRegex.test(value)) contactDetail.textContent = '(email)';
-    else if (phoneRegex.test(value)) contactDetail.textContent = '(phone)';
-    else if (urlRegex.test(value)) contactDetail.textContent = '(url)';
-    else contactDetail.textContent = '(other)';
+    if (emailRegex.test(value)) contactDetail.textContent = "(email)";
+    else if (phoneRegex.test(value)) contactDetail.textContent = "(phone)";
+    else if (urlRegex.test(value)) contactDetail.textContent = "(url)";
+    else contactDetail.textContent = "(other)";
   };
 
   const saveFormState = () => {
@@ -476,7 +590,7 @@ function buildForm(section, cardId, api, adminTimezone) {
       role: roleInput.value,
       contact: contactInput.value,
       subject: subjectInput.value,
-      message: messageInput.value
+      message: messageInput.value,
     };
     localStorage.setItem(addresses.mailFormData, JSON.stringify(state));
   };
@@ -496,91 +610,109 @@ function buildForm(section, cardId, api, adminTimezone) {
         if (state.message !== undefined) messageInput.value = state.message;
       }
     } catch (e) {
-      console.error('[Connect Form] Failed To Load Form State From Memory:', e);
+      console.error("[Connect Form] Failed To Load Form State From Memory:", e);
     }
   };
 
-  inputs.forEach(input => {
-    input.addEventListener('input', () => {
-      input.classList.remove('error-glow');
+  inputs.forEach((input) => {
+    input.addEventListener("input", () => {
+      input.classList.remove("error-glow");
       saveFormState();
     });
   });
 
   loadFormState();
-  clearBtn.addEventListener('click', () => {
+  clearBtn.addEventListener("click", () => {
     form.reset();
     localStorage.removeItem(addresses.mailFormData);
-    contactDetail.textContent = '';
-    suggestionsBox.classList.remove('show');
-    inputs.forEach(input => input.classList.remove('error-glow'));
+    contactDetail.textContent = "";
+    suggestionsBox.classList.remove("show");
+    inputs.forEach((input) => input.classList.remove("error-glow"));
 
     selectedSlots = [];
     saveTimeSlot();
     renderTimeGrid();
-    if (onMailScreen) changeFormBtn.textContent = 'Prefer A Specific Time?';
+    if (onMailScreen) changeFormBtn.textContent = "Prefer A Specific Time?";
   });
 
-  subjectInput.addEventListener('input', (e) => {
+  subjectInput.addEventListener("input", (e) => {
     const value = e.target.value.trim().toLowerCase();
-    suggestionsBox.innerHTML = '';
 
     if (!value) {
-      suggestionsBox.classList.remove('show');
+      suggestionsBox.classList.remove("show");
       return;
     }
 
-    const matches = suggestSubjects.filter(sub => sub.toLowerCase().includes(value));
+    const matches = suggestSubjects.filter((sub) =>
+      sub.toLowerCase().includes(value),
+    );
 
     if (matches.length === 0) {
-      suggestionsBox.classList.remove('show');
+      suggestionsBox.classList.remove("show");
       return;
     }
 
-    matches.forEach(match => {
-      const item = document.createElement('div');
-      item.className = 'suggestion-item';
+    suggestionsBox.innerHTML = "";
+    matches.forEach((match) => {
+      const item = document.createElement("div");
+      item.className = "suggestion-item";
       item.textContent = match;
 
-      item.addEventListener('click', () => {
+      item.addEventListener("click", () => {
         subjectInput.value = match;
-        subjectInput.classList.remove('error-glow');
-        suggestionsBox.classList.remove('show');
+        subjectInput.classList.remove("error-glow");
+        suggestionsBox.classList.remove("show");
         saveFormState();
       });
 
       suggestionsBox.appendChild(item);
     });
 
-    suggestionsBox.classList.add('show');
+    suggestionsBox.classList.add("show");
   });
 
-  document.addEventListener('click', (e) => {
-    if (!subjectInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-      suggestionsBox.classList.remove('show');
+  document.addEventListener("click", (e) => {
+    if (
+      !subjectInput.contains(e.target) &&
+      !suggestionsBox.contains(e.target)
+    ) {
+      suggestionsBox.classList.remove("show");
     }
   });
 
-  contactInput.addEventListener('input', (e) => {
+  contactInput.addEventListener("input", (e) => {
     triggerContactDetailDetection(e.target.value.trim());
   });
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const detectedMethod = contactDetail.textContent.replace(/[()]/g, '') || 'other';
+    const detectedMethod =
+      contactDetail.textContent.replace(/[()]/g, "") || "other";
 
-    submitBtn.classList.remove('btn-success-glow', 'btn-fail-glow');
-    inputs.forEach(input => input.classList.remove('error-glow'));
+    submitBtn.classList.remove("btn-success-glow", "btn-fail-glow");
+    inputs.forEach((input) => input.classList.remove("error-glow"));
 
     let hasError = false;
-    if (!nameInput.value.trim()) { nameInput.classList.add('error-glow'); hasError = true; }
-    if (!contactInput.value.trim()) { contactInput.classList.add('error-glow'); hasError = true; }
-    if (!subjectInput.value.trim()) { subjectInput.classList.add('error-glow'); hasError = true; }
-    if (!messageInput.value.trim()) { messageInput.classList.add('error-glow'); hasError = true; }
+    if (!nameInput.value.trim()) {
+      nameInput.classList.add("error-glow");
+      hasError = true;
+    }
+    if (!contactInput.value.trim()) {
+      contactInput.classList.add("error-glow");
+      hasError = true;
+    }
+    if (!subjectInput.value.trim()) {
+      subjectInput.classList.add("error-glow");
+      hasError = true;
+    }
+    if (!messageInput.value.trim()) {
+      messageInput.classList.add("error-glow");
+      hasError = true;
+    }
 
     if (hasError) {
-      submitBtn.classList.add('btn-fail-glow');
-      setTimeout(() => submitBtn.classList.remove('btn-fail-glow'), 3000);
+      submitBtn.classList.add("btn-fail-glow");
+      setTimeout(() => submitBtn.classList.remove("btn-fail-glow"), 3000);
       return;
     }
 
@@ -598,29 +730,32 @@ function buildForm(section, cardId, api, adminTimezone) {
     submitBtn.disabled = true;
     try {
       const res = await fetch(api, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tag: 'mailForm', payload: payload}),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ tag: "mailForm", payload: payload }),
       });
 
       if (!res.ok) throw new Error(`Request Failed: ${res.status}`);
 
-      submitBtn.classList.add('btn-success-glow');
+      submitBtn.classList.add("btn-success-glow");
       form.reset();
       localStorage.removeItem(addresses.mailFormData);
-      contactDetail.textContent = '';
-      suggestionsBox.classList.remove('show');
+      contactDetail.textContent = "";
+      suggestionsBox.classList.remove("show");
 
       selectedSlots = [];
       saveTimeSlot();
       renderTimeGrid();
-      changeFormBtn.textContent = 'Prefer A Specific Time?';
+      changeFormBtn.textContent = "Prefer A Specific Time?";
     } catch (err) {
-      submitBtn.classList.add('btn-fail-glow');
+      submitBtn.classList.add("btn-fail-glow");
     } finally {
       submitBtn.disabled = false;
-      setTimeout(() => submitBtn.classList.remove('btn-success-glow', 'btn-fail-glow'), 3000);
+      setTimeout(
+        () => submitBtn.classList.remove("btn-success-glow", "btn-fail-glow"),
+        3000,
+      );
     }
   });
 
@@ -630,13 +765,16 @@ function buildForm(section, cardId, api, adminTimezone) {
 // ───── Utils ────────────────────────────────────────
 
 function highlightCard(cardId) {
-  document.querySelectorAll('.card').forEach(el => el.classList.remove('focus'));
-  if (cardId !== 'home-hero') {
+  document
+    .querySelectorAll(".card")
+    .forEach((el) => el.classList.remove("focus"));
+  if (cardId !== "home-hero") {
     const target = document.getElementById(cardId);
     if (target) {
-      target.classList.add('focus');
-      const collapse = target.querySelector('.card-collapse');
-      if (collapse && collapse.classList.contains('closed')) toggleCard(cardId, `card-collapse-${cardId}`);
+      target.classList.add("focus");
+      const collapse = target.querySelector(".card-collapse");
+      if (collapse && collapse.classList.contains("closed"))
+        toggleCard(cardId, `card-collapse-${cardId}`);
     }
   }
 }
@@ -644,147 +782,202 @@ function highlightCard(cardId) {
 function copyCardURL(cardId, shareId) {
   const card = document.getElementById(cardId);
   if (card && card.dataset.copyInProgress) return;
-  navigator.clipboard.writeText(
-    `${window.location.origin}${window.location.pathname}#${cardId}`
-  ).then(() => { pulseToggleIcon(cardId); }).catch(err => console.error('Share Failed: ', err));
+  navigator.clipboard
+    .writeText(`${window.location.origin}${window.location.pathname}#${cardId}`)
+    .then(() => {
+      pulseToggleIcon(cardId);
+    })
+    .catch((err) => console.error("Share Failed: ", err));
 }
 
 function jumpToCard(targetId, targetCardId) {
   const cardId = targetCardId || targetId;
   const target = document.getElementById(cardId);
   if (!target) return;
-  target.scrollIntoView({ behavior: 'smooth' });
+  target.scrollIntoView({ behavior: "smooth" });
   if (targetCardId) highlightCard(targetCardId);
 }
 
 // ───── Hero Setup ────────────────────────────────────────
 
 function buildHero(data, getTheme, setTheme) {
-  document.querySelector('.hero-logo').insertAdjacentHTML('afterend', /*html*/ `
+  document.querySelector(".hero-logo").insertAdjacentHTML(
+    "afterend",
+    /*html*/ `
     <h1 id='user-name'> </h1>
     <p class='subtitle' id='user-role'></p>
     <p class='subtitle' id='user-location'></p>
     <p class='subtitle' id='user-bio'></p>
     <div class='socials' id='social-icons'></div>
     <div id='cta-panel'></div>
-  `);
-    
+  `,
+  );
+
   const currentTheme = getTheme();
 
   function toggleTheme() {
-    const isLight = document.body.classList.toggle('light-mode');
-    const theme = isLight ? 'light' : 'dark';
+    const isLight = document.body.classList.toggle("light-mode");
+    const theme = isLight ? "light" : "dark";
     setTheme(theme);
     localStorage.setItem(addresses.userTheme, theme);
 
-    const heroPicture = document.querySelector('.hero-picture');
+    const heroPicture = document.querySelector(".hero-picture");
     if (heroPicture && data.picture) {
-      let resolvedPic = '';
+      let resolvedPic = "";
       if (Array.isArray(data.picture)) {
         const [dark, light] = data.picture;
-        resolvedPic = (theme === 'light' ? light : dark) || dark || light || '';
-      } else if (data.picture && typeof data.picture === 'object') {
-        resolvedPic = (theme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
+        resolvedPic = (theme === "light" ? light : dark) || dark || light || "";
+      } else if (data.picture && typeof data.picture === "object") {
+        resolvedPic =
+          (theme === "light" ? data.picture.light : data.picture.dark) ||
+          data.picture.dark ||
+          data.picture.light ||
+          "";
       } else {
-        resolvedPic = data.picture || '';
+        resolvedPic = data.picture || "";
       }
       heroPicture.src = resolvedPic;
     }
   }
 
   if (data.symbol) {
-    const logoContainer = document.querySelector('.hero-logo');
+    const logoContainer = document.querySelector(".hero-logo");
     if (logoContainer) {
-      logoContainer.innerHTML = symbolMap[data.symbol] || data.symbol.substring(0, 4);
-      logoContainer.addEventListener('click', toggleTheme);
+      logoContainer.innerHTML =
+        symbolMap[data.symbol] || data.symbol.substring(0, 4);
+      logoContainer.addEventListener("click", toggleTheme);
     }
   }
 
-  const themeToggleBtn = document.getElementById('theme-toggle-btn');
-  if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+  const themeToggleBtn = document.getElementById("theme-toggle-btn");
+  if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
 
-  const userName = document.getElementById('user-name');
-  if (userName) userName.innerText = data.name || 'Anonymous';
-  if (document.getElementById('user-role')) renderRoles('user-role', data.role || '');
+  const userName = document.getElementById("user-name");
+  if (userName) userName.innerText = data.name || "Anonymous";
+  if (document.getElementById("user-role"))
+    renderRoles("user-role", data.role || "");
 
-  const userLocation = document.getElementById('user-location');
+  const userLocation = document.getElementById("user-location");
   if (userLocation) {
     if (!data.location) {
       userLocation.remove();
     } else {
-      let timezoneUI = '';
+      let timezoneUI = "";
       if (data.timezone) {
-        if (data.timezone.includes('/')) {
+        if (data.timezone.includes("/")) {
           try {
-            const formatter = new Intl.DateTimeFormat('en-US', { timeZone: data.timezone, timeZoneName: 'shortOffset' });
-            const offsetPart = formatter.formatToParts(new Date()).find(p => p.type === 'timeZoneName');
-            if (offsetPart) timezoneUI = offsetPart.value.replace('GMT', 'UTC');
+            const formatter = new Intl.DateTimeFormat("en-US", {
+              timeZone: data.timezone,
+              timeZoneName: "shortOffset",
+            });
+            const offsetPart = formatter
+              .formatToParts(new Date())
+              .find((p) => p.type === "timeZoneName");
+            if (offsetPart) timezoneUI = offsetPart.value.replace("GMT", "UTC");
           } catch (e) {}
-        } else if (data.timezone.includes('+') || data.timezone.includes('-')) {
+        } else if (data.timezone.includes("+") || data.timezone.includes("-")) {
           timezoneUI = data.timezone;
         }
       }
 
-      const timeToMinutes = (str) => { const [h, m] = str.split(':').map(Number); return h * 60 + m; };
+      const timeToMinutes = (str) => {
+        const [h, m] = str.split(":").map(Number);
+        return h * 60 + m;
+      };
       const getLocalMinutes = (timezone) => {
-        const formatter = new Intl.DateTimeFormat('en-US', {
+        const formatter = new Intl.DateTimeFormat("en-US", {
           timeZone: timezone,
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
         });
         const parts = formatter.formatToParts(new Date());
-        const h = Number(parts.find(p => p.type === 'hour').value);
-        const m = Number(parts.find(p => p.type === 'minute').value);
+        const h = Number(parts.find((p) => p.type === "hour").value);
+        const m = Number(parts.find((p) => p.type === "minute").value);
         return (h % 24) * 60 + m;
       };
 
       const getCurrentStatus = (status, timezone) => {
-        if (!status || !timezone) return { label: '', cls: '' };
+        if (!status || !timezone) return { label: "", cls: "" };
 
         let dayName;
-        try { dayName = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'long' }).format(new Date()).toLowerCase(); } catch (e) { dayName = ''; }
+        try {
+          dayName = new Intl.DateTimeFormat("en-US", {
+            timeZone: timezone,
+            weekday: "long",
+          })
+            .format(new Date())
+            .toLowerCase();
+        } catch (e) {
+          dayName = "";
+        }
         if (status.except && dayName && status.except[dayName]) {
-          return { label: status.except[dayName], cls: 'is-away' };
+          return { label: status.except[dayName], cls: "is-away" };
         }
 
-        if (!status.daily) return { label: '', cls: '' };
+        if (!status.daily) return { label: "", cls: "" };
         let nowMin;
-        try { nowMin = getLocalMinutes(timezone); } catch (e) { return { label: '', cls: '' }; }
+        try {
+          nowMin = getLocalMinutes(timezone);
+        } catch (e) {
+          return { label: "", cls: "" };
+        }
         for (const entry of status.daily) {
           const start = timeToMinutes(entry.from);
           const end = timeToMinutes(entry.to);
-          const inRange = start <= end ? (nowMin >= start && nowMin < end) : (nowMin >= start || nowMin < end);
-          if (inRange) return { label: entry.label, cls: entry.busy ? 'is-busy' : entry.away ? 'is-away' : '' };
+          const inRange =
+            start <= end
+              ? nowMin >= start && nowMin < end
+              : nowMin >= start || nowMin < end;
+          if (inRange)
+            return {
+              label: entry.label,
+              cls: entry.busy ? "is-busy" : entry.away ? "is-away" : "",
+            };
         }
-        return { label: '', cls: '' };
+        return { label: "", cls: "" };
       };
 
       const getCurrentClock = () => {
         try {
-          return new Intl.DateTimeFormat('en-US', { timeZone: data.timezone, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date());
+          return new Intl.DateTimeFormat("en-US", {
+            timeZone: data.timezone,
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }).format(new Date());
         } catch (e) {
-          return '';
+          return "";
         }
       };
 
       userLocation.innerHTML = /*html*/ `${data.location}
-        ${timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : ''}
-        ${data.timezone ? `<span class='post-detail' id='clock'></span>` : ''}
-        ${data.status && data.timezone ? `<span class='post-detail' id='status'></span>` : ''}
+        ${timezoneUI ? `<span class='post-detail' id='timezone'>${timezoneUI}</span>` : ""}
+        ${data.timezone ? `<span class='post-detail' id='clock'></span>` : ""}
+        ${data.status && data.timezone ? `<span class='post-detail' id='status'></span>` : ""}
       `;
 
       if (data.timezone) {
         const tick = () => {
-          const clockEl = document.getElementById('clock');
+          const clockEl = document.getElementById("clock");
           clockEl.innerText = getCurrentClock();
-          clockEl.classList.toggle('is-day', (() => { try { const m = getLocalMinutes(data.timezone); return (m >= 360 && m < 1080); } catch (e) { return false; } })());
+          clockEl.classList.toggle(
+            "is-day",
+            (() => {
+              try {
+                const m = getLocalMinutes(data.timezone);
+                return m >= 360 && m < 1080;
+              } catch (e) {
+                return false;
+              }
+            })(),
+          );
 
-          const statusEl = document.getElementById('status');
+          const statusEl = document.getElementById("status");
           if (statusEl) {
             const { label, cls } = getCurrentStatus(data.status, data.timezone);
             statusEl.innerText = label;
-            statusEl.className = 'post-detail' + (cls ? ' ' + cls : '');
+            statusEl.className = "post-detail" + (cls ? " " + cls : "");
           }
         };
 
@@ -804,34 +997,36 @@ function buildHero(data, getTheme, setTheme) {
     }
   }
 
-  const userBio = document.getElementById('user-bio');
-  if (userBio && data.bio) userBio.innerHTML = data.bio
-  else if (userBio) userBio.remove()
+  const userBio = document.getElementById("user-bio");
+  if (userBio && data.bio) userBio.innerHTML = data.bio;
+  else if (userBio) userBio.remove();
 
-  const socialIcons = document.getElementById('social-icons');
+  const socialIcons = document.getElementById("social-icons");
   if (data.socials && socialIcons) {
-    const mainGroups = Array.isArray(data.socials.main) ? data.socials.main : [];
+    const mainGroups = Array.isArray(data.socials.main)
+      ? data.socials.main
+      : [];
     const more = Array.isArray(data.socials.more) ? data.socials.more : [];
 
     const makeIcon = (site) => {
       const iconValue = iconMap[site] || iconMap.default;
-      if (iconValue.startsWith('iconify:')) {
-        const icon = document.createElement('iconify-icon');
-        icon.setAttribute('icon', iconValue.replace('iconify:', ''));
+      if (iconValue.startsWith("iconify:")) {
+        const icon = document.createElement("iconify-icon");
+        icon.setAttribute("icon", iconValue.replace("iconify:", ""));
         return icon;
       }
-      const icon = document.createElement('i');
+      const icon = document.createElement("i");
       icon.className = `${iconValue} _clickable`;
       icon.id = site;
       return icon;
     };
 
     const makeAnchor = (link) => {
-      const anchor = document.createElement('a');
+      const anchor = document.createElement("a");
       anchor.href = link.url;
-      if (link.url.startsWith('http')) {
-        anchor.target = '_blank';
-        anchor.rel = 'noopener noreferrer';
+      if (link.url.startsWith("http")) {
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
       }
       anchor.appendChild(makeIcon(link.site));
       return anchor;
@@ -839,7 +1034,7 @@ function buildHero(data, getTheme, setTheme) {
 
     mainGroups.forEach((group, groupIndex) => {
       if (!Array.isArray(group)) return;
-      group.forEach(link => {
+      group.forEach((link) => {
         if (!link.url || !link.site) return;
         socialIcons.appendChild(makeAnchor(link));
       });
@@ -850,38 +1045,38 @@ function buildHero(data, getTheme, setTheme) {
     });
 
     if (more.length) {
-      const toggle = document.createElement('span');
-      toggle.className = 'socials-more';
-      toggle.setAttribute('role', 'button');
-      toggle.setAttribute('tabindex', '0');
+      const toggle = document.createElement("span");
+      toggle.className = "socials-more";
+      toggle.setAttribute("role", "button");
+      toggle.setAttribute("tabindex", "0");
 
-      const icon = document.createElement('i');
-      icon.className = 'fa-solid fa-bars _clickable';
-      icon.id = 'socials-list';
+      const icon = document.createElement("i");
+      icon.className = "fa-solid fa-bars _clickable";
+      icon.id = "socials-list";
       toggle.appendChild(icon);
 
-      const panel = document.createElement('div');
-      panel.className = 'socials-more-panel';
-      more.forEach(link => {
+      const panel = document.createElement("div");
+      panel.className = "socials-more-panel";
+      more.forEach((link) => {
         if (!link.url || !link.site) return;
         panel.appendChild(makeAnchor(link));
       });
       toggle.appendChild(panel);
 
-      toggle.addEventListener('click', (e) => {
+      toggle.addEventListener("click", (e) => {
         e.stopPropagation();
-        toggle.classList.toggle('is-open');
+        toggle.classList.toggle("is-open");
       });
 
-      toggle.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+      toggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          toggle.classList.toggle('is-open');
+          toggle.classList.toggle("is-open");
         }
       });
 
-      document.addEventListener('click', (e) => {
-        if (!toggle.contains(e.target)) toggle.classList.remove('is-open');
+      document.addEventListener("click", (e) => {
+        if (!toggle.contains(e.target)) toggle.classList.remove("is-open");
       });
 
       socialIcons.appendChild(toggle);
@@ -889,51 +1084,65 @@ function buildHero(data, getTheme, setTheme) {
   }
 
   if (data.cta) {
-    const panel = document.getElementById('cta-panel');
+    const panel = document.getElementById("cta-panel");
     if (panel) {
-      Object.entries(data.cta).filter(([key, cta]) => cta && Object.keys(cta).length > 0).forEach(([key, doc], i) => {
-        const btn = document.createElement('button');
-        btn.className = `cta-trigger cta-${key} _clickable`;
-        btn.id = `cta-trigger-${key}`;
-        btn.innerHTML = /*html*/ `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-text'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ''}</span>`;
-        btn.addEventListener('click', () => {
-          if (doc.section) {
-            const navBtn = document.getElementById(`nav-${doc.section}`);
-            if (navBtn) { navBtn.click(); return; }
-            const target = document.getElementById(doc.section);
-            if (target) { target.scrollIntoView({ behavior: 'smooth' }); return; }
-          }
-          if (doc.link) window.open(doc.link, '_blank', 'noopener,noreferrer');
+      Object.entries(data.cta)
+        .filter(([key, cta]) => cta && Object.keys(cta).length > 0)
+        .forEach(([key, doc], i) => {
+          const btn = document.createElement("button");
+          btn.className = `cta-trigger cta-${key} _clickable`;
+          btn.id = `cta-trigger-${key}`;
+          btn.innerHTML = /*html*/ `<i class='${iconMap[doc.icon]} cta-icon'></i><span class='cta-text'>${doc.title}${doc.date ? `<span class='post-detail'> (${doc.date})</span>` : ""}</span>`;
+          btn.addEventListener("click", () => {
+            if (doc.section) {
+              const navBtn = document.getElementById(`nav-${doc.section}`);
+              if (navBtn) {
+                navBtn.click();
+                return;
+              }
+              const target = document.getElementById(doc.section);
+              if (target) {
+                target.scrollIntoView({ behavior: "smooth" });
+                return;
+              }
+            }
+            if (doc.link)
+              window.open(doc.link, "_blank", "noopener,noreferrer");
+          });
+          panel.appendChild(btn);
         });
-        panel.appendChild(btn);
-      });
     }
   }
 
   if (data.picture) {
-    const heroCard = document.querySelector('.hero-card');
+    const heroCard = document.querySelector(".hero-card");
     if (heroCard) {
-      heroCard.classList.add('hero-split');
+      heroCard.classList.add("hero-split");
 
-      const heroLeft = document.createElement('div');
-      heroLeft.className = 'hero-left';
+      const heroLeft = document.createElement("div");
+      heroLeft.className = "hero-left";
       while (heroCard.firstChild) {
         heroLeft.appendChild(heroCard.firstChild);
       }
 
-      let initialPic = '';
+      let initialPic = "";
       if (Array.isArray(data.picture)) {
         const [dark, light] = data.picture;
-        initialPic = (currentTheme === 'light' ? light : dark) || dark || light || '';
-      } else if (data.picture && typeof data.picture === 'object') {
-        initialPic = (currentTheme === 'light' ? data.picture.light : data.picture.dark) || data.picture.dark || data.picture.light || '';
+        initialPic =
+          (currentTheme === "light" ? light : dark) || dark || light || "";
+      } else if (data.picture && typeof data.picture === "object") {
+        initialPic =
+          (currentTheme === "light" ? data.picture.light : data.picture.dark) ||
+          data.picture.dark ||
+          data.picture.light ||
+          "";
       } else {
-        initialPic = data.picture || '';
+        initialPic = data.picture || "";
       }
 
-      const heroRight = document.createElement('div');
-      heroRight.className = 'hero-right';
-      heroRight.innerHTML = /*html*/ `<div class='hero-picture-wrapper'><img src='${initialPic}' alt='${data.name || 'Profile'}' class='hero-picture' draggable=false fetchpriority='high' /></div>`;
+      const heroRight = document.createElement("div");
+      heroRight.className = "hero-right";
+      heroRight.innerHTML = /*html*/ `<div class='hero-picture-wrapper'><img src='${initialPic}' alt='${data.name || "Profile"}' class='hero-picture' draggable=false fetchpriority='high' /></div>`;
 
       heroCard.appendChild(heroLeft);
       heroCard.appendChild(heroRight);
@@ -943,27 +1152,31 @@ function buildHero(data, getTheme, setTheme) {
 // ───── Scroll Spy ────────────────────────────────────────
 
 function runScrollSpy(spyTargets) {
-  window.addEventListener('scroll', () => {
-    let activeId = 'home-hero';
+  window.addEventListener("scroll", () => {
+    let activeId = "home-hero";
     const topOffset = window.scrollY + 250;
 
-    spyTargets.forEach(view => {
+    spyTargets.forEach((view) => {
       const el = document.getElementById(view.id);
       if (el && topOffset >= el.offsetTop) activeId = view.id;
     });
 
-    spyTargets.forEach(view => {
+    spyTargets.forEach((view) => {
       const items = Array.isArray(view.navIds) ? view.navIds : [view.navIds];
-      items.forEach(navId => {
+      items.forEach((navId) => {
         const link = document.getElementById(navId);
-        if (link) link.classList.toggle('active', view.id === activeId);
+        if (link) link.classList.toggle("active", view.id === activeId);
       });
     });
   });
 
-  window.addEventListener('scroll', () => {
-    sessionStorage.setItem(addresses.indexScrollY, window.scrollY);
-  }, { passive: true });
+  window.addEventListener(
+    "scroll",
+    () => {
+      sessionStorage.setItem(addresses.indexScrollY, window.scrollY);
+    },
+    { passive: true },
+  );
 }
 
 // ───── Profile App ────────────────────────────────────────
@@ -972,21 +1185,35 @@ async function runProfileApp() {
   try {
     const data = await loadConfig();
 
-    const navItems = document.getElementById('nav-items');
-    const homeHero = document.getElementById('home-hero');
-    const sectionsContainer = document.getElementById('sections-container');
+    const navItems = document.getElementById("nav-items");
+    const homeHero = document.getElementById("home-hero");
+    const sectionsContainer = document.getElementById("sections-container");
 
-    let theme = applyBaseSetup(data, '', ['assistant', 'qr_code']);
-    buildHero(data, () => theme, (newTheme) => { theme = newTheme; });
+    let theme = applyBaseSetup(data, "", ["assistant", "qr_code"]);
+    buildHero(
+      data,
+      () => theme,
+      (newTheme) => {
+        theme = newTheme;
+      },
+    );
 
-    const spyTargets = [{ id: 'home-hero', navIds: 'nav-home' }];
-    const baseNavItems = [{ id: 'nav-home', label: 'Home', icon: 'fa-solid fa-house', target: 'home-hero', cardId: 'home-hero' }];
+    const spyTargets = [{ id: "home-hero", navIds: "nav-home" }];
+    const baseNavItems = [
+      {
+        id: "nav-home",
+        label: "Home",
+        icon: "fa-solid fa-house",
+        target: "home-hero",
+        cardId: "home-hero",
+      },
+    ];
 
     if (navItems) {
-      baseNavItems.forEach(item => {
-        const btn = document.createElement('a');
+      baseNavItems.forEach((item) => {
+        const btn = document.createElement("a");
         btn.id = item.id;
-        btn.className = 'home-nav-home _clickable';
+        btn.className = "home-nav-home _clickable";
         btn.innerHTML = /*html*/ `<i class='${item.icon}'></i><span class='nav-label'> ${item.label}</span>`;
         btn.onclick = () => jumpToCard(item.target, item.cardId);
         navItems.appendChild(btn);
@@ -998,13 +1225,15 @@ async function runProfileApp() {
         const colCount = row.length;
         const totalSize = row.reduce((sum, s) => sum + (s.size || 1), 0);
         const rowId = `row-${rowIndex}`;
-        const cardIds = row.map((section, colIndex) => makeCardId(rowIndex, colIndex, section.title));
+        const cardIds = row.map((section, colIndex) =>
+          makeCardId(rowIndex, colIndex, section.title),
+        );
         const rowNavIds = [];
 
-        const wrapper = document.createElement('div');
+        const wrapper = document.createElement("div");
         if (colCount > 1) {
-          wrapper.className = 'row';
-          wrapper.style.setProperty('--col-count', totalSize);
+          wrapper.className = "row";
+          wrapper.style.setProperty("--col-count", totalSize);
         }
         wrapper.id = rowId;
 
@@ -1018,10 +1247,11 @@ async function runProfileApp() {
           wrapper.appendChild(card);
 
           if (section.key) {
-            const sectionIcon = iconMap[section.icon?.toLowerCase()] ?? iconMap['default'];
-            const navBtn = document.createElement('a');
+            const sectionIcon =
+              iconMap[section.icon?.toLowerCase()] ?? iconMap["default"];
+            const navBtn = document.createElement("a");
             navBtn.id = navId;
-            navBtn.className = 'nav-link-section _clickable';
+            navBtn.className = "nav-link-section _clickable";
             navBtn.innerHTML = /*html*/ `<i class='${sectionIcon}'></i><span class='nav-label'> ${section.key}</span>`;
             navBtn.onclick = () => jumpToCard(rowId, cardId);
             navItems.appendChild(navBtn);
@@ -1034,51 +1264,61 @@ async function runProfileApp() {
     }
 
     const allowedKeys = {
-      education:  { label: 'Education',  href: './log.html?page=education' },
-      experience: { label: 'Experience', href: './log.html?page=experience' },
-      projects:   { label: 'Projects',   href: './projects.html' },
-      community:  { label: 'Community',  href: './community.html' },
+      education: { label: "Education", href: "./log.html?page=education" },
+      experience: { label: "Experience", href: "./log.html?page=experience" },
+      projects: { label: "Projects", href: "./projects.html" },
+      community: { label: "Community", href: "./community.html" },
     };
-    const orderedKeys = Object.keys(data).filter(key => Object.keys(allowedKeys).includes(key));
+    const orderedKeys = Object.keys(data).filter((key) =>
+      Object.keys(allowedKeys).includes(key),
+    );
 
     if (sectionsContainer) {
-      const quickLinksRow = document.createElement('div');
-      quickLinksRow.className = 'quick-links-row';
-      quickLinksRow.id = 'quick-links-row';
+      const quickLinksRow = document.createElement("div");
+      quickLinksRow.className = "quick-links-row";
+      quickLinksRow.id = "quick-links-row";
 
-      orderedKeys.forEach(key => {
+      orderedKeys.forEach((key) => {
         const { label, href } = allowedKeys[key];
-        const icon = iconMap[key] ?? iconMap['default'];
+        const icon = iconMap[key] ?? iconMap["default"];
 
-        const link = document.createElement('a');
-        link.className = 'quick-link-item has-glow _clickable';
+        const link = document.createElement("a");
+        link.className = "quick-link-item has-glow _clickable";
         link.href = href;
         link.innerHTML = /*html*/ `<i class='${icon}'></i><span class='quick-link-label'>${label}</span>`;
         quickLinksRow.appendChild(link);
       });
 
       if (quickLinksRow.children.length) {
-        quickLinksRow.style.setProperty('--col-count', quickLinksRow.children.length);
+        quickLinksRow.style.setProperty(
+          "--col-count",
+          quickLinksRow.children.length,
+        );
         sectionsContainer.appendChild(quickLinksRow);
       }
     }
 
     if (data.form && data.api && sectionsContainer) {
-      const formCardId = data.form.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
+      const formCardId = data.form.key
+        ? makeCardId(0, 0, data.form.key)
+        : "contact-form";
       const formRowId = `row-${formCardId}`;
 
-      const formRow = document.createElement('div');
+      const formRow = document.createElement("div");
       formRow.id = formRowId;
-      formRow.appendChild(buildForm(data.form, formCardId, data.api, data.timezone));
+      formRow.appendChild(
+        buildForm(data.form, formCardId, data.api, data.timezone),
+      );
       sectionsContainer.appendChild(formRow);
 
       spyTargets.push({ id: formRowId, navIds: [`nav-${formCardId}`] });
 
       if (data.form.key && navItems) {
-        const formIcon = iconMap[data.form.icon?.toLowerCase()] ?? iconMap['default'];
-        const navBtn = document.createElement('a');
+        const formIcon =
+          iconMap[data.form.icon?.toLowerCase()] ?? iconMap["default"];
+        const navBtn = document.createElement("a");
         navBtn.id = `nav-${formCardId}`;
-        navBtn.className = 'nav-link-section';
+        navBtn.className = "nav-link-section";
         navBtn.innerHTML = /*html*/ `<i class='${formIcon}'></i><span class='nav-label'> ${data.form.key}</span>`;
         navBtn.onclick = () => jumpToCard(formRowId, formCardId);
         navItems.appendChild(navBtn);
@@ -1090,8 +1330,8 @@ async function runProfileApp() {
     }
 
     if (navItems) {
-      orderedKeys.forEach(key => {
-        const btn = document.createElement('a');
+      orderedKeys.forEach((key) => {
+        const btn = document.createElement("a");
         btn.id = `nav-${key}`;
         const label = key.charAt(0).toUpperCase() + key.slice(1);
         btn.innerHTML = /*html*/ `<i class='${iconMap[key]}'></i><span class='nav-label'>${label}</span>`;
@@ -1100,33 +1340,41 @@ async function runProfileApp() {
       });
 
       const fileOrder = Object.keys(data);
-      const formCardId = data.form?.key ? makeCardId(0, 0, data.form.key) : 'contact-form';
+      const formCardId = data.form?.key
+        ? makeCardId(0, 0, data.form.key)
+        : "contact-form";
 
       const getOrderIndex = (element) => {
         const id = element.id;
-        if (id === 'nav-home') return -1;
-        if (id === `nav-${formCardId}`) return fileOrder.indexOf('form');
-        if (element.classList.contains('nav-link-section')) return fileOrder.indexOf('sections');
-        if (fileOrder.includes(id.replace('nav-', ''))) return fileOrder.indexOf(id.replace('nav-', ''));
+        if (id === "nav-home") return -1;
+        if (id === `nav-${formCardId}`) return fileOrder.indexOf("form");
+        if (element.classList.contains("nav-link-section"))
+          return fileOrder.indexOf("sections");
+        if (fileOrder.includes(id.replace("nav-", "")))
+          return fileOrder.indexOf(id.replace("nav-", ""));
         return 999;
       };
 
       const sortedButtons = Array.from(navItems.children);
       sortedButtons.sort((a, b) => getOrderIndex(a) - getOrderIndex(b));
-      sortedButtons.forEach(btn => navItems.appendChild(btn));
+      sortedButtons.forEach((btn) => navItems.appendChild(btn));
     }
 
-    const menuToggle = document.getElementById('nav-menu');
-    const menuPanel = document.getElementById('nav-panel');
-    const menuList = document.getElementById('nav-dropdown');
+    const menuToggle = document.getElementById("nav-menu");
+    const menuPanel = document.getElementById("nav-panel");
+    const menuList = document.getElementById("nav-dropdown");
 
     if (navItems && menuList) {
-      Array.from(navItems.children).forEach(link => {
+      Array.from(navItems.children).forEach((link) => {
         const clone = link.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.classList.add('filter-item', 'index-menu-item');
-        if (link.onclick) clone.onclick = (e) => { link.onclick(e); closeMenu(); };
-        if (link.href) clone.addEventListener('click', closeMenu);
+        clone.removeAttribute("id");
+        clone.classList.add("filter-item", "index-menu-item");
+        if (link.onclick)
+          clone.onclick = (e) => {
+            link.onclick(e);
+            closeMenu();
+          };
+        if (link.href) clone.addEventListener("click", closeMenu);
         menuList.appendChild(clone);
       });
     }
@@ -1139,38 +1387,53 @@ async function runProfileApp() {
       menuPanel.style.left = `${rect.left}px`;
     }
 
-    function openMenu() { isMenuOpen = true; positionMenuPanel(); menuPanel.classList.add('open'); menuToggle.classList.add('active'); }
-    function closeMenu() { isMenuOpen = false; menuPanel.classList.remove('open'); menuToggle.classList.remove('active'); }
+    function openMenu() {
+      isMenuOpen = true;
+      positionMenuPanel();
+      menuPanel.classList.add("open");
+      menuToggle.classList.add("active");
+    }
+    function closeMenu() {
+      isMenuOpen = false;
+      menuPanel.classList.remove("open");
+      menuToggle.classList.remove("active");
+    }
 
     if (menuToggle && menuPanel) {
-      menuToggle.addEventListener('click', (e) => {
+      menuToggle.addEventListener("click", (e) => {
         e.stopPropagation();
         isMenuOpen ? closeMenu() : openMenu();
       });
-      document.addEventListener('click', (e) => {
-        if (!menuPanel.contains(e.target) && e.target !== menuToggle) closeMenu();
+      document.addEventListener("click", (e) => {
+        if (!menuPanel.contains(e.target) && e.target !== menuToggle)
+          closeMenu();
       });
-      window.addEventListener('scroll', () => { if (isMenuOpen) closeMenu(); }, { passive: true });
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (isMenuOpen) closeMenu();
+        },
+        { passive: true },
+      );
     }
 
     observeCards();
     runScrollSpy(spyTargets);
-    
-    const footer = document.createElement('div');
+
+    const footer = document.createElement("div");
     footer.innerHTML = homeFooter();
     document.body.appendChild(footer);
 
-    if (data?.host.analysis) await applyAnalysis(data?.api)
+    await applyAnalysis(data?.api);
 
     return true;
-
   } catch (error) {
-    console.error('SlateMP Application Setup Validation Failure:', error);
+    console.error("SlateMP Application Setup Validation Failure:", error);
     return false;
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener("DOMContentLoaded", async () => {
   handleOffline();
   if (!navigator.onLine) return;
 
@@ -1178,15 +1441,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);
 
-    if (targetId === 'chat-with-assistant') {
+    if (targetId === "chat-with-assistant") {
       setTimeout(() => openChatWindow(), 150);
     } else {
-      setTimeout(() => { jumpToCard(targetId, targetId); }, 150);
+      setTimeout(() => {
+        jumpToCard(targetId, targetId);
+      }, 150);
     }
   } else {
     const savedY = sessionStorage.getItem(addresses.indexScrollY);
-    if (savedY !== null) requestAnimationFrame(() => window.scrollTo(0, parseInt(savedY, 10)));
+    if (savedY !== null)
+      requestAnimationFrame(() => window.scrollTo(0, parseInt(savedY, 10)));
   }
 });
 
-window.addEventListener('hashchange', () => { if (window.location.hash.substring(1) === 'chat-with-assistant') { openChatWindow(); } });
+window.addEventListener("hashchange", () => {
+  if (window.location.hash.substring(1) === "chat-with-assistant") {
+    openChatWindow();
+  }
+});

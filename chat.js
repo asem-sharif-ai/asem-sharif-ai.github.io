@@ -33,7 +33,7 @@ async function getModelResponse(configData = {}, newMessage = '') {
 
   if (!response.ok || data.error) {
     const code = data.errorCode || (response.ok ? null : 'C004');
-    const err = new Error(data.error || 'Unexpected error.');
+    const err = new Error(data.error || 'Unexpected Error.');
     err.errorCode = code;
     err.httpStatus = response.status;
     err.isWorkerError = true;

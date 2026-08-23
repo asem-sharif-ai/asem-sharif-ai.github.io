@@ -36,7 +36,6 @@
     "original": "https://asem-sharif-ai.pages.dev",
     "fallback": "https://asem-sharif-ai.github.io",
     "redirect": false,
-    "analysis": false,
     "qr_code": true
   },
 

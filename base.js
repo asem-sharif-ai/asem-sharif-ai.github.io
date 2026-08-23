@@ -33,7 +33,6 @@ const iconMap = {
   dashboard:    'fa-solid fa-chart-pie',
   download:     'fa-solid fa-download',
   settings:     'fa-solid fa-gear',
-  default:      'fa-solid fa-layer-group',
   facebook:     'fa-brands fa-facebook-f',
   instagram:    'fa-brands fa-instagram',
   twitter:      'fa-brands fa-x-twitter',
@@ -47,7 +46,6 @@ const iconMap = {
   github:       'fa-brands fa-github',
   huggingface:  'iconify:simple-icons:huggingface', 
   kaggle:       'fa-brands fa-kaggle',
-  bitbucket:    'fa-solid fa-bucket',
   researchgate: 'fa-brands fa-researchgate',
   paper:        'fa-solid fa-file-lines',
   scholar:      'iconify:academicons:google-scholar',
@@ -74,6 +72,7 @@ const addresses = {
   userTheme:           _address('user-theme'),
   chatHistory:         _address('chat-history'),
   mailFormData:        _address('mail-form-data'),
+  timeSlotData:        _address('time-slot-data'),
   indexScrollY:        _address('index-scroll-y'),
   projectsActiveTopic: _address('projects-active-topic'),
   projectsSearchQuery: _address('projects-search-query'),
@@ -81,8 +80,8 @@ const addresses = {
   projectsFilterMode:  _address('projects-filter-mode'),
   hubSearchQuery:      _address('hub-search-query'),
   hubActivePage:       _address('hub-active-page'),
+  hubPageIndex:        _address('hub-page-index'),
   hubLiveOTP:          _address('hub-live-otp'),
-  sessionMeta:         _address('session-meta'),
   sessionEvents:       _address('session-events'),
   precachedOffline:    'slatemp-offline-v3',
   precachedHosts:      'hosts.json',
@@ -337,7 +336,7 @@ function buildGalleryPane(galleryList, galleryHeader) {
   controls.className = 'gallery-sub gallery-controls';
 
   const prevBtn = document.createElement('button');
-  prevBtn.className = 'btn prev-btn gallery-btn is-disabled';
+  prevBtn.className = 'btn prev-btn gallery-btn ui-disabled';
   prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
 
   const counter = document.createElement('span');
@@ -345,8 +344,7 @@ function buildGalleryPane(galleryList, galleryHeader) {
   counter.textContent = `1/${galleryList.length}`;
 
   const nextBtn = document.createElement('button');
-  const isSingleItem = galleryList.length <= 1;
-  nextBtn.className = 'btn next-btn gallery-btn' + (isSingleItem ? ' is-disabled' : '');
+  nextBtn.className = 'btn next-btn gallery-btn' + (galleryList.length <= 1 ? ' ui-disabled' : '');
   nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
 
   let current = 0;
@@ -357,10 +355,10 @@ function buildGalleryPane(galleryList, galleryHeader) {
     counter.textContent = `${current + 1}/${galleryList.length}`;
 
     if (prevBtn) {
-      prevBtn.classList.toggle('is-disabled', current === 0);
+      prevBtn.classList.toggle('ui-disabled', current === 0);
     }
     if (nextBtn) {
-      nextBtn.classList.toggle('is-disabled', current === galleryList.length - 1);
+      nextBtn.classList.toggle('ui-disabled', current === galleryList.length - 1);
     }
   }
 
@@ -707,62 +705,153 @@ function applyBaseSetup(data = {}, page = 'SlateMP', triggers = ['assistant']) {
   return appliedTheme;
 }
 
+function makeSeparator(extraClass = '') {
+  const sep = document.createElement('span');
+  sep.classList.add('separator');
+  if (extraClass) sep.classList.add(extraClass);
+  sep.innerHTML = '&#8226;';
+  return sep;
+}
+
+function renderRoles(containerId, role) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (typeof role === 'string' && role) {
+    container.innerText = role;
+  } else if (Array.isArray(role) && role.length > 0) {
+    role.forEach((r, index) => {
+      const roleSpan = document.createElement('span');
+      roleSpan.innerText = r;
+      container.appendChild(roleSpan);
+
+      if (index < role.length - 1) {
+        container.appendChild(makeSeparator('role-separator'));
+      }
+    });
+  } else {
+    container.remove();
+  }
+}
+
+function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = /*html*/ `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
+}
+
 // ───── Session Analysis ────────────────────────────────────────
 
-let events = [];
+let apiUrl = null;
+let buffer = [];
+let flushTimer = null;
+
+function loadBuffer() {
+  try {
+    const raw = localStorage.getItem(addresses.sessionEvents);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.log('Portfolio Analytics Error:', e);
+    return [];
+  }
+}
+
+function saveBuffer() {
+  try {
+    localStorage.setItem(addresses.sessionEvents, JSON.stringify(buffer));
+  } catch (e) {
+    console.log('Portfolio Analytics Error:', e);
+  }
+}
+
+function clearBuffer() {
+  try {
+    localStorage.removeItem(addresses.sessionEvents);
+  } catch (e) {
+    console.log('Portfolio Analytics Error:', e);
+  } finally {
+    buffer = [];
+  }
+}
+
+function sendBuffer(useBeacon = false) {
+  if (!buffer.length || !apiUrl) return;
+
+  const payload = JSON.stringify({ tag: 'session', events: buffer });
+  const sent = buffer;
+  clearBuffer();
+
+  if (useBeacon && navigator.sendBeacon) {
+    const ok = navigator.sendBeacon(apiUrl, new Blob([payload], { type: 'application/json' }));
+    if (!ok) {
+      buffer = sent.concat(buffer);
+      saveBuffer();
+    }
+    return;
+  }
+
+  fetch(apiUrl, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload,
+  }).catch(e => {
+    console.log('Portfolio Analytics Error:', e);
+    buffer = sent.concat(buffer);
+    saveBuffer();
+  });
+}
+
+function scheduleFlush() {
+  if (flushTimer) return;
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    sendBuffer();
+  }, 10000);
+}
+
 async function applyAnalysis(api = null) {
   if (!api) return;
 
+  apiUrl = api;
+  buffer = loadBuffer();
+
   function logEvent(type, data = {}) {
-    const item = { type, timestamp: Date.now(), data };
-    console.log(item);
-    events.push(item);
-    localStorage.setItem(addresses.sessionEvents, JSON.stringify(events));
+    buffer.push({ type, timestamp: Date.now(), data });
+    saveBuffer();
+
+    if (['page_exit', 'unfocused', 'error'].includes(type) || buffer.length >= 20) {
+      sendBuffer(type === 'page_exit');
+      return;
+    }
+
+    scheduleFlush();
   }
 
-  const metaRaw = localStorage.getItem(addresses.sessionMeta);
-  const eventsRaw = localStorage.getItem(addresses.sessionEvents);
-
-  const meta = metaRaw ? JSON.parse(metaRaw) : null;
-  events = eventsRaw ? JSON.parse(eventsRaw) : [];
-
-  const lastEvent = events.length ? events[events.length - 1] : null;
-  const isExpired = !lastEvent || lastEvent.timestamp < Date.now() - 1800000;
+  if (buffer.length) sendBuffer();
 
   const params = new URLSearchParams(location.search);
-  const inviteId = params.get('invite') || null;
 
-  if (!meta || !events.length || isExpired) {
-    const sessionMeta = {
-      sessionId: crypto.randomUUID(),
-      initializedAt: new Date().toISOString(),
-      referrer: document.referrer || null,
-      landing: location.pathname,
-      language: navigator.language,
-      screen: `${screen.width}x${screen.height}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      previousId: meta?.sessionId || null,
-      inviteId
-    };
-    events = [];
-
-    localStorage.setItem(addresses.sessionMeta, JSON.stringify(sessionMeta));
-    localStorage.setItem(addresses.sessionEvents, JSON.stringify(events));
-
-    // try {
-    //   await fetch(api, {
-    //     method: 'POST',
-    //     credentials: 'include',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ tag: 'analytics', metadata: sessionMeta }),
-    //   });
-    // } catch (e) {
-    //   console.log('Portfolio Analytics Error:', e);
-    //   return;
-    // }
-
-  } else {
-    logEvent('pulse');
+  try {
+    await fetch(api, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tag: 'session',
+        metadata: {
+          inviteId: params.get('invite'),
+          referrer: document.referrer,
+          language: navigator.language,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          landing: location.pathname,
+          screen: `${screen.width}x${screen.height}`,
+        },
+      }),
+    });
+  } catch (e) {
+    console.log('Portfolio Analytics Error:', e);
+    return;
   }
 
   logEvent('page_open', { path: location.pathname, referrer: document.referrer || null });
@@ -770,7 +859,7 @@ async function applyAnalysis(api = null) {
 
   window.addEventListener('focus', () => { logEvent('focused', { scrollY: window.scrollY }); });
   window.addEventListener('blur', () => { logEvent('unfocused', { scrollY: window.scrollY }); });
-  document.addEventListener('visibilitychange', () => { logEvent(document.hidden ? 'hidden' : 'visible', { scrollY: window.scrollY });});
+  document.addEventListener('visibilitychange', () => { logEvent(document.hidden ? 'hidden' : 'visible', { scrollY: window.scrollY }); });
 
   const chatWindow = document.getElementById('chat-window');
   if (chatWindow) {
@@ -808,14 +897,13 @@ async function applyAnalysis(api = null) {
     const selection = window.getSelection()?.toString() || '';
     const el = document.activeElement;
     logEvent('copy', {
-      text: selection.slice(0, 200),
+      text: selection.length > 205 ? `${selection.slice(0, 100)}...${selection.slice(-100)}` : selection,
       elementId: el?.id || null,
       elementTag: el?.tagName || null,
       elementClass: el?.className || null
     });
   });
 
-  // ---------- form fields ----------
   document.addEventListener('focus', (e) => {
     const el = e.target.closest('._trackable');
     if (!el) return;
@@ -828,20 +916,15 @@ async function applyAnalysis(api = null) {
     logEvent('field_blur', { id: el.id || null, filled: !!el.value?.trim() });
   }, true);
 
-  // ---------- search ----------
   let searchDebounce = null;
-  const searchInput = document.getElementById('project-search-input');
-
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
+  document.querySelectorAll('._searchable').forEach((input) => {
+    input.addEventListener('input', (e) => {
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(() => {
-        const query = e.target.value.trim();
-        if (!query) return;
-        logEvent('search', { query });
+        logEvent('search', { query: e.target.value.trim(), id: e.target.id || null });
       }, 500);
     });
-  }
+  });
 
   window.addEventListener('error', (e) => {
     logEvent('error', {
@@ -860,70 +943,4 @@ async function applyAnalysis(api = null) {
       reason: e.reason?.message || String(e.reason).slice(0, 500)
     });
   });
-
-  const IDLE_THRESHOLD = 60000;
-  let isIdle = false, idleTimer = null;
-  let lastMouseX = null, lastMouseY = null;
-
-  function markActive() {
-    if (isIdle) {
-      isIdle = false;
-      logEvent('user_active');
-    }
-
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      isIdle = true;
-      logEvent('user_idle');
-    }, IDLE_THRESHOLD);
-  }
-
-  document.addEventListener('mousemove', (e) => {
-    if (lastMouseX === null || Math.abs(e.clientX - lastMouseX) > 5 || Math.abs(e.clientY - lastMouseY) > 5) {
-      lastMouseX = e.clientX;
-      lastMouseY = e.clientY;
-      markActive();
-    }
-  }, { passive: true });
-
-  ['keydown', 'scroll', 'click', 'touchstart'].forEach(evt => {
-    document.addEventListener(evt, markActive, { passive: true });
-  });
-
-  markActive();
-}
-
-function makeSeparator(extraClass = '') {
-  const sep = document.createElement('span');
-  sep.classList.add('separator');
-  if (extraClass) sep.classList.add(extraClass);
-  sep.innerHTML = '&#8226;';
-  return sep;
-}
-
-function renderRoles(containerId, role) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  if (typeof role === 'string' && role) {
-    container.innerText = role;
-  } else if (Array.isArray(role) && role.length > 0) {
-    role.forEach((r, index) => {
-      const roleSpan = document.createElement('span');
-      roleSpan.innerText = r;
-      container.appendChild(roleSpan);
-
-      if (index < role.length - 1) {
-        container.appendChild(makeSeparator('role-separator'));
-      }
-    });
-  } else {
-    container.remove();
-  }
-}
-
-function renderNoData(pageTitle = 'Data', containerId = 'list-container', noYet = true) {
-  const c = document.getElementById(containerId);
-  if (!c) return;
-  c.innerHTML = /*html*/ `<p class='keyword keyword-big'>${noYet ? `No ${pageTitle} Yet` : `${pageTitle}`}</p>`;
 }
