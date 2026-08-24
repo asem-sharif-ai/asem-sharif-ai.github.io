@@ -1424,7 +1424,7 @@ async function runProfileApp() {
     footer.innerHTML = homeFooter();
     document.body.appendChild(footer);
 
-    if (true) await applyAnalysis(data?.api);
+    await applyAnalysis(data?.api);
 
     return true;
   } catch (error) {

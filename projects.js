@@ -1033,7 +1033,7 @@ async function runProjectsApp() {
     }
 
     filterAndRerender();
-    // await applyAnalysis(configData?.api);
+    await applyAnalysis(configData?.api);
   } catch (e) {
     console.error("Projects App Setup Failure:", e);
   }

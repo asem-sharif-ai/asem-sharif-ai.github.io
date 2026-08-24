@@ -399,7 +399,7 @@ async function runLogRouter() {
     });
 
     renderLogPage(page);
-    // await applyAnalysis(configData?.api);
+    await applyAnalysis(configData?.api);
   } catch (e) {
     console.error("Log Core Router Failure:", e);
   }

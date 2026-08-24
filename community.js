@@ -68,7 +68,7 @@ async function runHubApp() {
         renderNoData("FAQ Not Set Yet", "list-container", false);
     }
 
-    // await applyAnalysis(_gbAPI);
+    await applyAnalysis(_gbAPI);
   } catch (e) {
     console.error("Community Setup Failure:", e);
   }

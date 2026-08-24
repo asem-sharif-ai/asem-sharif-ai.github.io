@@ -861,11 +861,11 @@ async function applyAnalysis(api = null) {
   window.addEventListener('blur', () => { logEvent('unfocused', { scrollY: window.scrollY }); });
   document.addEventListener('visibilitychange', () => { logEvent(document.hidden ? 'hidden' : 'visible', { scrollY: window.scrollY }); });
 
-  const chatWindow = document.getElementById('chat-window');
-  if (chatWindow) {
-    const chatObserver = new MutationObserver(() => { logEvent(chatWindow.classList.contains('open') ? 'chat_opened' : 'chat_closed'); });
-    chatObserver.observe(chatWindow, { attributes: true, attributeFilter: ['class'] });
-  }
+  // const chatWindow = document.getElementById('chat-window');
+  // if (chatWindow) {
+  //   const chatObserver = new MutationObserver(() => { logEvent(chatWindow.classList.contains('open') ? 'chat_opened' : 'chat_closed'); });
+  //   chatObserver.observe(chatWindow, { attributes: true, attributeFilter: ['class'] });
+  // }
 
   let scrollActive = false, scrollTimeout = null;
   document.addEventListener('scroll', () => {
