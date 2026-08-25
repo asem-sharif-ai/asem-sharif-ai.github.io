@@ -843,7 +843,6 @@ async function applyAnalysis(api = null) {
           inviteId: params.get('invite'),
           referrer: document.referrer,
           language: navigator.language,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           landing: location.pathname,
           screen: `${screen.width}x${screen.height}`,
         },
