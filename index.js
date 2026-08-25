@@ -1264,8 +1264,8 @@ async function runProfileApp() {
     }
 
     const allowedKeys = {
-      education: { label: "Education", href: "./log.html?page=education" },
-      experience: { label: "Experience", href: "./log.html?page=experience" },
+      education: { label: "Education", href: "/education" },
+      experience: { label: "Experience", href: "/experience" },
       projects: { label: "Projects", href: "./projects.html" },
       community: { label: "Community", href: "./community.html" },
     };

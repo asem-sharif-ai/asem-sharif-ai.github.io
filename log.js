@@ -314,6 +314,24 @@ let configData = null;
 const VALID_PAGES = ["education", "experience", "skills"];
 const builtPages = new Set();
 
+function resolvePageFromLocation() {
+  // Path-based, e.g. /education, /experience, /skills (any leading/trailing slashes ignored)
+  const pathPage = window.location.pathname
+    .split("/")
+    .filter(Boolean)
+    .pop()
+    ?.toLowerCase();
+  if (VALID_PAGES.includes(pathPage)) return pathPage;
+
+  // Legacy support: ?page=education (and old log.html?page=education links)
+  const queryPage = new URLSearchParams(window.location.search)
+    .get("page")
+    ?.toLowerCase();
+  if (VALID_PAGES.includes(queryPage)) return queryPage;
+
+  return VALID_PAGES[0];
+}
+
 function setActiveTab(page) {
   document.querySelectorAll(".log-tab").forEach((tab) => {
     tab.classList.toggle("active", tab.dataset.page === page);
@@ -361,7 +379,8 @@ function switchTab(page, { updateUrl = true } = {}) {
 
   if (updateUrl) {
     const url = new URL(window.location.href);
-    url.searchParams.set("page", page);
+    url.pathname = `/${page}`;
+    url.search = "";
     window.history.pushState({ page }, "", url);
   }
 
@@ -370,12 +389,7 @@ function switchTab(page, { updateUrl = true } = {}) {
 
 async function runLogRouter() {
   try {
-    const params = new URLSearchParams(window.location.search);
-    let page = params.get("page")?.toLowerCase() ?? "";
-
-    if (!VALID_PAGES.includes(page)) {
-      page = VALID_PAGES[0];
-    }
+    let page = resolvePageFromLocation();
 
     configData = await loadConfig();
     applyBaseSetup(configData, "");
@@ -391,10 +405,7 @@ async function runLogRouter() {
     });
 
     window.addEventListener("popstate", () => {
-      const p = new URLSearchParams(window.location.search)
-        .get("page")
-        ?.toLowerCase();
-      page = VALID_PAGES.includes(p) ? p : VALID_PAGES[0];
+      page = resolvePageFromLocation();
       renderLogPage(page);
     });
 
