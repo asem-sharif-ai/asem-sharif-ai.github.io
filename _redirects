@@ -1,4 +1,3 @@
-/log         /education   301
-/education   /log.html    200
-/experience  /log.html    200
-/skills      /log.html    200
+/education   /logpage.html   200
+/experience  /logpage.html   200
+/skills      /logpage.html   200
