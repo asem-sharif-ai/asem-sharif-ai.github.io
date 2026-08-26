@@ -9,7 +9,7 @@ Believes in the critical importance of the lower-level stages of a project, and 
 
 - Role: AI & Computer Vision Engineer, PyQt Developer
 - Location: Cairo, Egypt (Africa/Cairo)
-- Site assistant: "Twin" — An in-portfolio digital assistant that answers questions about Asem's projects, skillsets, and system architecture
+- Site assistant: 'Twin' — An in-portfolio digital assistant that answers questions about Asem's projects, skillsets, and system architecture
 
 ## Pages
 - [Home](https://asem-sharif-ai.pages.dev/): Portfolio overview and introduction

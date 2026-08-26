@@ -2,22 +2,26 @@ let newWindow = true;
 let chatConfigData = null;
 let globalProfileData = null;
 
-async function getModelResponse(configData = {}, newMessage = '') {
-  if (!newMessage || typeof newMessage !== 'string') {
-    return { text: 'No Message Provided.', systemAlerts: null };
+async function getModelResponse(configData = {}, newMessage = "") {
+  if (!newMessage || typeof newMessage !== "string") {
+    return { text: "No Message Provided.", systemAlerts: null };
   }
 
   let response;
   try {
     response = await fetch(configData.api, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag: 'chat', message: newMessage, newWindow: newWindow }),
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tag: "chat",
+        message: newMessage,
+        newWindow: newWindow,
+      }),
     });
   } catch (networkErr) {
-    const err = new Error('C001');
-    err.errorCode = 'C001';
+    const err = new Error("C001");
+    err.errorCode = "C001";
     throw err;
   }
 
@@ -25,41 +29,46 @@ async function getModelResponse(configData = {}, newMessage = '') {
   try {
     data = await response.json();
   } catch (parseErr) {
-    const err = new Error('C003');
-    err.errorCode = 'C003';
+    const err = new Error("C003");
+    err.errorCode = "C003";
     err.httpStatus = response.status;
     throw err;
   }
 
   if (!response.ok || data.error) {
-    const code = data.errorCode || (response.ok ? null : 'C004');
-    const err = new Error(data.error || 'Unexpected Error.');
+    const code = data.errorCode || (response.ok ? null : "C004");
+    const err = new Error(data.error || "Unexpected Error.");
     err.errorCode = code;
     err.httpStatus = response.status;
     err.isWorkerError = true;
     throw err;
   }
 
-  const systemAlerts = Array.isArray(data?.systemAlerts) ? data.systemAlerts : null;
+  const systemAlerts = Array.isArray(data?.systemAlerts)
+    ? data.systemAlerts
+    : null;
 
   if (!data.response && systemAlerts && systemAlerts.length > 0) {
     return { text: null, systemAlerts };
   }
 
-  return { text: parseMarkdown(data?.response ?? 'No Response.'), systemAlerts };
+  return {
+    text: parseMarkdown(data?.response ?? "No Response."),
+    systemAlerts,
+  };
 }
 
 async function handleUserMessageSubmit() {
-  const input = document.getElementById('chat-user-input');
+  const input = document.getElementById("chat-user-input");
   let text = input.value.trim();
   if (!text) return;
 
   if (text.length > 250) text = text.substring(0, 250);
 
-  input.value = '';
+  input.value = "";
 
-  const userTime = appendChatMessage('user', text);
-  saveChatHistory('user', text, userTime);
+  const userTime = appendChatMessage("user", text);
+  saveChatHistory("user", text, userTime);
 
   toggleChatState(true);
   showTypingIndicator();
@@ -70,9 +79,9 @@ async function handleUserMessageSubmit() {
 
     const workerPromise = getModelResponse(globalProfileData, text);
     const abortPromise = new Promise((_, reject) => {
-      controller.signal.addEventListener('abort', () => {
-        const err = new Error('C002');
-        err.errorCode = 'C002';
+      controller.signal.addEventListener("abort", () => {
+        const err = new Error("C002");
+        err.errorCode = "C002";
         reject(err);
       });
     });
@@ -84,34 +93,32 @@ async function handleUserMessageSubmit() {
     newWindow = false;
 
     if (finalResponse.text) {
-      const systemTime = appendChatMessage('assistant', finalResponse.text);
-      saveChatHistory('assistant', finalResponse.text, systemTime);
+      const systemTime = appendChatMessage("assistant", finalResponse.text);
+      saveChatHistory("assistant", finalResponse.text, systemTime);
     }
 
     if (finalResponse.systemAlerts && finalResponse.systemAlerts.length > 0) {
       for (const alert of finalResponse.systemAlerts) {
-        const alertTime = appendChatMessage('system-error', alert.label);
-        saveChatHistory('system-error', alert.label, alertTime);
+        const alertTime = appendChatMessage("system-error", alert.label);
+        saveChatHistory("system-error", alert.label, alertTime);
       }
     }
-
   } catch (e) {
     removeTypingIndicator();
 
     const code = e.errorCode;
 
-    let userMessage = 'Communication Error Occurred.';
-    if (code === 'C002') {
-      userMessage = 'Request Timed Out. Try Again Later.';
-    } else if (code === 'C001') {
-      userMessage = 'Network Error. Check Your Connection.';
+    let userMessage = "Communication Error Occurred.";
+    if (code === "C002") {
+      userMessage = "Request Timed Out. Try Again Later.";
+    } else if (code === "C001") {
+      userMessage = "Network Error. Check Your Connection.";
     } else {
-      console.log(e)
+      console.log(e);
     }
 
-    const errTime = appendChatMessage('system-error', userMessage);
-    saveChatHistory('system-error', userMessage, errTime);
-
+    const errTime = appendChatMessage("system-error", userMessage);
+    saveChatHistory("system-error", userMessage, errTime);
   } finally {
     toggleChatState(false);
   }
@@ -120,12 +127,12 @@ async function handleUserMessageSubmit() {
 function initChatAssistant(configData) {
   globalProfileData = configData;
   chatConfigData = configData.assistant;
-  
+
   const assistantConfig = configData.assistant;
 
   function updateTriggerIcon(btnUI) {
     if (!btnUI || !assistantConfig) return;
-    const isLight = document.body.classList.contains('light-mode');
+    const isLight = document.body.classList.contains("light-mode");
     const icons = assistantConfig.icon || [];
 
     if (icons.length > 0 && (icons[0] || icons[1])) {
@@ -135,46 +142,46 @@ function initChatAssistant(configData) {
         return;
       }
     }
-    btnUI.innerHTML = '<i class="fa-regular fa-message"></i>';
+    btnUI.innerHTML = `<i class='fa-regular fa-message'></i>`;
   }
 
   function updateAvatarLayout() {
-    const container = document.getElementById('chat-bot-avatar-container');
+    const container = document.getElementById("chat-bot-avatar-container");
     if (!container || !assistantConfig) return;
 
-    const isLight = document.body.classList.contains('light-mode');
+    const isLight = document.body.classList.contains("light-mode");
     const icons = assistantConfig.icon || [];
 
     if (icons.length > 0 && (icons[0] || icons[1])) {
       const activeIcon = isLight && icons[1] ? icons[1] : icons[0];
       if (activeIcon) {
         container.innerHTML = `<img src='${activeIcon}' class='chat-bot-avatar' alt='Avatar' />`;
-        container.style.display = 'block';
+        container.style.display = "block";
         return;
       }
     }
-    container.innerHTML = '';
-    container.style.display = 'none';
+    container.innerHTML = "";
+    container.style.display = "none";
   }
 
-  const triggerBtn = document.createElement('button');
-  triggerBtn.title = 'Chat With AI Assistant';
-  triggerBtn.className = 'floating-trigger chat-trigger has-glow _clickable';
-  triggerBtn.id = 'chat-trigger';
+  const triggerBtn = document.createElement("button");
+  triggerBtn.title = "Chat With AI Assistant";
+  triggerBtn.className = "floating-trigger chat-trigger has-glow _clickable";
+  triggerBtn.id = "chat-trigger";
 
   updateTriggerIcon(triggerBtn);
 
-  const chatWindow = document.createElement('div');
-  chatWindow.className = 'chat-window';
-  chatWindow.id = 'chat-window';
+  const chatWindow = document.createElement("div");
+  chatWindow.className = "chat-window";
+  chatWindow.id = "chat-window";
 
   chatWindow.innerHTML = `
     <div class='chat-header'>
       <div class='chat-bot-info'>
         <div id='chat-bot-avatar-container'></div>
         <div class='chat-bot-brand'>
-          <span class='nav-name'>${assistantConfig.name || 'Assistant'}</span>
-          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ''}
+          <span class='nav-name'>${assistantConfig.name || "Assistant"}</span>
+          ${assistantConfig.role ? `<span class='post-detail'>${assistantConfig.role}</span>` : ""}
         </div>
       </div>
       <button class='chat-close-btn' id='chat-close-window'><i class='fa-solid fa-minus'></i></button>
@@ -195,78 +202,88 @@ function initChatAssistant(configData) {
   updateAvatarLayout();
   loadChatHistory();
 
-  const systemLogo = document.querySelector('.hero-logo');
+  const systemLogo = document.querySelector(".hero-logo");
   if (systemLogo) {
-    systemLogo.addEventListener('click', () => {
+    systemLogo.addEventListener("click", () => {
       setTimeout(() => {
-        updateTriggerIcon(document.getElementById('chat-trigger'));
+        updateTriggerIcon(document.getElementById("chat-trigger"));
         updateAvatarLayout();
       }, 50);
     });
   }
 
-  triggerBtn.addEventListener('click', (e) => {
+  triggerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     toggleChatWindow();
   });
 
-  document.getElementById('chat-close-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleChatWindow();
-  });
+  document
+    .getElementById("chat-close-window")
+    .addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleChatWindow();
+    });
 
-  document.getElementById('chat-clear-window').addEventListener('click', (e) => {
-    e.stopPropagation();
-    handleChatLogPurge();
-    const win = document.getElementById('chat-window');
-    if (win) win.classList.remove('open');
-  });
+  document
+    .getElementById("chat-clear-window")
+    .addEventListener("click", (e) => {
+      e.stopPropagation();
+      handleChatLogPurge();
+      const win = document.getElementById("chat-window");
+      if (win) win.classList.remove("open");
+    });
 
-  document.addEventListener('click', (e) => {
-    const win = document.getElementById('chat-window');
-    if (win && win.classList.contains('open')) {
+  document.addEventListener("click", (e) => {
+    const win = document.getElementById("chat-window");
+    if (win && win.classList.contains("open")) {
       if (!win.contains(e.target) && !triggerBtn.contains(e.target)) {
-        win.classList.remove('open');
+        win.classList.remove("open");
       }
     }
   });
 
-  chatWindow.addEventListener('click', (e) => {
+  chatWindow.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
-  const inputField = document.getElementById('chat-user-input');
-  inputField.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleUserMessageSubmit();
+  const inputField = document.getElementById("chat-user-input");
+  inputField.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleUserMessageSubmit();
   });
-  document.getElementById('chat-send-trigger').addEventListener('click', handleUserMessageSubmit);
+  document
+    .getElementById("chat-send-trigger")
+    .addEventListener("click", handleUserMessageSubmit);
 }
 
 function openChatWindow(attemptsLeft = 5) {
-  const win = document.getElementById('chat-window');
+  const win = document.getElementById("chat-window");
   if (win) {
-    if (!win.classList.contains('open')) toggleChatWindow();
+    if (!win.classList.contains("open")) toggleChatWindow();
   } else if (attemptsLeft > 0) {
     setTimeout(() => openChatWindow(attemptsLeft - 1), 150);
   }
 }
 
 function toggleChatWindow() {
-  const win = document.getElementById('chat-window');
+  const win = document.getElementById("chat-window");
   if (win) {
-    win.classList.toggle('open');
-    if (win.classList.contains('open')) {
-      const input = document.getElementById('chat-user-input');
+    win.classList.toggle("open");
+    if (win.classList.contains("open")) {
+      const input = document.getElementById("chat-user-input");
       if (input && !input.disabled) input.focus();
     }
-    history.replaceState(null, '', window.location.pathname + window.location.search);
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname + window.location.search,
+    );
   }
 }
 
 function toggleChatState(disabled) {
-  const input = document.getElementById('chat-user-input');
-  const sendBtn = document.getElementById('chat-send-trigger');
-  const clearBtn = document.getElementById('chat-clear-window');
+  const input = document.getElementById("chat-user-input");
+  const sendBtn = document.getElementById("chat-send-trigger");
+  const clearBtn = document.getElementById("chat-clear-window");
   if (!input || !sendBtn) return;
 
   input.disabled = disabled;
@@ -279,12 +296,13 @@ function toggleChatState(disabled) {
 }
 
 function showTypingIndicator() {
-  const container = document.getElementById('chat-messages-container');
+  const container = document.getElementById("chat-messages-container");
   if (!container) return;
 
-  const indicatorWrapper = document.createElement('div');
-  indicatorWrapper.className = 'chat-msg-item assistant typing-indicator-wrapper';
-  indicatorWrapper.id = 'chat-typing-indicator';
+  const indicatorWrapper = document.createElement("div");
+  indicatorWrapper.className =
+    "chat-msg-item assistant typing-indicator-wrapper";
+  indicatorWrapper.id = "chat-typing-indicator";
 
   indicatorWrapper.innerHTML = `
     <div class='chat-msg'>
@@ -301,20 +319,23 @@ function showTypingIndicator() {
 }
 
 function removeTypingIndicator() {
-  const indicator = document.getElementById('chat-typing-indicator');
+  const indicator = document.getElementById("chat-typing-indicator");
   if (indicator) indicator.remove();
 }
 
 function appendChatMessage(sender, text, timestampString = null) {
-  const container = document.getElementById('chat-messages-container');
+  const container = document.getElementById("chat-messages-container");
   if (!container) return;
 
   if (!timestampString) {
     const now = new Date();
-    timestampString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    timestampString = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
-  const msgItemWrapper = document.createElement('div');
+  const msgItemWrapper = document.createElement("div");
   msgItemWrapper.className = `chat-msg-item ${sender}`;
 
   msgItemWrapper.innerHTML = `
@@ -331,36 +352,43 @@ function saveChatHistory(sender, text, timestamp) {
   let history = [];
   const stored = localStorage.getItem(addresses.chatHistory);
   if (stored) {
-    try { history = JSON.parse(stored); } catch (e) { history = []; }
+    try {
+      history = JSON.parse(stored);
+    } catch (e) {
+      history = [];
+    }
   }
   history.push({ sender, text, timestamp });
   localStorage.setItem(addresses.chatHistory, JSON.stringify(history));
 }
 
 function loadChatHistory() {
-  const container = document.getElementById('chat-messages-container');
+  const container = document.getElementById("chat-messages-container");
   if (!container) return;
-  container.innerHTML = '';
+  container.innerHTML = "";
 
   const stored = localStorage.getItem(addresses.chatHistory);
   if (stored) {
     try {
       const history = JSON.parse(stored);
       if (history && history.length > 0) {
-        history.forEach(item => appendChatMessage(item.sender, item.text, item.timestamp));
+        history.forEach((item) =>
+          appendChatMessage(item.sender, item.text, item.timestamp),
+        );
         return;
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
-  const initialMsg = chatConfigData.initial || 'Hello there! I\'m your assistant. How can I help you today?';
+  const initialMsg =
+    chatConfigData.initial ||
+    "Hello there! I'm your assistant. How can I help you today?";
   if (initialMsg) {
     const formattedMsg = Array.isArray(initialMsg)
-      ? initialMsg.map(line => line.trim()).join('\n')
+      ? initialMsg.map((line) => line.trim()).join("\n")
       : initialMsg;
-    const timeGenerated = appendChatMessage('assistant', formattedMsg);
-    saveChatHistory('assistant', formattedMsg, timeGenerated);
+    const timeGenerated = appendChatMessage("assistant", formattedMsg);
+    saveChatHistory("assistant", formattedMsg, timeGenerated);
   }
 }
 
@@ -368,6 +396,6 @@ function handleChatLogPurge() {
   localStorage.removeItem(addresses.chatHistory);
   newWindow = true;
   loadChatHistory();
-  const input = document.getElementById('chat-user-input');
+  const input = document.getElementById("chat-user-input");
   if (input && !input.disabled) input.focus();
 }

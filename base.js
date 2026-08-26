@@ -74,6 +74,7 @@ const addresses = {
   mailFormData:        _address('mail-form-data'),
   timeSlotData:        _address('time-slot-data'),
   indexScrollY:        _address('index-scroll-y'),
+  logActivePage:       _address('log-active-page'),
   projectsActiveTopic: _address('projects-active-topic'),
   projectsSearchQuery: _address('projects-search-query'),
   projectsStarredOnly: _address('projects-starred-only'),
@@ -816,6 +817,14 @@ async function applyAnalysis(api = null) {
   apiUrl = api;
   buffer = loadBuffer();
 
+  const params = new URLSearchParams(location.search);
+
+  const pagePath = (() => {
+    const page = params.get('page');
+    const map = { '/log': ['education', 'experience', 'skills'], '/community': ['feed', 'guests', 'faq'] };
+    return `${location.pathname}${map[location.pathname]?.includes(page) ? `.${page}` : ``}`;
+  })();
+
   function logEvent(type, data = {}) {
     buffer.push({ type, timestamp: Date.now(), data });
     saveBuffer();
@@ -830,8 +839,6 @@ async function applyAnalysis(api = null) {
 
   if (buffer.length) sendBuffer();
 
-  const params = new URLSearchParams(location.search);
-
   try {
     await fetch(api, {
       method: 'POST',
@@ -843,7 +850,7 @@ async function applyAnalysis(api = null) {
           inviteId: params.get('invite'),
           referrer: document.referrer,
           language: navigator.language,
-          landing: location.pathname,
+          landing: pagePath,
           screen: `${screen.width}x${screen.height}`,
         },
       }),
